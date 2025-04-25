@@ -12,6 +12,7 @@ cd UnicodeFix
 python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
+chmod +x bin/cleanup-text.py
 ```
 
 ## Usage
