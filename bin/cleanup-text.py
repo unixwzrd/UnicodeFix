@@ -1,10 +1,16 @@
 #!/usr/bin/env python3
-import sys
+#
 import argparse
 import re
+import sys
+
 from unidecode import unidecode
 
+
 def clean_text(text):
+    """
+    Clean Unicode quirks from text.
+    """
     replacements = {
         '\u2018': "'", '\u2019': "'",
         '\u201C': '"', '\u201D': '"',
@@ -14,6 +20,7 @@ def clean_text(text):
         text = text.replace(orig, repl)
     text = re.sub(r'[\u200B\u200C\u200D\uFEFF]', '', text)
     return unidecode(text)
+
 
 def main():
     parser = argparse.ArgumentParser(description="Clean Unicode quirks from text.")
@@ -26,6 +33,7 @@ def main():
     input_text = args.infile.read()
     cleaned = clean_text(input_text)
     args.output.write(cleaned)
+
 
 if __name__ == '__main__':
     main()

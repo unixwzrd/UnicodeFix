@@ -40,6 +40,15 @@ options:
 python bin/cleanup-text.py <input_file>
 ```
 
+## What's in this repo:
+
+- [bin/cleanup-text.py](bin/cleanup-text.py) - The script that cleans up the text.
+- [setup.sh](setup.sh) - A script that sets up the environment to run the script.
+- [LICENSE](LICENSE) - The license for the project.
+- [README.md](README.md) - This file.
+- [requirements.txt](requirements.txt) - The dependencies for the project.
+- [data/](data/) - A directory with sample files full of unicode to test with.
+
 ## Coming SOon
 - macSO Shortcut
 
