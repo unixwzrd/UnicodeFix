@@ -17,6 +17,10 @@ bash setup.sh
 Setup will create a virtual environment to keep your system python clean.
 It will add the items needed to startup the script into your .bashrc
 
+Look at the [setup.sh](setup.sh) file to see what it does if you like, it's very simple.
+
+The .bashrc items are necessary because I will have a shortcut you may use from the macOS context menu to run the script shortly.
+
 ## Usage
 
 ```bash
