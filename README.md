@@ -65,15 +65,13 @@ This allows selecting multiple files and scrubbing the Unicode quirks from them 
 
 1. Open the "Shortcuts" app.
 
-   ![Shortcuts App Menu](docs/Screenshot%202025-04-25%20at%2005.50.57.png)
-
 2. Go to `File -> Import...`
 
-   ![Import Shortcut](docs/Screenshot%202025-04-25%20at%2005.51.54.png)
+   ![Shortcuts App Menu](docs/Screenshot%202025-04-25%20at%2005.50.57.png)
 
 3. Navigate to the `macOS` directory in this repository and select the `Strip Unicode.shortcut` file.
 
-   ![Select Shortcut File](docs/Screenshot%202025-04-25%20at%2005.47.51.png)
+   ![Import Shortcut](docs/Screenshot%202025-04-25%20at%2005.51.54.png)
 
 4. You will need to open the shortcut and change the location path of the `cleanup-text.py` script.
 
@@ -82,6 +80,8 @@ This allows selecting multiple files and scrubbing the Unicode quirks from them 
 5. You may have to restart Finder (use `Command+Option+Esc`, select Finder, and click "Relaunch").
 
 6. Once setup, right-click on a file or multiple files in Finder, go to `Quick Actions`, and select `Strip Unicode`.
+
+   ![Select Shortcut File](docs/Screenshot%202025-04-25%20at%2005.47.51.png)
 
    This will invoke the script on the selected files and create `.clean.txt` versions.
 
