@@ -1,0 +1,3 @@
+Here's a "smart" example-complete with em dashes, zero-width spaces, and other quirks.
+Notice the zero-width space between 'and' and 'other'? It's invisible but present.
+Also, beware of zero-width non-joiners and joiners that sneak into your text.
