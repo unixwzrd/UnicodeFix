@@ -7,7 +7,7 @@ Normalizes Unicode to ASCII equivalents
 I would recommend setting up a virtual environment so when you install the requirements it doesn't mess with your system python.
 
 ```bash
-git clone https://github.com/junixwzrdUnicodeFix.git
+git clone https://github.com/unixwzrdUnicodeFix.git
 cd UnicodeFix
 python -m venv venv
 source venv/bin/activate
