@@ -4,16 +4,18 @@ Normalizes Unicode to ASCII equivalents
 
 ## Installation
 
-I would recommend setting up a virtual environment so when you install the requirements it doesn't mess with your system python.
+Clone the repository somewhere on your system. You will need to pop up a terminal window to do this.
+
+Then copy and paste the following commands into the command window.
 
 ```bash
 git clone https://github.com/unixwzrd/UnicodeFix.git
 cd UnicodeFix
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-chmod +x bin/cleanup-text.py
+bash setup.sh
 ```
+
+Setup will create a virtual environment to keep your system python clean.
+It will add the items needed to startup the script into your .bashrc
 
 ## Usage
 
@@ -33,6 +35,9 @@ options:
 
 python bin/cleanup-text.py <input_file>
 ```
+
+## Coming SOon
+- macSO Shortcut
 
 ## License  
 Copyright 2025 unixwzrd@unixwzrd.ai
