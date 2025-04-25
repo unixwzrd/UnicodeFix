@@ -26,7 +26,8 @@ cd UnicodeFix
 bash setup.sh
 ```
 
-Setup will create a virtual environment to keep your system Python clean.
+Setup will create a virtual environment to keep your system Python clean. I also have a whole set of [Virtual Environment Utilities](https://github.com/unixwzrd/venvutil) repo  it's likely overkill for most people., but it does contain a lot of useful utilities and tools for managing Python Virtual environments using Pip and Conda, along with many other handy tools for AI and Unix.
+
 It will also add the items needed to start the script into your `.bashrc`.
 
 Look at the [setup.sh](setup.sh) file to see exactly what it does if you like — it's very simple.
