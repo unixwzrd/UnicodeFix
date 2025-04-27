@@ -64,8 +64,16 @@ def main():
         None
     """
     parser = argparse.ArgumentParser(description="Clean Unicode quirks from text.")
-    parser.add_argument("infile", nargs="+", help="Input file(s)")
+    parser.add_argument("infile", nargs="*", help="Input file(s)")
     args = parser.parse_args()
+
+    if not args.infile:
+        # No files provided: filter mode (STDIN to STDOUT)
+        import sys
+        raw = sys.stdin.read()
+        cleaned = clean_text(raw)
+        sys.stdout.write(cleaned)
+        return
 
     seen = set()
     for infile in args.infile:

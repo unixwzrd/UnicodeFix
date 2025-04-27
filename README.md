@@ -12,6 +12,9 @@ Normalizes Unicode to ASCII equivalents.
   - [What's in This Repo:](#whats-in-this-repo)
   - [Contributing](#contributing)
   - [Support This and Other Projects I Have](#support-this-and-other-projects-i-have)
+  - [Changelog](#changelog)
+    - [2025-04-27](#2025-04-27)
+    - [2025-04-26](#2025-04-26)
   - [License](#license)
 
 ## Installation
@@ -118,6 +121,16 @@ If you find this project useful, please tell others, and consider supporting my 
 - [Buy me a Coffee](https://www.buymeacoffee.com/unixwzrd)
 
 Thank you!
+
+
+## Changelog
+
+### 2025-04-27
+ - bug fix for filtering STDIO pipes
+ - added a shell script wrapper to source in your .bashrc, presumable with the virtual environment activated.
+
+### 2025-04-26
+- Initial release.
 
 ## License
 
