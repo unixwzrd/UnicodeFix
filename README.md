@@ -133,9 +133,9 @@ If you find a better integration path for Linux or Windows platforms, feel free 
 
 If you find UnicodeFix or my other projects valuable, please consider supporting continued development:
 
-- [Patreon](https://www.patreon.com/unixwzrd)
+- [Patreon](https://patreon.com/unixwzrd)
 - [Ko-Fi](https://ko-fi.com/unixwzrd)
-- [Buy Me a Coffee](https://www.buymeacoffee.com/unixwzrd)
+- [Buy Me a Coffee](https://buymeacoffee.com/unixwzrd)
 
 Thank you for your support.
 
