@@ -49,7 +49,14 @@ def clean_text(text: str) -> str:
     }
     for orig, repl in replacements.items():
         text = text.replace(orig, repl)
-    return re.sub(r'[\u200B\u200C\u200D\uFEFF]', '', text)
+
+    # Remove zero-width characters
+    text = re.sub(r'[\u200B\u200C\u200D\uFEFF]', '', text)
+
+    # Remove trailing whitespace on every line
+    text = re.sub(r'[ \t]+(\r?\n)', r'\1', text)
+
+    return text
 
 
 def main():

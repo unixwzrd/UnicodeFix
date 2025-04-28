@@ -1,17 +1,21 @@
 # UnicodeFix
 
-Normalizes Unicode to ASCII equivalents.
+UnicodeFix normalizes problematic Unicode artifacts into clean ASCII equivalents.
 
-**I'm getting this out quickly as people need it. Updates will follow to polish this up more soon.**
+This project was created to address the increasing frequency of invisible and typographic Unicode characters causing issues in code, configuration files, AI detection, and document processing.
+
+**This is an early release. Further polishing and enhancements will follow.**
 
 - [UnicodeFix](#unicodefix)
   - [Installation](#installation)
   - [Usage](#usage)
+    - [Pipe / Filter (STDIN to STDOUT)](#pipe--filter-stdin-to-stdout)
+    - [Using in vi/vim/macvim](#using-in-vivimmacvim)
   - [Shortcut for macOS](#shortcut-for-macos)
-    - [To add the shortcut:](#to-add-the-shortcut)
-  - [What's in This Repo:](#whats-in-this-repo)
+    - [To add the Shortcut:](#to-add-the-shortcut)
+  - [What's in This Repository](#whats-in-this-repository)
   - [Contributing](#contributing)
-  - [Support This and Other Projects I Have](#support-this-and-other-projects-i-have)
+  - [Support This and Other Projects](#support-this-and-other-projects)
   - [Changelog](#changelog)
     - [2025-04-27](#2025-04-27)
     - [2025-04-26](#2025-04-26)
@@ -19,9 +23,7 @@ Normalizes Unicode to ASCII equivalents.
 
 ## Installation
 
-Clone the repository somewhere on your system. You will need to pop open a terminal window to do this.
-
-Then copy and paste the following commands into the terminal:
+Clone the repository and run the setup script:
 
 ```bash
 git clone https://github.com/unixwzrd/UnicodeFix.git
@@ -29,15 +31,19 @@ cd UnicodeFix
 bash setup.sh
 ```
 
-Setup will create a virtual environment to keep your system Python clean. I also have a whole set of [Virtual Environment Utilities](https://github.com/unixwzrd/venvutil) repo  it's likely overkill for most people., but it does contain a lot of useful utilities and tools for managing Python Virtual environments using Pip and Conda, along with many other handy tools for AI and Unix.
+The \`setup.sh\` script:
 
-It will also add the items needed to start the script into your `.bashrc`.
+- Creates a dedicated Python virtual environment
+- Installs required dependencies
+- Adds startup configuration to your \`.bashrc\` for easier usage
 
-Look at the [setup.sh](setup.sh) file to see exactly what it does if you like — it's very simple.
+You can review [setup.sh](setup.sh) to see exactly what is modified.
 
-The `.bashrc` items are necessary because I have a Shortcut you may use from the macOS context menu to run the script directly.
+I also maintain a broader toolset for virtual environment management here: [VenvUtil](https://github.com/unixwzrd/venvutil), which may be of interest for more advanced users.
 
 ## Usage
+
+Once installed and activated:
 
 ```bash
 (python-3.10-PA-dev) [unixwzrd@xanax: UnicodeFix]$ python bin/cleanup-text.py --help
@@ -50,87 +56,98 @@ positional arguments:
 
 options:
   -h, --help            Show this help message and exit
-
-Example:
-python bin/cleanup-text.py <input_file>
 ```
 
-The output file will be named the same as the input file, but with a `.clean.txt` extension.
+### Pipe / Filter (STDIN to STDOUT)
 
-You can select multiple files at once.
+UnicodeFix can operate as a standard UNIX pipe:
+
+```bash
+cat file.txt | cleanup-text > cleaned.txt
+```
+
+If no input file arguments are given, it automatically reads from standard input and writes to standard output.
+
+### Using in vi/vim/macvim
+
+You can run UnicodeFix as a filter within vi/vim/macvim:
+
+```vim
+:%!cleanup-text
+```
+
+This command rewrites the entire buffer with cleaned text.
+
+**Note**:
+- Ensure your virtual environment is activated before launching your editor, or
+- Use a shell wrapper that sources your \`.bashrc\` and activates the environment automatically.
+
+Depending on how you manage virtual environments, you may need to adjust your editor’s shell invocation settings.
 
 ## Shortcut for macOS
 
-There is a "Shortcut" file in the `macOS/` directory which may be imported into the Shortcuts app.  
-It will allow the script to be run as a **Quick Action** from the Finder "Right Click" menu.  
-This allows selecting multiple files and scrubbing the Unicode quirks from them in bulk.
+UnicodeFix includes a macOS Shortcut for direct Finder integration.
 
-### To add the shortcut:
+You can right-click one or more files and select a Quick Action to clean Unicode quirks without opening a terminal.
 
-1. Open the "Shortcuts" app.
+### To add the Shortcut:
 
-2. Go to `File -> Import...`
+1. Open the **Shortcuts** app.
+2. Navigate to \`File -> Import\`.
 
    ![Shortcuts App Menu](docs/Screenshot%202025-04-25%20at%2005.50.57.png)
 
-3. Navigate to the `macOS` directory in this repository and select the `Strip Unicode.shortcut` file.
+3. Select the Shortcut file located in \`macOS/Strip Unicode.shortcut\`.
 
    ![Import Shortcut](docs/Screenshot%202025-04-25%20at%2005.51.54.png)
 
-4. You will need to open the shortcut and change the location path of the `cleanup-text.py` script.
+4. Edit the Shortcut to point to your local installation of \`cleanup-text.py\`.
 
    ![Edit Shortcut Script Path](docs/Screenshot%202025-04-25%20at%2005.07.47.png)
 
-5. You may have to restart Finder (use `Command+Option+Esc`, select Finder, and click "Relaunch").
+5. You may need to relaunch Finder (\`Command+Option+Esc\` → Select Finder → Relaunch).
 
-6. Once setup, right-click on a file or multiple files in Finder, go to `Quick Actions`, and select `Strip Unicode`.
+6. After setup, right-click selected files, choose \`Quick Actions\`, and select \`Strip Unicode\`.
 
    ![Select Shortcut File](docs/Screenshot%202025-04-25%20at%2005.47.51.png)
 
-   This will invoke the script on the selected files and create `.clean.txt` versions.
+## What's in This Repository
 
-Strip all the Unicode quirks out of your text files right in the finder using a Quick Action!
-
-If you know a better way for Linux or Windows users, feel free to submit a PR with your improvements.
-
-## What's in This Repo:
-
-- [bin/cleanup-text.py](bin/cleanup-text.py) — The script that cleans up the text.
-- [bin/cleanup-text](bin/cleanup-text) — A symlink without the `.py` extension for prettier usage in scripts.
-- [setup.sh](setup.sh) — A script that sets up the virtual environment.
-- [LICENSE](LICENSE) — The license for the project.
-- [README.md](README.md) — This file.
-- [requirements.txt](requirements.txt) — The dependencies needed to run.
-- [data/](data/) — Sample files full of Unicode issues for testing.
-- [docs/](docs/) — Supporting documentation for the project.
-- [macOS/](macOS/) — The Shortcut file for macOS users.
+- [bin/cleanup-text.py](bin/cleanup-text.py) — Main cleaning script
+- [bin/cleanup-text](bin/cleanup-text) — Symlink for command-line usage
+- [setup.sh](setup.sh) — Virtual environment setup script
+- [requirements.txt](requirements.txt) — Python dependencies
+- [macOS/](macOS/) — macOS Shortcut for Finder integration
+- [data/](data/) — Example test files with Unicode artifacts
+- [docs/](docs/) — Documentation and screenshots
+- [LICENSE](LICENSE) — License information
+- [README.md](README.md) — This file
 
 ## Contributing
 
-If you have suggestions, enhancements, or fixes, feel free to open an issue or pull request!  
-Testing and feedback are also very welcome.
+Feedback, testing, bug reports, and pull requests are welcome.
 
-## Support This and Other Projects I Have
+If you find a better integration path for Linux or Windows platforms, feel free to open an issue or contribute a patch.
 
-AI and Unix are my passions — but I need to pay the bills too.
+## Support This and Other Projects
 
-If you find this project useful, please tell others, and consider supporting my work:
+If you find UnicodeFix or my other projects valuable, please consider supporting continued development:
 
 - [Patreon](https://www.patreon.com/unixwzrd)
-- [Buy me a Ko-Fi](https://ko-fi.com/unixwzrd)
-- [Buy me a Coffee](https://www.buymeacoffee.com/unixwzrd)
+- [Ko-Fi](https://ko-fi.com/unixwzrd)
+- [Buy Me a Coffee](https://www.buymeacoffee.com/unixwzrd)
 
-Thank you!
-
+Thank you for your support.
 
 ## Changelog
 
 ### 2025-04-27
- - bug fix for filtering STDIO pipes
- - added a shell script wrapper to source in your .bashrc, presumable with the virtual environment activated.
+- Fixed behavior when processing STDIN pipes
+- Added trailing whitespace and blank line normalization
+- Added shell script wrapper for easier activation from editors
 
 ### 2025-04-26
-- Initial release.
+- Initial release
 
 ## License
 
