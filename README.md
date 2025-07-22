@@ -1,157 +1,230 @@
 # UnicodeFix
 
-UnicodeFix normalizes problematic Unicode artifacts into clean ASCII equivalents.
-
-This project was created to address the increasing frequency of invisible and typographic Unicode characters causing issues in code, configuration files, AI detection, and document processing.
-
-**This is an early release. Further polishing and enhancements will follow.**
+![UnicodeFix Hero Image](docs/controlling-unicode.png)
 
 - [UnicodeFix](#unicodefix)
+    - [**Finally - a tool that blasts AI fingerprints, torches those infuriating smart quotes, and leaves your code \& docs squeaky clean for real humans.**](#finally---a-tool-that-blasts-ai-fingerprints-torches-those-infuriating-smart-quotes-and-leaves-your-code--docs-squeaky-clean-for-real-humans)
+  - [Why Is This Happening?](#why-is-this-happening)
   - [Installation](#installation)
   - [Usage](#usage)
+  - [Brief Examples](#brief-examples)
     - [Pipe / Filter (STDIN to STDOUT)](#pipe--filter-stdin-to-stdout)
+    - [Batch Clean](#batch-clean)
+    - [In-Place (Safe) Clean](#in-place-safe-clean)
+    - [Preserve Temp File for Backup](#preserve-temp-file-for-backup)
     - [Using in vi/vim/macvim](#using-in-vivimmacvim)
+  - [What's New / What's Cool](#whats-new--whats-cool)
   - [Shortcut for macOS](#shortcut-for-macos)
     - [To add the Shortcut:](#to-add-the-shortcut)
   - [What's in This Repository](#whats-in-this-repository)
+  - [Testing and CI/CD](#testing-and-cicd)
   - [Contributing](#contributing)
   - [Support This and Other Projects](#support-this-and-other-projects)
   - [Changelog](#changelog)
-    - [2025-04-27](#2025-04-27)
-    - [2025-04-26](#2025-04-26)
   - [License](#license)
+
+---
+
+### **Finally - a tool that blasts AI fingerprints, torches those infuriating smart quotes, and leaves your code & docs squeaky clean for real humans.**
+
+Ever open up a file and instantly know it came from ChatGPT, Copilot, or one of their AI cousins? (Yeah, so can everyone else now.)
+UnicodeFix vaporizes all the weird dashes, curly quotes, invisible space ninjas, and digital "tells" that out you as an AI user - or just make your stuff fail linters and code reviews.
+
+**Whether you're a student, a dev, or an open-source rebel: this is your "eraser for AI breadcrumbs."**
+
+_Yes, it helps students cheat on their homework._
+It also makes blog posts and AI-proofed emails look like you sweated over every character.
+Nearly a thousand people have grabbed it. Nobody's bought me a coffee yet, but hey… there's a first time for everything.
+
+---
+
+## Why Is This Happening?
+
+Some folks think all this Unicode cruft is a side-effect of generative AI's training data. Others believe it's a deliberate move - baked-in "watermarks" to ID machine-generated text. Either way: these artifacts leave a trail. UnicodeFix wipes it.
+
+---
 
 ## Installation
 
 Clone the repository and run the setup script:
 
-```bash
+```
 git clone https://github.com/unixwzrd/UnicodeFix.git
 cd UnicodeFix
 bash setup.sh
 ```
 
-The \`setup.sh\` script:
+The `setup.sh` script:
+- Creates a Python virtual environment just for UnicodeFix
+- Installs dependencies
+- Adds handy startup config to your `.bashrc` for one-command usage
 
-- Creates a dedicated Python virtual environment
-- Installs required dependencies
-- Adds startup configuration to your \`.bashrc\` for easier usage
+See [setup.sh](setup.sh) for the nitty-gritty.
 
-You can review [setup.sh](setup.sh) to see exactly what is modified.
+For serious environment nerds: [VenvUtil](https://github.com/unixwzrd/venvutil) is my full-featured Python env toolkit.
 
-I also maintain a broader toolset for virtual environment management here: [VenvUtil](https://github.com/unixwzrd/venvutil), which may be of interest for more advanced users.
+---
 
 ## Usage
 
 Once installed and activated:
 
-```bash
-(python-3.10-PA-dev) [unixwzrd@xanax: UnicodeFix]$ python bin/cleanup-text.py --help
-usage: cleanup-text.py [-h] [infile ...]
+```
+(python-3.10-PA-dev) [unixwzrd@xanax: UnicodeFix]$ cleanup-text --help
 
-Clean Unicode quirks from text.
+usage: cleanup-text [-h] [-i] [-o OUTPUT] [-t] [-p] [-n] [infile ...]
+
+Clean Unicode quirks from text. If no input files are given, reads from STDIN and writes to STDOUT (filter mode). If input files are given, creates cleaned files with .clean before the extension (e.g., foo.txt -> foo.clean.txt). Use -o - to force output to STDOUT for all input files, or -o <file> to specify a single output file
+(only with one input file).
 
 positional arguments:
   infile                Input file(s)
 
 options:
-  -h, --help            Show this help message and exit
+  -h, --help            show this help message and exit
+  -i, --invisible       Preserve invisible Unicode characters (zero-width, non-breaking, etc.)
+  -o OUTPUT, --output OUTPUT
+                        Output file name, or '-' for STDOUT. Only valid with one input file, or use '-' for STDOUT with multiple files.
+  -t, --temp            In-place cleaning: Move each input file to .tmp, clean it, write cleaned output to original name, and delete .tmp after success.
+  -p, --preserve-tmp    With -t, preserve the .tmp file after cleaning (do not delete it). Useful for backup or manual recovery.
+  -n, --no-newline      Do not add a newline at the end of the output file (suppress final newline).
 ```
 
+## Brief Examples
+
 ### Pipe / Filter (STDIN to STDOUT)
-
-UnicodeFix can operate as a standard UNIX pipe:
-
-```bash
+```
 cat file.txt | cleanup-text > cleaned.txt
 ```
 
-If no input file arguments are given, it automatically reads from standard input and writes to standard output.
+### Batch Clean
+```
+cleanup-text *.txt
+```
+
+### In-Place (Safe) Clean
+```
+cleanup-text -t myfile.txt
+```
+
+### Preserve Temp File for Backup
+```
+cleanup-text -t -p myfile.txt
+```
 
 ### Using in vi/vim/macvim
 
-You can run UnicodeFix as a filter within vi/vim/macvim:
-
-```vim
+```
 :%!cleanup-text
 ```
 
-This command rewrites the entire buffer with cleaned text.
+You can run it from Vim, VS Code in Vim mode, or as a pre-commit. Use it for email, blog posts, whatever. Ignore the naysayers - this is *real-world convenience.*
 
-**Note**:
-- Ensure your virtual environment is activated before launching your editor, or
-- Use a shell wrapper that sources your \`.bashrc\` and activates the environment automatically.
+See [cleanup-text.md](docs/cleanup-text.md) for deeper dives and arcane options.
 
-Depending on how you manage virtual environments, you may need to adjust your editor’s shell invocation settings.
+- **Make sure your Python environment is activated** before launching your editor, or wrap it in a shell script that does it for you.
+- Adjust your editor's shell settings as needed for best results.
+
+---
+
+## What's New / What's Cool
+
+- **Vaporizes invisible Unicode (unless you tell it not to)**
+- **Normalizes EM/EN dashes to true ASCII - no more AI " - " nonsense**
+- **Wipes AI "tells," watermarks, and digital fingerprints**
+- **Fixes trailing whitespace, normalizes newlines, burns the digital junk**
+- **Portable (Python 3.7+), cross-platform**
+- **Integrated macOS Shortcut for right-click cleaning in Finder**
+- **Can be used in CI/CD - but also by normal humans, not just pipeline freaks**
+
+> *Fun fact*: Even Python will execute code with "curly quotes." Your IDE, email client, and browser all sneak these in. UnicodeFix hunts them down and torches them.
+
+---
 
 ## Shortcut for macOS
 
-UnicodeFix includes a macOS Shortcut for direct Finder integration.
+UnicodeFix ships with a macOS Shortcut for direct Finder integration.
 
-You can right-click one or more files and select a Quick Action to clean Unicode quirks without opening a terminal.
+Right-click files, pick a Quick Action, and - bam - no terminal required.
 
 ### To add the Shortcut:
 
 1. Open the **Shortcuts** app.
-2. Navigate to \`File -> Import\`.
-
+2. Choose `File -> Import`.
    ![Shortcuts App Menu](docs/Screenshot%202025-04-25%20at%2005.50.57.png)
-
-3. Select the Shortcut file located in \`macOS/Strip Unicode.shortcut\`.
-
+3. Select the Shortcut in `macOS/Strip Unicode.shortcut`.
    ![Import Shortcut](docs/Screenshot%202025-04-25%20at%2005.51.54.png)
-
-4. Edit the Shortcut to point to your local installation of \`cleanup-text.py\`.
-
+4. Edit it to point to your local `cleanup-text.py`.
    ![Edit Shortcut Script Path](docs/Screenshot%202025-04-25%20at%2005.07.47.png)
-
-5. You may need to relaunch Finder (\`Command+Option+Esc\` → Select Finder → Relaunch).
-
-6. After setup, right-click selected files, choose \`Quick Actions\`, and select \`Strip Unicode\`.
-
+5. Relaunch Finder (`Cmd+Opt+Esc` → select Finder → Relaunch) if needed.
+6. After setup, right-click files, choose `Quick Actions`, select `Strip Unicode`.
    ![Select Shortcut File](docs/Screenshot%202025-04-25%20at%2005.47.51.png)
+
+---
 
 ## What's in This Repository
 
-- [bin/cleanup-text.py](bin/cleanup-text.py) — Main cleaning script
-- [bin/cleanup-text](bin/cleanup-text) — Symlink for command-line usage
-- [setup.sh](setup.sh) — Virtual environment setup script
-- [requirements.txt](requirements.txt) — Python dependencies
-- [macOS/](macOS/) — macOS Shortcut for Finder integration
-- [data/](data/) — Example test files with Unicode artifacts
-- [docs/](docs/) — Documentation and screenshots
-- [LICENSE](LICENSE) — License information
-- [README.md](README.md) — This file
+- [bin/cleanup-text.py](bin/cleanup-text.py) - Main cleaning script
+- [bin/cleanup-text](bin/cleanup-text) - Symlink for CLI usage
+- [setup.sh](setup.sh) - Easy setup and env configuration
+- [requirements.txt](requirements.txt) - Python dependencies
+- [macOS/](macOS/) - Shortcuts, scripts for Finder
+- [data/](data/) - Example test files
+- [test/](test/) - Automated test suite for all features/edge cases
+- [docs/](docs/) - Documentation and screenshots
+- [LICENSE](LICENSE)
+- [README.md](README.md) - This file
+
+---
+
+## Testing and CI/CD
+
+UnicodeFix comes with a full, automated test suite:
+
+- Runs every feature & scenario on files in `data/`
+- Outputs to `test_output/` (by scenario, with diffs and word counts)
+- Clean up with: `./test/test_all.sh clean`
+- Plug into your CI/CD pipeline or just use as a "paranoia check" before shipping anything
+
+**Pro tip:** Run the tests before you merge, publish, or email a "final" version.
+
+See [docs/test-suite.md](docs/test-suite.md) for the deep dive.
+
+---
 
 ## Contributing
 
-Feedback, testing, bug reports, and pull requests are welcome.
+Feedback, bug reports, and patches welcome.
 
-If you find a better integration path for Linux or Windows platforms, feel free to open an issue or contribute a patch.
+If you've got a better integration path for your favorite platform, let's make it happen.
+Pull requests with attitude, creativity, and clean diffs appreciated.
+
+---
 
 ## Support This and Other Projects
 
-If you find UnicodeFix or my other projects valuable, please consider supporting continued development:
+If UnicodeFix (or my other projects) saved your bacon or made you smile,
+please consider fueling my caffeine habit and indie dev obsession:
 
 - [Patreon](https://patreon.com/unixwzrd)
 - [Ko-Fi](https://ko-fi.com/unixwzrd)
 - [Buy Me a Coffee](https://buymeacoffee.com/unixwzrd)
 
-Thank you for your support.
+One coffee = one more tool released to the wild.
+
+Thank you for keeping solo development alive!
+
+---
 
 ## Changelog
 
-### 2025-04-27
-- Fixed behavior when processing STDIN pipes
-- Added trailing whitespace and blank line normalization
-- Added shell script wrapper for easier activation from editors
+**See [CHANGELOG.md](CHANGELOG.md) for the latest drop.**
 
-### 2025-04-26
-- Initial release
+---
 
 ## License
 
-Copyright 2025  
+Copyright 2025
 [unixwzrd@unixwzrd.ai](mailto:unixwzrd@unixwzrd.ai)
 
 [MIT License](LICENSE)
