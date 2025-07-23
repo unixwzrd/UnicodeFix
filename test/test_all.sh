@@ -58,6 +58,11 @@ for scenario in "${SCENARIOS[@]}"; do
   echo "[i] Running scenario: $name (options: $opts)"
 
   for file in "$DATA_DIR"/*; do
+    # Skip .clean.ext files to avoid cascading effects
+    if [[ "$file" =~ \.clean\.[^/]*$ ]]; then
+      continue
+    fi
+
     fname=$(basename "$file")
     base="${fname%.*}"
     ext="${fname##*.}"
@@ -85,7 +90,13 @@ for scenario in "${SCENARIOS[@]}"; do
         cleanup-text < "$file" > "$out"
         ;;
       *)
-        cleanup-text $opts "$file" -o "$out"
+        if [[ "$name" == "default" ]]; then
+          cleanup-text "$file"
+          # Move the output file to the test directory
+          mv "data/${base}.clean${ext}" "$out"
+        else
+          cleanup-text $opts "$file" -o "$out"
+        fi
         ;;
     esac
 

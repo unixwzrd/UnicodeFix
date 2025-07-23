@@ -62,7 +62,7 @@ The script tests the following scenarios:
 - Always back up your data before running tests.
 - Review diffs and word counts to verify results.
 - Use the test suite to validate changes before integrating into CI/CD pipelines.
-- Never run the test script from inside the `test/` directory—always run from the project root.
+- Never run the test script from inside the `test/` directory - always run from the project root.
 
 ## CI/CD Integration
 - The test suite can be integrated into your CI/CD pipeline to ensure all code and text files are clean and free of AI artifacts before deployment or publication.
