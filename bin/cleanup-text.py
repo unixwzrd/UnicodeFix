@@ -169,9 +169,9 @@ def main():
             # Only add newline if there isn't one already
             if not cleaned.endswith('\n'):
                 cleaned += '\n'
-            # Add extra newline if running in VS Code extension host
-            if vscode_extension:
-                cleaned += '\n'
+                # Add extra newline if running in VS Code extension host (only when we added the first one)
+                if vscode_extension:
+                    cleaned += '\n'
         # If --no-newline is specified, leave the file exactly as is (no changes to newlines)
         
         sys.stdout.write(cleaned)
