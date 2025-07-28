@@ -97,11 +97,36 @@ def clean_text(text: str, preserve_invisible: bool = False) -> str:
     return text
 
 
-def ensure_single_newline(text: str) -> str:
+def handle_newlines(text: str, no_newline: bool = False) -> str:
     """
-    Ensure the text ends with exactly one newline character. Used for all text files.
+    Handle newline at EOF based on flags and environment.
+    
+    Args:
+        text (str): The text to process
+        no_newline (bool): If True, don't add any newlines
+        
+    Returns:
+        str: Text with appropriate newline handling
     """
-    return text.rstrip('\r\n') + '\n'
+    if no_newline:
+        return text  # Leave exactly as is
+    
+    # Check if running inside VS Code extension host (but not CI/CD pipeline)
+    vscode_extension = False
+    process_title = os.environ.get('VSCODE_PROCESS_TITLE', '')
+    app_insights = os.environ.get('APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL', '')
+    if process_title.startswith('extension-host') and app_insights != 'true':
+        vscode_extension = True
+    
+    # Only add newline if there isn't one already
+    if not text.endswith('\n'):
+        text += '\n'
+    
+    # Add extra newline if running in VS Code extension host (to compensate for stripping)
+    if vscode_extension:
+        text += '\n'
+    
+    return text
 
 
 def main():
@@ -157,23 +182,7 @@ def main():
         # No files provided: filter mode (STDIN to STDOUT)
         raw = sys.stdin.read()
         cleaned = clean_text(raw, preserve_invisible=args.invisible)
-
-        # Check if running inside VS Code extension host
-        vscode_extension = False
-        process_title = os.environ.get('VSCODE_PROCESS_TITLE', '')
-        if process_title.startswith('extension-host'):
-            vscode_extension = True
-
-        # Handle newline at EOF based on -n/--no-newline
-        if not args.no_newline:
-            # Only add newline if there isn't one already
-            if not cleaned.endswith('\n'):
-                cleaned += '\n'
-                # Add extra newline if running in VS Code extension host (only when we added the first one)
-                if vscode_extension:
-                    cleaned += '\n'
-        # If --no-newline is specified, leave the file exactly as is (no changes to newlines)
-        
+        cleaned = handle_newlines(cleaned, args.no_newline)
         sys.stdout.write(cleaned)
         return
 
@@ -198,11 +207,7 @@ def main():
                 with open(tmpfile, "r", encoding="utf-8", errors="replace") as f:
                     raw = f.read()
                 cleaned = clean_text(raw, preserve_invisible=args.invisible)
-                # Add or suppress newline at EOF based on -n/--no-newline
-                if not args.no_newline:
-                    cleaned = ensure_single_newline(cleaned)
-                else:
-                    cleaned = cleaned.rstrip('\r\n')
+                cleaned = handle_newlines(cleaned, args.no_newline)
                 with open(infile, "w", encoding="utf-8") as f:
                     f.write(cleaned)
                 print(f"[✓] Cleaned (in-place): {infile}")
@@ -215,11 +220,7 @@ def main():
             with open(infile, "r", encoding="utf-8", errors="replace") as f:
                 raw = f.read()
             cleaned = clean_text(raw, preserve_invisible=args.invisible)
-            # Add or suppress newline at EOF based on -n/--no-newline
-            if not args.no_newline:
-                cleaned = ensure_single_newline(cleaned)
-            else:
-                cleaned = cleaned.rstrip('\r\n')
+            cleaned = handle_newlines(cleaned, args.no_newline)
 
             if args.output:
                 if args.output == '-':
