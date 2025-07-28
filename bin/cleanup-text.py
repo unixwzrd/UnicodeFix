@@ -22,13 +22,13 @@ import os
 import re
 import sys
 
-# Check for unidecode dependency early, with a clear message if missing
+# Check for ftfy dependency early, with a clear message if missing
 try:
-    from unidecode import unidecode  # noqa: F401
+    import ftfy
 except ImportError:
     print(
-        "[✗] Missing dependency: 'Unidecode'. Please install it with:\n"
-        "    pip install Unidecode\n"
+        "[✗] Missing dependency: 'ftfy'. Please install it with:\n"
+        "    pip install ftfy\n"
         "Or install all requirements with:\n"
         "    pip install -r requirements.txt",
         file=sys.stderr
@@ -63,6 +63,10 @@ def clean_text(text: str, preserve_invisible: bool = False) -> str:
     Returns:
         str: The cleaned text with normalized ASCII characters
     """
+    # Use ftfy for intelligent text fixing and normalization
+    text = ftfy.fix_text(text)
+    
+    # Handle specific cases that unidecode might not handle perfectly
     replacements = {
         '\u2018': "'", '\u2019': "'",  # Smart single quotes
         '\u201C': '"', '\u201D': '"',  # Smart double quotes
@@ -153,11 +157,14 @@ def main():
         # No files provided: filter mode (STDIN to STDOUT)
         raw = sys.stdin.read()
         cleaned = clean_text(raw, preserve_invisible=args.invisible)
-        # Add or suppress newline at EOF based on -n/--no-newline
+
+        # Handle newline at EOF based on -n/--no-newline
         if not args.no_newline:
-            cleaned = ensure_single_newline(cleaned)
-        else:
-            cleaned = cleaned.rstrip('\r\n')
+            # Only add newline if there isn't one already
+            if not cleaned.endswith('\n'):
+                cleaned += '\n'
+        # If --no-newline is specified, leave the file exactly as is (no changes to newlines)
+        
         sys.stdout.write(cleaned)
         return
 

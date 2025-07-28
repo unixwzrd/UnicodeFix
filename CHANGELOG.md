@@ -1,8 +1,18 @@
 # Changelog for UnicodeFix
 
+## 2025-07-28
+
+### **Extended ASCII Preservation Fix**
+
+- **Switched from Unidecode to ftfy:** Replaced aggressive Unicode-to-ASCII conversion with intelligent text fixing
+- **Preserves Extended ASCII:** Now correctly preserves 8-bit extended ASCII characters (128-255) like é, ñ, ü, etc.
+- **Smarter Unicode Handling:** Only converts problematic Unicode characters while preserving intentional extended ASCII usage
+- **Updated Dependencies:** Replaced `Unidecode` dependency with `ftfy` in requirements.txt
+- **Maintains AI Artifact Removal:** Still removes smart quotes, EM/EN dashes, and other "AI tells" as designed
+
 ## 2025-07-23
 
-**Test Suite Fixes & Validation**
+### **Test Suite Fixes & Validation**
 
 - **Fixed Default Scenario:** Corrected test script to properly handle default behavior (creates `.clean.ext` files) without using `-o` flag that caused errors with multiple files
 - **Cascading File Prevention:** Added filtering to prevent processing already-cleaned `.clean.ext` files in subsequent test runs
@@ -19,7 +29,7 @@
 
 ## 2025-07-22
 
-**Major Release - "Enough of Your AI Nonsense" Edition**
+### **Major Release - "Enough of Your AI Nonsense" Edition**
 
 - **CLI Supercharged:** Added new power flags:
   `-i` / `--invisible` (preserve zero-width/invisible Unicode)
