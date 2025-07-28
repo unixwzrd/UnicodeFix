@@ -158,10 +158,19 @@ def main():
         raw = sys.stdin.read()
         cleaned = clean_text(raw, preserve_invisible=args.invisible)
 
+        # Check if running inside VS Code extension host
+        vscode_extension = False
+        process_title = os.environ.get('VSCODE_PROCESS_TITLE', '')
+        if process_title.startswith('extension-host'):
+            vscode_extension = True
+
         # Handle newline at EOF based on -n/--no-newline
         if not args.no_newline:
             # Only add newline if there isn't one already
             if not cleaned.endswith('\n'):
+                cleaned += '\n'
+            # Add extra newline if running in VS Code extension host
+            if vscode_extension:
                 cleaned += '\n'
         # If --no-newline is specified, leave the file exactly as is (no changes to newlines)
         
