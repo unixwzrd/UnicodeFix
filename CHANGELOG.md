@@ -1,5 +1,12 @@
 # Changelog for UnicodeFix
 
+## 2025-08-12
+
+### Minor patch
+- Expanded quote normalization: map additional Unicode quote/prime/angle/fullwidth marks to ASCII ' and " for shell-safe output
+- Refined VS Code filter handling: only apply newline compensation in filter mode; never in file-write modes; respect CI/CD env
+- No breaking changes; behavior unchanged for already-clean inputs
+
 ## 2025-07-28
 
 ### **Extended ASCII Preservation Fix**

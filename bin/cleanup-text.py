@@ -21,6 +21,7 @@ import argparse
 import os
 import re
 import sys
+import unicodedata
 
 # Check for ftfy dependency early, with a clear message if missing
 try:
@@ -66,14 +67,61 @@ def clean_text(text: str, preserve_invisible: bool = False) -> str:
     # Use ftfy for intelligent text fixing and normalization
     text = ftfy.fix_text(text)
     
-    # Handle specific cases that unidecode might not handle perfectly
+    # Handle specific cases that ftfy might not map to ASCII for shell-friendliness
     replacements = {
-        '\u2018': "'", '\u2019': "'",  # Smart single quotes
-        '\u201C': '"', '\u201D': '"',  # Smart double quotes
-        '\u2011': '-',                   # Non-breaking hyphen to regular hyphen
+        # Smart/apostrophe variants → '
+        '\u2018': "'",  # left single quotation mark
+        '\u2019': "'",  # right single quotation mark
+        '\u201B': "'",  # single high-reversed-9 quotation mark
+        '\u201A': "'",  # single low-9 quotation mark
+        '\u2039': "'",  # single left-pointing angle quotation mark
+        '\u203A': "'",  # single right-pointing angle quotation mark
+        '\u02BC': "'",  # modifier letter apostrophe
+        '\uFF07': "'",  # fullwidth apostrophe
+
+        # Double-quote variants → "
+        '\u201C': '"',  # left double quotation mark
+        '\u201D': '"',  # right double quotation mark
+        '\u201E': '"',  # double low-9 quotation mark
+        '\u201F': '"',  # double high-reversed-9 quotation mark
+        '\u00AB': '"',  # left-pointing double angle quotation mark
+        '\u00BB': '"',  # right-pointing double angle quotation mark
+        '\uFF02': '"',  # fullwidth quotation mark
+
+        # Non-breaking hyphen → ASCII hyphen-minus
+        '\u2011': '-',
     }
     for orig, repl in replacements.items():
         text = text.replace(orig, repl)
+
+    # Fallback: map any remaining Unicode quote punctuation to ASCII
+    single_like = {
+        '\u2018', '\u2019', '\u201B', '\u201A',  # various single quotes
+        '\u2039', '\u203A',  # angle single
+        '\u02BC', '\uFF07',  # apostrophes
+        '\u2032', '\u2035',  # prime marks often used like '
+    }
+    double_like = {
+        '\u201C', '\u201D', '\u201E', '\u201F',  # various double quotes
+        '\u00AB', '\u00BB',  # angle double
+        '\uFF02',  # fullwidth double quote
+        '\u2033', '\u2036',  # double prime marks often used like "
+    }
+    mapped_chars = []
+    for ch in text:
+        cat = unicodedata.category(ch)
+        if cat in ("Pi", "Pf"):
+            cp = f"\\u{ord(ch):04X}"
+            if cp in single_like:
+                mapped_chars.append("'")
+            elif cp in double_like:
+                mapped_chars.append('"')
+            else:
+                # Default quote fallback to double quote
+                mapped_chars.append('"')
+        else:
+            mapped_chars.append(ch)
+    text = ''.join(mapped_chars)
 
     # Replace EM dashes (U+2014) with space-dash-space, unless already surrounded by spaces
     def em_dash_replacer(match):
@@ -111,19 +159,8 @@ def handle_newlines(text: str, no_newline: bool = False) -> str:
     if no_newline:
         return text  # Leave exactly as is
     
-    # Check if running inside VS Code extension host (but not CI/CD pipeline)
-    vscode_extension = False
-    process_title = os.environ.get('VSCODE_PROCESS_TITLE', '')
-    app_insights = os.environ.get('APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL', '')
-    if process_title.startswith('extension-host') and app_insights != 'true':
-        vscode_extension = True
-    
     # Only add newline if there isn't one already
     if not text.endswith('\n'):
-        text += '\n'
-    
-    # Add extra newline if running in VS Code extension host (to compensate for stripping)
-    if vscode_extension:
         text += '\n'
     
     return text
@@ -182,7 +219,19 @@ def main():
         # No files provided: filter mode (STDIN to STDOUT)
         raw = sys.stdin.read()
         cleaned = clean_text(raw, preserve_invisible=args.invisible)
+
+        # Check if running inside VS Code extension host (but not CI/CD pipeline)
+        vscode_extension = False
+        process_title = os.environ.get('VSCODE_PROCESS_TITLE', '')
+        app_insights = os.environ.get('APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL', '')
+        if process_title.startswith('extension-host') and app_insights != 'true':
+            vscode_extension = True
+
+        # Base newline handling
         cleaned = handle_newlines(cleaned, args.no_newline)
+        # VS Code compensation only in filter mode
+        if not args.no_newline and vscode_extension:
+            cleaned += '\n'
         sys.stdout.write(cleaned)
         return
 
