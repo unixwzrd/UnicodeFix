@@ -1,16 +1,19 @@
 # Changelog for UnicodeFix
 
-## 2025-08-12
+## 2025-09-07
 
-### **CodExorcism Release - Not just for Codex**
+### CodExorcism Release
 
 - Expanded quote normalization: map additional Unicode quote/prime/angle/fullwidth marks to ASCII ' and " for shell-safe output
-- Refined VS Code filter handling: only apply newline compensation in filter mode; never in file-write modes; respect CI/CD env
+- Added new options:
+  - `-Q` / `--keep-smart-quotes`: preserve Unicode curly/smart quotes
+  - `-D` / `--keep-dashes`: preserve EN/EM dashes
+- Normalize ellipses: `…` (U+2026) and `⋯` (U+22EF) → `...`; `‥` (U+2025) → `..`
 - Normalize Unicode spaces: replace NBSP (U+00A0), NARROW NBSP (U+202F), EN/EM/THIN spaces (U+2000–U+200A), IDEOGRAPHIC SPACE (U+3000), etc., with ASCII space
 - Remove bidi/zero-width controls: strip LRM/RLM, embeddings/overrides/isolates, ZWSP/ZWNJ/ZWJ, BOM
+- Refined VS Code filter handling: only apply newline compensation in filter mode; never in file-write modes; respect CI/CD env
 - Note: These artifacts were observed in content produced by Codex/VS Code extensions
 - No breaking changes; behavior unchanged for already-clean inputs
-- Ellipsis handling and normalization
 
 ## 2025-07-28
 
