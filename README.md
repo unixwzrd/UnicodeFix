@@ -1,12 +1,16 @@
-# UnicodeFix
+# UnicodeFix - *CodExorcism Edition*
 
 ![UnicodeFix Hero Image](docs/controlling-unicode.png)
 
-- [UnicodeFix](#unicodefix)
+[![Python](https://img.shields.io/badge/Python-3.10%2B-blue)](#) [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE) [![Release](https://img.shields.io/github/v/tag/unixwzrd/UnicodeFix?label=release)](https://github.com/unixwzrd/UnicodeFix/releases)
+
+- [UnicodeFix - *CodExorcism Edition*](#unicodefix---codexorcism-edition)
     - [**Finally - a tool that blasts AI fingerprints, torches those infuriating smart quotes, and leaves your code \& docs squeaky clean for real humans.**](#finally---a-tool-that-blasts-ai-fingerprints-torches-those-infuriating-smart-quotes-and-leaves-your-code--docs-squeaky-clean-for-real-humans)
   - [Why Is This Happening?](#why-is-this-happening)
   - [Installation](#installation)
   - [Usage](#usage)
+    - [New options](#new-options)
+      - [When to preserve invisible characters (`-i`)](#when-to-preserve-invisible-characters--i)
   - [Brief Examples](#brief-examples)
     - [Pipe / Filter (STDIN to STDOUT)](#pipe--filter-stdin-to-stdout)
     - [Batch Clean](#batch-clean)
@@ -14,8 +18,11 @@
     - [Preserve Temp File for Backup](#preserve-temp-file-for-backup)
     - [Using in vi/vim/macvim](#using-in-vivimmacvim)
   - [What's New / What's Cool](#whats-new--whats-cool)
+    - [CodexExorcism Release (Sept 2025)](#codexexorcism-release-sept-2025)
+    - [Previous Releases](#previous-releases)
+    - [Keep It Fresh!](#keep-it-fresh)
   - [Shortcut for macOS](#shortcut-for-macos)
-    - [To add the Shortcut:](#to-add-the-shortcut)
+    - [To add the Shortcut](#to-add-the-shortcut)
   - [What's in This Repository](#whats-in-this-repository)
   - [Testing and CI/CD](#testing-and-cicd)
   - [Contributing](#contributing)
@@ -42,6 +49,8 @@ Nearly a thousand people have grabbed it. Nobody's bought me a coffee yet, but h
 
 Some folks think all this Unicode cruft is a side-effect of generative AI's training data. Others believe it's a deliberate move - baked-in "watermarks" to ID machine-generated text. Either way: these artifacts leave a trail. UnicodeFix wipes it.
 
+Be careful, professors and reviewers may even start planting Unicode honeypots in starter code or essays - UnicodeFix torches those too. In this "AI Arms Race," `diff` and `vimdiff` are your night-vision goggles.
+
 ---
 
 ## Installation
@@ -55,6 +64,7 @@ bash setup.sh
 ```
 
 The `setup.sh` script:
+
 - Creates a Python virtual environment just for UnicodeFix
 - Installs dependencies
 - Adds handy startup config to your `.bashrc` for one-command usage
@@ -69,56 +79,79 @@ For serious environment nerds: [VenvUtil](https://github.com/unixwzrd/venvutil) 
 
 Once installed and activated:
 
-```
-(python-3.10-PA-dev) [unixwzrd@xanax: UnicodeFix]$ cleanup-text --help
+```bash
+(LLaSA-speech) [unixwzrd@xanax: bin]$ cleanup-text --help
 
-usage: cleanup-text [-h] [-i] [-o OUTPUT] [-t] [-p] [-n] [infile ...]
+usage: cleanup-text [-h] [-i] [-Q] [-D] [-n] [-o OUTPUT] [-t] [-p] [infile ...]
 
-Clean Unicode quirks from text. If no input files are given, reads from STDIN and writes to STDOUT (filter mode). If input files are given, creates cleaned files with .clean before the extension (e.g., foo.txt -> foo.clean.txt). Use -o - to force output to STDOUT for all input files, or -o <file> to specify a single output file
-(only with one input file).
+Clean Unicode quirks from text. If no input files are given, reads from STDIN and writes to STDOUT (filter mode). If input files are given, creates cleaned files with .clean before the extension (e.g., foo.txt -> foo.clean.txt). Use -o - to force output to STDOUT for all input files, or -o <file> to specify a single output file (only with one
+input file).
 
 positional arguments:
   infile                Input file(s)
 
 options:
   -h, --help            show this help message and exit
-  -i, --invisible       Preserve invisible Unicode characters (zero-width, non-breaking, etc.)
+  -i, --invisible       Preserve invisible Unicode characters (zero-width, bidi controls, etc.)
+  -Q, --keep-smart-quotes
+                        Preserve Unicode smart quotes (do not convert to ASCII)
+  -D, --keep-dashes     Preserve Unicode EN/EM dashes (do not convert to ASCII)
+  -n, --no-newline      Do not add a newline at the end of the output file (suppress final newline).
   -o OUTPUT, --output OUTPUT
                         Output file name, or '-' for STDOUT. Only valid with one input file, or use '-' for STDOUT with multiple files.
   -t, --temp            In-place cleaning: Move each input file to .tmp, clean it, write cleaned output to original name, and delete .tmp after success.
   -p, --preserve-tmp    With -t, preserve the .tmp file after cleaning (do not delete it). Useful for backup or manual recovery.
-  -n, --no-newline      Do not add a newline at the end of the output file (suppress final newline).
 ```
+
+### New options
+
+- `-Q`, `--keep-smart-quotes`: Preserve Unicode smart quotes (curly single/double quotes). Useful when preparing prose/blog posts where typographic quotes are intentional. Default behavior converts them to ASCII for shell/CI safety.
+- `-D`, `--keep-dashes`: Preserve EN/EM dashes. Useful when stylistic punctuation is desired in prose. Default behavior converts EM dash to ` - ` and EN dash to `-`.
+
+#### When to preserve invisible characters (`-i`)
+
+In most code/CI workflows, invisible/bidi controls are accidental and should be removed (default). Rare cases to preserve (`-i`):
+
+- Linguistic text where ZWJ/ZWNJ influence shaping
+- Intentional watermarks/markers in text
+- Forensic/debug inspections before deciding what to strip
 
 ## Brief Examples
 
 ### Pipe / Filter (STDIN to STDOUT)
-```
+
+```bash
 cat file.txt | cleanup-text > cleaned.txt
 ```
 
 ### Batch Clean
-```
+
+```bash
 cleanup-text *.txt
 ```
 
 ### In-Place (Safe) Clean
-```
+
+```bash
 cleanup-text -t myfile.txt
 ```
 
 ### Preserve Temp File for Backup
-```
+
+```bash
 cleanup-text -t -p myfile.txt
 ```
 
 ### Using in vi/vim/macvim
 
-```
+```vim
 :%!cleanup-text
 ```
 
-You can run it from Vim, VS Code in Vim mode, or as a pre-commit. Use it for email, blog posts, whatever. Ignore the naysayers - this is *real-world convenience.*
+Works great for vi/Vim purists, VS Code hipsters, or anyone who just wants their text to behave like text.
+Also handy if you’re trying to slip your AI-generated code past your CS prof without curly quotes giving you away.
+
+You can run it from Vim, VS Code in Vim mode, or as a pre-commit. Use it for email, blog posts, whatever. Ignore the naysayers - this is _real-world convenience._
 
 See [cleanup-text.md](docs/cleanup-text.md) for deeper dives and arcane options.
 
@@ -129,7 +162,16 @@ See [cleanup-text.md](docs/cleanup-text.md) for deeper dives and arcane options.
 
 ## What's New / What's Cool
 
-- **Vaporizes invisible Unicode (unless you tell it not to)**
+### CodexExorcism Release (Sept 2025)  
+
+Exorcise your code from VS Code/Codex’s funky Unicode artifacts (NBSPs, bidi controls, smart quotes).  
+
+- **Safer EOF handling in VS Code filter mode**  
+- **Normalizes more sneaky Codex/AI fingerprints**
+- **Ellipsis Eradication**
+
+### Previous Releases
+
 - **Normalizes EM/EN dashes to true ASCII - no more AI " - " nonsense**
 - **Wipes AI "tells," watermarks, and digital fingerprints**
 - **Fixes trailing whitespace, normalizes newlines, burns the digital junk**
@@ -137,7 +179,11 @@ See [cleanup-text.md](docs/cleanup-text.md) for deeper dives and arcane options.
 - **Integrated macOS Shortcut for right-click cleaning in Finder**
 - **Can be used in CI/CD - but also by normal humans, not just pipeline freaks**
 
-> *Fun fact*: Even Python will execute code with "curly quotes." Your IDE, email client, and browser all sneak these in. UnicodeFix hunts them down and torches them.
+> *Fun fact*: Even Python will execute code with "curly quotes." Your IDE, email client, and browser all sneak these in. UnicodeFix hunts them down and torches them, ...so your coding homework looks *lovingly hand-crafted* at 4:37 a.m., rather than LLM spawn.
+
+### Keep It Fresh!
+
+Pull requests/issues always welcome - especially if your AI friend slipped a new weird Unicode gremlin past me, I found a few more while preparing this release too...🙄
 
 ---
 
@@ -147,7 +193,7 @@ UnicodeFix ships with a macOS Shortcut for direct Finder integration.
 
 Right-click files, pick a Quick Action, and - bam - no terminal required.
 
-### To add the Shortcut:
+### To add the Shortcut
 
 1. Open the **Shortcuts** app.
 2. Choose `File -> Import`.
@@ -203,14 +249,13 @@ Pull requests with attitude, creativity, and clean diffs appreciated.
 
 ## Support This and Other Projects
 
-If UnicodeFix (or my other projects) saved your bacon or made you smile,
-please consider fueling my caffeine habit and indie dev obsession:
+If UnicodeFix (or my other projects) saved your bacon or made you smile, please consider fueling my caffeine habit and indie dev obsession...
 
 - [Patreon](https://patreon.com/unixwzrd)
 - [Ko-Fi](https://ko-fi.com/unixwzrd)
 - [Buy Me a Coffee](https://buymeacoffee.com/unixwzrd)
 
-One coffee = one more tool released to the wild.
+Quite a bit of effort goes into preparing these releases. *One coffee = one more tool released to the wild...*🤔
 
 Thank you for keeping solo development alive!
 

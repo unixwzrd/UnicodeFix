@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Uniclean is a wrappet fro cleanup-text.py which ensures the proper virtual environment
+# Uniclean is a wrapper fro cleanup-text.py which ensures the proper virtual environment
 # is activated and the script is run from the root of the project.
 
 # Activate the virtual environment

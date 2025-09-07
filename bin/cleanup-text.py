@@ -53,7 +53,12 @@ class CustomArgumentParser(argparse.ArgumentParser):
         sys.exit(status)
 
 
-def clean_text(text: str, preserve_invisible: bool = False) -> str:
+def clean_text(
+    text: str,
+    preserve_invisible: bool = False,
+    preserve_quotes: bool = False,
+    preserve_dashes: bool = False,
+) -> str:
     """
     Normalize problematic or invisible Unicode characters to safe ASCII equivalents.
 
@@ -66,78 +71,66 @@ def clean_text(text: str, preserve_invisible: bool = False) -> str:
     """
     # Use ftfy for intelligent text fixing and normalization
     text = ftfy.fix_text(text)
-    
-    # Handle specific cases that ftfy might not map to ASCII for shell-friendliness
-    replacements = {
-        # Smart/apostrophe variants → '
-        '\u2018': "'",  # left single quotation mark
-        '\u2019': "'",  # right single quotation mark
-        '\u201B': "'",  # single high-reversed-9 quotation mark
-        '\u201A': "'",  # single low-9 quotation mark
-        '\u2039': "'",  # single left-pointing angle quotation mark
-        '\u203A': "'",  # single right-pointing angle quotation mark
-        '\u02BC': "'",  # modifier letter apostrophe
-        '\uFF07': "'",  # fullwidth apostrophe
 
-        # Double-quote variants → "
-        '\u201C': '"',  # left double quotation mark
-        '\u201D': '"',  # right double quotation mark
-        '\u201E': '"',  # double low-9 quotation mark
-        '\u201F': '"',  # double high-reversed-9 quotation mark
-        '\u00AB': '"',  # left-pointing double angle quotation mark
-        '\u00BB': '"',  # right-pointing double angle quotation mark
-        '\uFF02': '"',  # fullwidth quotation mark
+    # Handle specific cases for shell-friendliness
+    # Quote normalization
+    if not preserve_quotes:
+        replacements = {
+            # Smart/apostrophe variants → '
+            '\u2018': "'", '\u2019': "'", '\u201B': "'", '\u201A': "'",
+            '\u2039': "'", '\u203A': "'", '\u02BC': "'", '\uFF07': "'",
+            # Double-quote variants → "
+            '\u201C': '"', '\u201D': '"', '\u201E': '"', '\u201F': '"',
+            '\u00AB': '"', '\u00BB': '"', '\uFF02': '"',
+            # Ellipsis variants → '...'
+            '\u2026': '...',  # Horizontal Ellipsis
+            '\u22EF': '...',  # MiDline Horizontal Ellipsis
+            '\u2025': '..',   # Two Dot Leader
+        }
+        for orig, repl in replacements.items():
+            text = text.replace(orig, repl)
 
-        # Non-breaking hyphen → ASCII hyphen-minus
-        '\u2011': '-',
-    }
-    for orig, repl in replacements.items():
-        text = text.replace(orig, repl)
-
-    # Fallback: map any remaining Unicode quote punctuation to ASCII
-    single_like = {
-        '\u2018', '\u2019', '\u201B', '\u201A',  # various single quotes
-        '\u2039', '\u203A',  # angle single
-        '\u02BC', '\uFF07',  # apostrophes
-        '\u2032', '\u2035',  # prime marks often used like '
-    }
-    double_like = {
-        '\u201C', '\u201D', '\u201E', '\u201F',  # various double quotes
-        '\u00AB', '\u00BB',  # angle double
-        '\uFF02',  # fullwidth double quote
-        '\u2033', '\u2036',  # double prime marks often used like "
-    }
-    mapped_chars = []
-    for ch in text:
-        cat = unicodedata.category(ch)
-        if cat in ("Pi", "Pf"):
-            cp = f"\\u{ord(ch):04X}"
-            if cp in single_like:
-                mapped_chars.append("'")
-            elif cp in double_like:
-                mapped_chars.append('"')
+        # Fallback: map any remaining Unicode quote punctuation to ASCII
+        single_like = {
+            '\u2018', '\u2019', '\u201B', '\u201A', '\u2039', '\u203A', '\u02BC', '\uFF07', '\u2032', '\u2035'
+        }
+        double_like = {
+            '\u201C', '\u201D', '\u201E', '\u201F', '\u00AB', '\u00BB', '\uFF02', '\u2033', '\u2036'
+        }
+        mapped_chars = []
+        for ch in text:
+            cat = unicodedata.category(ch)
+            if cat in ("Pi", "Pf"):
+                cp = f"\\u{ord(ch):04X}"
+                if cp in single_like:
+                    mapped_chars.append("'")
+                elif cp in double_like:
+                    mapped_chars.append('"')
+                else:
+                    mapped_chars.append('"')
             else:
-                # Default quote fallback to double quote
-                mapped_chars.append('"')
-        else:
-            mapped_chars.append(ch)
-    text = ''.join(mapped_chars)
+                mapped_chars.append(ch)
+        text = ''.join(mapped_chars)
 
-    # Replace EM dashes (U+2014) with space-dash-space, unless already surrounded by spaces
-    def em_dash_replacer(match):
-        before = match.group(1)
-        after = match.group(2)
-        if before and after:
-            return before + '-' + after
-        return ' - '
-    text = re.sub(r'(\s*)\u2014(\s*)', em_dash_replacer, text)
+    # Dash normalization
+    if not preserve_dashes:
+        # Replace EM dash with space-dash-space unless already spaced
+        def em_dash_replacer(match):
+            before = match.group(1)
+            after = match.group(2)
+            if before and after:
+                return before + '-' + after
+            return ' - '
+        text = re.sub(r'(\s*)\u2014(\s*)', em_dash_replacer, text)
+        # EN dash → '-'
+        text = re.sub(r'\u2013', '-', text)
 
-    # Replace EN dashes (U+2013) with plain dash, preserving spacing
-    text = re.sub(r'\u2013', '-', text)
+    # Normalize Unicode spaces: map all Zs separators to ASCII space
+    text = re.sub(r"[\u00A0\u1680\u2000-\u200A\u202F\u205F\u3000]", " ", text)
 
     if not preserve_invisible:
-        # Remove zero-width and other invisible characters
-        text = re.sub(r'[\u200B\u200C\u200D\uFEFF\u00A0]', '', text)
+        # Remove zero-width and bidi/invisible controls
+        text = re.sub(r"[\u200B\u200C\u200D\uFEFF\u200E\u200F\u202A-\u202E\u2066-\u2069]", "", text)
 
     # Remove trailing whitespace on every line
     text = re.sub(r'[ \t]+(\r?\n)', r'\1', text)
@@ -148,21 +141,20 @@ def clean_text(text: str, preserve_invisible: bool = False) -> str:
 def handle_newlines(text: str, no_newline: bool = False) -> str:
     """
     Handle newline at EOF based on flags and environment.
-    
+
     Args:
         text (str): The text to process
         no_newline (bool): If True, don't add any newlines
-        
+
     Returns:
         str: Text with appropriate newline handling
     """
     if no_newline:
         return text  # Leave exactly as is
-    
+
     # Only add newline if there isn't one already
     if not text.endswith('\n'):
         text += '\n'
-    
     return text
 
 
@@ -185,7 +177,22 @@ def main():
     parser.add_argument(
         "-i", "--invisible",
         action="store_true",
-        help="Preserve invisible Unicode characters (zero-width, non-breaking, etc.)"
+        help="Preserve invisible Unicode characters (zero-width, bidi controls, etc.)"
+    )
+    parser.add_argument(
+        "-Q", "--keep-smart-quotes",
+        action="store_true",
+        help="Preserve Unicode smart quotes (do not convert to ASCII)"
+    )
+    parser.add_argument(
+        "-D", "--keep-dashes",
+        action="store_true",
+        help="Preserve Unicode EN/EM dashes (do not convert to ASCII)"
+    )
+    parser.add_argument(
+        "-n", "--no-newline",
+        action="store_true",
+        help="Do not add a newline at the end of the output file (suppress final newline)."
     )
     parser.add_argument(
         "-o", "--output",
@@ -208,19 +215,18 @@ def main():
             "  Useful for backup or manual recovery."
         )
     )
-    parser.add_argument(
-        "-n", "--no-newline",
-        action="store_true",
-        help="Do not add a newline at the end of the output file (suppress final newline)."
-    )
     args = parser.parse_args()
 
     if not args.infile:
         # No files provided: filter mode (STDIN to STDOUT)
         raw = sys.stdin.read()
-        cleaned = clean_text(raw, preserve_invisible=args.invisible)
-
-        # Check if running inside VS Code extension host (but not CI/CD pipeline)
+        cleaned = clean_text(
+            raw,
+            preserve_invisible=args.invisible,
+            preserve_quotes=args.keep_smart_quotes,
+            preserve_dashes=args.keep_dashes,
+        )
+        # VS Code compensation only in filter mode (skip in CI/CD)
         vscode_extension = False
         process_title = os.environ.get('VSCODE_PROCESS_TITLE', '')
         app_insights = os.environ.get('APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL', '')
@@ -255,7 +261,12 @@ def main():
                 os.rename(infile, tmpfile)
                 with open(tmpfile, "r", encoding="utf-8", errors="replace") as f:
                     raw = f.read()
-                cleaned = clean_text(raw, preserve_invisible=args.invisible)
+                cleaned = clean_text(
+                    raw,
+                    preserve_invisible=args.invisible,
+                    preserve_quotes=args.keep_smart_quotes,
+                    preserve_dashes=args.keep_dashes,
+                )
                 cleaned = handle_newlines(cleaned, args.no_newline)
                 with open(infile, "w", encoding="utf-8") as f:
                     f.write(cleaned)
@@ -268,7 +279,12 @@ def main():
 
             with open(infile, "r", encoding="utf-8", errors="replace") as f:
                 raw = f.read()
-            cleaned = clean_text(raw, preserve_invisible=args.invisible)
+            cleaned = clean_text(
+                raw,
+                preserve_invisible=args.invisible,
+                preserve_quotes=args.keep_smart_quotes,
+                preserve_dashes=args.keep_dashes,
+            )
             cleaned = handle_newlines(cleaned, args.no_newline)
 
             if args.output:

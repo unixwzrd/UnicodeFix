@@ -2,10 +2,15 @@
 
 ## 2025-08-12
 
-### Minor patch
+### **CodExorcism Release - Not just for Codex**
+
 - Expanded quote normalization: map additional Unicode quote/prime/angle/fullwidth marks to ASCII ' and " for shell-safe output
 - Refined VS Code filter handling: only apply newline compensation in filter mode; never in file-write modes; respect CI/CD env
+- Normalize Unicode spaces: replace NBSP (U+00A0), NARROW NBSP (U+202F), EN/EM/THIN spaces (U+2000–U+200A), IDEOGRAPHIC SPACE (U+3000), etc., with ASCII space
+- Remove bidi/zero-width controls: strip LRM/RLM, embeddings/overrides/isolates, ZWSP/ZWNJ/ZWJ, BOM
+- Note: These artifacts were observed in content produced by Codex/VS Code extensions
 - No breaking changes; behavior unchanged for already-clean inputs
+- Ellipsis handling and normalization
 
 ## 2025-07-28
 

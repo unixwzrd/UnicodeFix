@@ -33,6 +33,8 @@ SCENARIOS=(
   "temp:-t"
   "preservetmp:-t -p"
   "stdout:STDIN"
+  "keep_quotes:-Q"
+  "keep_dashes:-D"
 )
 
 # Clean and recreate output directory
