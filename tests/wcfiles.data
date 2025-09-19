@@ -1,0 +1,17 @@
+    2   143   865 test_ai_a_1.txt
+    4   183  1150 test_ai_a_2.txt
+   10   214  1337 test_ai_a_3.txt
+    6   212  1354 test_ai_a_4.txt
+    6   146   967 test_ai_a_5.txt
+    0   375  1960 test_ai_h_6.txt
+   12   370  1931 test_ai_h_7.txt
+   17    59   498 test_sample.c
+    8    57   329 test_sample.md
+   15    67   523 test_sample.py
+   29    98   737 test_sample2.c
+   29    93   688 test_sample2.py
+    2    36   269 unicode-tst-1.bin
+    3    38   250 unicode-tst-1.clean.bin
+    3    37   279 unicode-tst.bin
+    4    38   251 unicode-tst.clean.bin
+  150  2166 13388 total
