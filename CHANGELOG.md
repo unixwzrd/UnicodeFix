@@ -1,5 +1,20 @@
 # Changelog for UnicodeFix
 
+*Last updated: 2025-09-18*
+
+## 2025-09-18
+
+### Test Harness Simplification & Metrics Preview
+
+- Rebuilt `tests/test_all.sh` to derive its file list directly from `data/`, drive glob/batch runs with a single command, and rely on `-t` for in-place scenarios.
+- STDIN/STDOUT scenario now skips binary fixtures to avoid Python's UTF-8 decoding errors, while every other scenario still exercises them.
+- Normalized diffs and `wc` comparisons are produced per scenario without duplicating helper logic.
+- Updated README, docs/cleanup-text.md, and docs/test-suite.md with the new run commands, behavior notes, cleanup instructions, and the preview `--metrics` documentation.
+- Bumped version to 1.1.0 and documented the experimental semantic metrics (`--metrics`, `--metrics-help`).
+- Added `--exit-zero` so report/metrics runs can inform pre-commit hooks without aborting the workflow.
+- Installation is now Pip based.
+
+
 ## 2025-09-07
 
 ### CodExorcism Release
@@ -55,7 +70,7 @@
 - **AI Artifact Killer:** Cranked up removal of invisible Unicode, "AI tells," EM/EN dashes, curly/smart quotes, and digital fingerprints from text, code, and prose.
 - **Cleaner Output:** Output files now use `.clean` before the extension for extra safety.
 - **Help & Error Output:** Help and error messages are clearer, less cryptic, and actually readable.
-- **Epic Test Suite:** All-new `test/test_all.sh` script automates batch tests, diffs, word counts, and deep-clean scenarios - review everything in `test_output/` before you ship or commit.
+- **Epic Test Suite:** All-new `tests/test_all.sh` script automates batch tests, diffs, word counts, and deep-clean scenarios - review everything in `test_output/` before you ship or commit.
 - **Docs & Best Practices:** README and docs overhauled with real-world examples, pro tips, and fresh install/usage details (plus a *lot* more attitude).
 - **CI/CD Ready:** Use in your pre-commit, CI pipeline, or just blast through homework/AI-proofreading artifacts for fun.
 - **Because I got tired of looking at garbage code.**

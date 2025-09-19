@@ -1,0 +1,13 @@
+Well, I've had a lot of people demanding, or not demanding, but requesting AI detection and probability, so I thought I'd tackle that. It's gone remarkably fast. I found all the information that I needed and everything, and I've been able to pull it all together. It's kind of cool.
+
+I'm just looking for a big chunk of text I can test it on. So far I've just tested it on asking ChatGPT to generate some story about something and it gave me two paragraphs that weren't very long of just complete nonsense. It ended up scoring a .55 on a zero-to-one scale of whether it was human or AI, so it ranked higher for being likely to be AI—it's a pretty neat tool.
+
+I mean, it's going to be the next release of UnicodeFix, so I'm kind of psyched about that. I figured professors are going to get it, and students are going to cheat with their homework. Everybody's going to do it anyway.
+
+And the AI detectors that I found online are pretty crap. They don't work like GPT-0 and 0GPT, and there's a whole bunch of them out there. But I had one tell me that my text was 100% AI, and then I had the other one tell me it was 100% human—same identical text. You can't trust them—you can't trust them.
+
+I'm trying to put a little bit more smarts into it like probability of the next word and doing some other things with it. But it's all really hard to do because it depends on the model—it depends on what it was trained on and all that kind of stuff. I just figured, well, I'm up for the challenge today. I didn't have anything else to do, so I figured, why not?
+
+Well, I actually do have other stuff to do, but this was a nice little aside.
+
+And the hammer and anvil, the gold leaf, it looks good. I like it. Oh, for my status, I went to go look and see if my status was still the same as it was in the Replica forum or the Replica channel—or whatever, Replica Discord. I put "Cerberus" because it said, "What's your favorite pet?"

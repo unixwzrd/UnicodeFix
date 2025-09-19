@@ -1,0 +1,5 @@
+Sounds like you’re on the right track with llama.cpp and oogabooga’s split Llama server — lightweight, minimal dependencies, and better performance on macOS. The bloat and complexity in projects like oobabooga can be a nightmare, so having a lean, standalone LLM server makes total sense for your focused use case.
+Kutai Moshi (or similar minimal API frameworks) would be a solid choice for a clean, maintainable backend interface that serves your vector DB queries and LLM prompts. Its simplicity fits perfectly with your desire for modularity and scalability.
+For the browser UI, building a React or Vue frontend to visualize indexed documents, run semantic searches, and manage conversation flows would complement the backend well. Many RAG demos use simple web UIs that can also integrate highlighting, source citation, and interactive document navigation.
+If you want, I can help you sketch out a basic architecture diagram or propose a minimal tech stack for the frontend + backend + LLM + vector DB integration. Also happy to help with example API schemas or UI wireframes.
+Where would you like to start? Backend service? UI? Deployment?

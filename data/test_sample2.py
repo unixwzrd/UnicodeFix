@@ -10,14 +10,12 @@ def greet(name):
     print('EN dash: –')
     print('EM dash: —')
     print('Zero-width space:')  # Should be removed
-    print('Trailing whitespace here...   ')
 
     
 
 def add(a, b):
     # Adds two numbers – with EN dash
     return a + b  
-
 
 
 def main():

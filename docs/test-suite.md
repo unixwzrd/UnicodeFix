@@ -1,4 +1,6 @@
-# Test Suite for cleanup-text
+# Test Suite for cleanup-text - v1.1.0
+
+*Last updated: 2025-09-18*
 
 ## Overview
 
@@ -6,7 +8,7 @@ The test suite for `cleanup-text` is designed to systematically verify all featu
 
 ## What the Test Script Does
 
-- Processes all files in the `data/` directory using every major option and combination
+- Builds its file list from the `data/` directory before every run
 - Outputs results to `test_output/` with subdirectories for each scenario
 - Saves per-file diffs and batch word count summaries for easy review
 - Supports a `clean` option to remove all test output
@@ -17,10 +19,11 @@ The test suite for `cleanup-text` is designed to systematically verify all featu
 From the project root directory:
 
 ```sh
-./test/test_all.sh
+tests/test_all.sh
 ```
 
-- This will process every file in `data/` through all test scenarios.
+This processes every file in `data/` through all scenarios.
+
 - Results are written to `test_output/` with a subdirectory for each scenario (e.g., `default`, `invisible`, `nonewline`, etc.).
 - Each scenario directory contains:
   - Cleaned output files
@@ -33,13 +36,13 @@ From the project root directory:
 To remove all test output and start fresh:
 
 ```sh
-./test/test_all.sh clean
+tests/test_all.sh clean
 ```
 
 ### Getting Help
 
 ```sh
-./test/test_all.sh --help
+tests/test_all.sh --help
 ```
 
 ## Test Scenarios
@@ -52,7 +55,7 @@ The script tests the following scenarios:
 - **customout:** Uses a custom output file name (`-o`)
 - **temp:** In-place cleaning with temp file safety (`-t`)
 - **preservetmp:** In-place cleaning, preserves temp file for backup (`-t -p`)
-- **stdout:** Cleans via STDIN/STDOUT mode
+- **stdout:** Cleans via STDIN/STDOUT mode (skips binary fixtures because Python's STDIN path is text-only)
 - **keep_quotes:** Preserves smart quotes (`-Q`)
 - **keep_dashes:** Preserves EN/EM dashes (`-D`)
 
@@ -68,7 +71,7 @@ The script tests the following scenarios:
 - Always back up your data before running tests.
 - Review diffs and word counts to verify results.
 - Use the test suite to validate changes before integrating into CI/CD pipelines.
-- Never run the test script from inside the `test/` directory - always run from the project root.
+- Never run the test script from inside the `tests/` directory - always run from the project root.
 
 ## CI/CD Integration
 

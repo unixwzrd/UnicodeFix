@@ -1,10 +1,12 @@
-# UnicodeFix - *CodExorcism Edition*
+# UnicodeFix - *CodExorcism Edition+ v1.1.0*
+
+*Last updated: 2025-09-18*
 
 ![UnicodeFix Hero Image](docs/controlling-unicode.png)
 
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue)](#) [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE) [![Release](https://img.shields.io/github/v/tag/unixwzrd/UnicodeFix?label=release)](https://github.com/unixwzrd/UnicodeFix/releases)
 
-- [UnicodeFix - *CodExorcism Edition*](#unicodefix---codexorcism-edition)
+- [UnicodeFix - *CodExorcism Edition+ v1.1.0*](#unicodefix---codexorcism-edition-v110)
     - [**Finally - a tool that blasts AI fingerprints, torches those infuriating smart quotes, and leaves your code \& docs squeaky clean for real humans.**](#finally---a-tool-that-blasts-ai-fingerprints-torches-those-infuriating-smart-quotes-and-leaves-your-code--docs-squeaky-clean-for-real-humans)
   - [Why Is This Happening?](#why-is-this-happening)
   - [Installation](#installation)
@@ -16,11 +18,15 @@
     - [Batch Clean](#batch-clean)
     - [In-Place (Safe) Clean](#in-place-safe-clean)
     - [Preserve Temp File for Backup](#preserve-temp-file-for-backup)
+    - [Audit only (no changes), human-readable](#audit-only-no-changes-human-readable)
+    - [Audit as JSON](#audit-as-json)
+    - [Audit with Semantic Metrics (experimental)](#audit-with-semantic-metrics-experimental)
+    - [Fail CI if anomalies exceed threshold](#fail-ci-if-anomalies-exceed-threshold)
     - [Using in vi/vim/macvim](#using-in-vivimmacvim)
   - [What's New / What's Cool](#whats-new--whats-cool)
     - [CodexExorcism Release (Sept 2025)](#codexexorcism-release-sept-2025)
     - [Previous Releases](#previous-releases)
-    - [Keep It Fresh!](#keep-it-fresh)
+    - [Keep It Fresh](#keep-it-fresh)
   - [Shortcut for macOS](#shortcut-for-macos)
     - [To add the Shortcut](#to-add-the-shortcut)
   - [What's in This Repository](#whats-in-this-repository)
@@ -39,7 +45,7 @@ UnicodeFix vaporizes all the weird dashes, curly quotes, invisible space ninjas,
 
 **Whether you're a student, a dev, or an open-source rebel: this is your "eraser for AI breadcrumbs."**
 
-_Yes, it helps students cheat on their homework._
+*Yes, it helps students cheat on their homework.*
 It also makes blog posts and AI-proofed emails look like you sweated over every character.
 Nearly a thousand people have grabbed it. Nobody's bought me a coffee yet, but hey… there's a first time for everything.
 
@@ -57,10 +63,15 @@ Be careful, professors and reviewers may even start planting Unicode honeypots i
 
 Clone the repository and run the setup script:
 
-```
+```bash
 git clone https://github.com/unixwzrd/UnicodeFix.git
 cd UnicodeFix
-bash setup.sh
+
+pip install .
+# or for dev
+pip install -e .
+# optional extras for future NLP metrics:
+pip install .[nlp]
 ```
 
 The `setup.sh` script:
@@ -107,6 +118,14 @@ options:
 
 - `-Q`, `--keep-smart-quotes`: Preserve Unicode smart quotes (curly single/double quotes). Useful when preparing prose/blog posts where typographic quotes are intentional. Default behavior converts them to ASCII for shell/CI safety.
 - `-D`, `--keep-dashes`: Preserve EN/EM dashes. Useful when stylistic punctuation is desired in prose. Default behavior converts EM dash to ` - ` and EN dash to `-`.
+- `-R`, `--report`: Audit text for anomalies, human-readable.
+- `-J`, `--json`: Audit text for anomalies, JSON format.
+- `-T`, `--threshold`: Fail CI if anomalies exceed threshold.
+- `--metrics`: Attach experimental semantic metrics (entropy, AI-score, etc.) to reports.
+- `--metrics-help`: Print friendly descriptions of each metric and the ↑/↓ hints.
+- `--exit-zero`: Force a zero exit code for report mode (handy for informative hooks/CI jobs).
+- `-H`, `--help`: Show help message and exit.
+- `-V`, `--version`: Show version and exit.
 
 #### When to preserve invisible characters (`-i`)
 
@@ -142,6 +161,40 @@ cleanup-text -t myfile.txt
 cleanup-text -t -p myfile.txt
 ```
 
+### Audit only (no changes), human-readable
+
+```bash
+cleanup-text --report foo.txt
+```
+
+### Audit as JSON
+
+```bash
+cleanup-text --report --json foo.txt
+```
+
+### Audit with Semantic Metrics (experimental)
+
+```bash
+cleanup-text --report --json --metrics foo.txt
+```
+
+Produces the JSON report plus a `metrics` section containing entropy, diversity, heuristic AI score, and more. Requires `pip install .[nlp]` for NLTK resources.
+
+### Report without blocking commits
+
+```bash
+cleanup-text --report --metrics --exit-zero foo.txt
+```
+
+Emits the full report (and metrics if requested) but always returns exit code 0, so informational pre-commit hooks and dashboards can surface issues without aborting the workflow.
+
+### Fail CI if anomalies exceed threshold
+
+```bash
+cleanup-text --report --threshold 1 some/*.txt
+```
+
 ### Using in vi/vim/macvim
 
 ```vim
@@ -151,7 +204,7 @@ cleanup-text -t -p myfile.txt
 Works great for vi/Vim purists, VS Code hipsters, or anyone who just wants their text to behave like text.
 Also handy if you’re trying to slip your AI-generated code past your CS prof without curly quotes giving you away.
 
-You can run it from Vim, VS Code in Vim mode, or as a pre-commit. Use it for email, blog posts, whatever. Ignore the naysayers - this is _real-world convenience._
+You can run it from Vim, VS Code in Vim mode, or as a pre-commit. Use it for email, blog posts, whatever. Ignore the naysayers - this is *real-world convenience.*
 
 See [cleanup-text.md](docs/cleanup-text.md) for deeper dives and arcane options.
 
@@ -181,7 +234,7 @@ Exorcise your code from VS Code/Codex’s funky Unicode artifacts (NBSPs, bidi c
 
 > *Fun fact*: Even Python will execute code with "curly quotes." Your IDE, email client, and browser all sneak these in. UnicodeFix hunts them down and torches them, ...so your coding homework looks *lovingly hand-crafted* at 4:37 a.m., rather than LLM spawn.
 
-### Keep It Fresh!
+### Keep It Fresh
 
 Pull requests/issues always welcome - especially if your AI friend slipped a new weird Unicode gremlin past me, I found a few more while preparing this release too...🙄
 
@@ -216,7 +269,7 @@ Right-click files, pick a Quick Action, and - bam - no terminal required.
 - [requirements.txt](requirements.txt) - Python dependencies
 - [macOS/](macOS/) - Shortcuts, scripts for Finder
 - [data/](data/) - Example test files
-- [test/](test/) - Automated test suite for all features/edge cases
+- [tests/](tests/) - Automated test suite for all features/edge cases
 - [docs/](docs/) - Documentation and screenshots
 - [LICENSE](LICENSE)
 - [README.md](README.md) - This file
@@ -227,10 +280,12 @@ Right-click files, pick a Quick Action, and - bam - no terminal required.
 
 UnicodeFix comes with a full, automated test suite:
 
-- Runs every feature & scenario on files in `data/`
-- Outputs to `test_output/` (by scenario, with diffs and word counts)
-- Clean up with: `./test/test_all.sh clean`
-- Plug into your CI/CD pipeline or just use as a "paranoia check" before shipping anything
+- Drives every scenario against the canonical file list in `data/`
+- Writes diffs and normalized word-count summaries into `test_output/<scenario>/`
+- Run it with: `tests/test_all.sh`
+- Clean up with: `tests/test_all.sh clean`
+- STDIN/STDOUT coverage skips the binary fixtures (everything else still runs on them)
+- Plug into your CI/CD pipeline or just use it as a "paranoia check" before shipping anything
 
 **Pro tip:** Run the tests before you merge, publish, or email a "final" version.
 
