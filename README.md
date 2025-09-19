@@ -215,6 +215,15 @@ See [cleanup-text.md](docs/cleanup-text.md) for deeper dives and arcane options.
 
 ## What's New / What's Cool
 
+### CodexExorcism+ Release (Sept 2025)  
+
+The follow-up release keeps the Unicode exorcism vibe but layers on early-stage semantics:  
+
+- **Semantic metrics preview** – opt into `--metrics` for entropy, diversity, repetition, and a heuristic AI-likeness score right inside `--report` / `--json` output.  
+- **Metrics legend on demand** – `--metrics-help` explains every stat plus the ↑/↓ hints.  
+- **Hook-friendly reporting** – `--exit-zero` means pre-commit hooks can flag anomalies without blocking your commit.  
+- **Slimmer all-in-one test harness** – `tests/test_all.sh` derives its run list from `data/`, handles STDIN/STDOUT quirks, and drops per-scenario diffs/word-count deltas.  
+
 ### CodexExorcism Release (Sept 2025)  
 
 Exorcise your code from VS Code/Codex’s funky Unicode artifacts (NBSPs, bidi controls, smart quotes).  
