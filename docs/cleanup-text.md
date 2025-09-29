@@ -85,6 +85,18 @@ tests/test_all.sh --help
 - Use the `-i` flag if you need to preserve invisible Unicode characters for special use cases.
 - Use the `-n` flag if you need to suppress the final newline (rare).
 
+## TODO (Alignment & Bracket Normalization)
+
+- Add optional folding of fullwidth square brackets to ASCII in `unicodefix.transforms.clean_text`:
+  - Map `【` → `[` and `】` → `]` under a new flag (e.g., `preserve_fullwidth_brackets: bool = False`).
+  - Preserve dagger glyph `†` and inline spans (e.g., `†L147-L156`).
+  - Rationale: terminal table alignment (fixed-width) and monospace column layout can drift with fullwidth characters.
+- Consider expanding flags to preserve typographic punctuation while still removing invisible/control chars:
+  - Existing: `preserve_quotes`, `preserve_dashes`
+  - Proposed: `preserve_fullwidth_brackets`, `preserve_fullwidth_variants`
+- Provide helper for ASCII-only display normalization for terminals while retaining original text for auditing/search.
+- Document patterns: (1) global pre-clean before render, (2) render-time folding behind a toggle.
+
 ## Changelog
 
 See `CHANGELOG.md` for a summary of recent changes.

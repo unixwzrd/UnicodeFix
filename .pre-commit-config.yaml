@@ -1,9 +1,0 @@
-repos:
-  - repo: local
-    hooks:
-      - id: unicodefix-report
-        name: unicodefix report (threshold)
-        entry: cleanup-text --report --threshold 1 --exit-zero
-        language: system
-        types_or: [text]
-        pass_filenames: true
