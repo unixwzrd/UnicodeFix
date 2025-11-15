@@ -4,7 +4,7 @@
 
 ## 2025-11-15
 
-### Docs and installer polish (v1.1.2)
+### Docs and installer polish (v1.1.3)
 
 - README: clarified installation modes (standard, editable, and NLP extras), tightened wording, and refreshed badges/links.
 - Setup: improved guidance printed by `setup.sh` after environment creation; clarified quick start steps.

@@ -1,4 +1,4 @@
-# Unicode Text Cleaner (`cleanup-text`) - v1.1.2
+# Unicode Text Cleaner (`cleanup-text`) - v1.1.3
 
 *Last updated: 2025-11-15*
 
