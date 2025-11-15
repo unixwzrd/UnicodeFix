@@ -1,6 +1,15 @@
 # Changelog for UnicodeFix
 
-*Last updated: 2025-09-18*
+*Last updated: 2025-11-15*
+
+## 2025-11-15
+
+### Docs and installer polish (v1.1.2)
+
+- README: clarified installation modes (standard, editable, and NLP extras), tightened wording, and refreshed badges/links.
+- Setup: improved guidance printed by `setup.sh` after environment creation; clarified quick start steps.
+- Requirements: synced with current packaging to ensure local venv installs match `pyproject.toml` expectations.
+- No behavior changes to the cleaner; tests unchanged.
 
 ## 2025-09-18
 

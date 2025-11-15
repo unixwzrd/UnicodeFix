@@ -1,4 +1,4 @@
-# UnicodeFix - *CodExorcism Edition+ v1.1.0*
+# UnicodeFix - *CodExorcism Edition+ v1.1.2*
 
 *Last updated: 2025-09-18*
 
@@ -6,7 +6,7 @@
 
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue)](#) [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE) [![Release](https://img.shields.io/github/v/tag/unixwzrd/UnicodeFix?label=release)](https://github.com/unixwzrd/UnicodeFix/releases)
 
-- [UnicodeFix - *CodExorcism Edition+ v1.1.0*](#unicodefix---codexorcism-edition-v110)
+- [UnicodeFix - *CodExorcism Edition+ v1.1.2*](#unicodefix---codexorcism-edition-v112)
     - [**Finally - a tool that blasts AI fingerprints, torches those infuriating smart quotes, and leaves your code \& docs squeaky clean for real humans.**](#finally---a-tool-that-blasts-ai-fingerprints-torches-those-infuriating-smart-quotes-and-leaves-your-code--docs-squeaky-clean-for-real-humans)
   - [Why Is This Happening?](#why-is-this-happening)
   - [Installation](#installation)
@@ -21,10 +21,12 @@
     - [Audit only (no changes), human-readable](#audit-only-no-changes-human-readable)
     - [Audit as JSON](#audit-as-json)
     - [Audit with Semantic Metrics (experimental)](#audit-with-semantic-metrics-experimental)
+    - [Report without blocking commits](#report-without-blocking-commits)
     - [Fail CI if anomalies exceed threshold](#fail-ci-if-anomalies-exceed-threshold)
     - [Using in vi/vim/macvim](#using-in-vivimmacvim)
   - [What's New / What's Cool](#whats-new--whats-cool)
-    - [CodexExorcism Release (Sept 2025)](#codexexorcism-release-sept-2025)
+    - [CodexExorcism+ Release (Sept 2025)](#codexexorcism-release-sept-2025)
+    - [CodexExorcism Release (Sept 2025)](#codexexorcism-release-sept-2025-1)
     - [Previous Releases](#previous-releases)
     - [Keep It Fresh](#keep-it-fresh)
   - [Shortcut for macOS](#shortcut-for-macos)
@@ -67,10 +69,17 @@ Clone the repository and run the setup script:
 git clone https://github.com/unixwzrd/UnicodeFix.git
 cd UnicodeFix
 
+# This will create a VENV for python 3.10+ and install the dependencies
+./setup.sh
+
+# This will install teh UnicodeFix package, you can install one of three ways -"
+# For simply running the script, use the following command:
 pip install .
-# or for dev
+
+# If you wish to do development, or want to use the package in your own projects, use the following command:
 pip install -e .
-# optional extras for future NLP metrics:
+
+# if you wish to use teh optional NLTK analytics, install the following optional extras for current and future NLP metrics:
 pip install .[nlp]
 ```
 
