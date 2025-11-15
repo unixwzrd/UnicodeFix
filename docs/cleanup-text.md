@@ -1,6 +1,6 @@
-# Unicode Text Cleaner (`cleanup-text`) - v1.1.0
+# Unicode Text Cleaner (`cleanup-text`) - v1.1.2
 
-*Last updated: 2025-09-18*
+*Last updated: 2025-11-15*
 
 A robust command-line tool to normalize and clean problematic Unicode characters, invisible characters, and formatting quirks from text files. Designed to make code and text more human, linter-friendly, and free of "AI tells" or watermarks.
 
@@ -85,17 +85,18 @@ tests/test_all.sh --help
 - Use the `-i` flag if you need to preserve invisible Unicode characters for special use cases.
 - Use the `-n` flag if you need to suppress the final newline (rare).
 
-## TODO (Alignment & Bracket Normalization)
+## Alignment & Fullwidth Brackets
 
-- Add optional folding of fullwidth square brackets to ASCII in `unicodefix.transforms.clean_text`:
-  - Map `【` → `[` and `】` → `]` under a new flag (e.g., `preserve_fullwidth_brackets: bool = False`).
-  - Preserve dagger glyph `†` and inline spans (e.g., `†L147-L156`).
-  - Rationale: terminal table alignment (fixed-width) and monospace column layout can drift with fullwidth characters.
-- Consider expanding flags to preserve typographic punctuation while still removing invisible/control chars:
-  - Existing: `preserve_quotes`, `preserve_dashes`
-  - Proposed: `preserve_fullwidth_brackets`, `preserve_fullwidth_variants`
-- Provide helper for ASCII-only display normalization for terminals while retaining original text for auditing/search.
-- Document patterns: (1) global pre-clean before render, (2) render-time folding behind a toggle.
+- Fullwidth square brackets are now folded to ASCII by default to preserve monospace alignment in terminals and fixed-width tables:
+  - `【` → `[`, `】` → `]`
+  - Use `--keep-fullwidth-brackets` to preserve `【】`.
+  - The dagger glyph `†` (e.g., `†L147-L156`) is preserved.
+- A small helper exists for display-only folding:
+  - `unicodefix.transforms.fold_for_terminal_display(text)` applies the same folding without other cleaning.
+  - Useful when you want ASCII rendering for terminals while keeping the original text for auditing/search.
+- Patterns:
+  1) Global pre-clean before render (default behavior).
+  2) Render-time folding behind a toggle (use the helper).
 
 ## Changelog
 

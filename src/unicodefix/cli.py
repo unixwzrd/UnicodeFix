@@ -103,6 +103,7 @@ def run_filter_mode(args) -> None:
         preserve_invisible=args.invisible,
         preserve_quotes=args.keep_smart_quotes,
         preserve_dashes=args.keep_dashes,
+        preserve_fullwidth_brackets=args.keep_fullwidth_brackets,
     )
     cleaned = handle_newlines(cleaned, args.no_newline)
     # VSCode quirk: append only to stdout
@@ -142,6 +143,7 @@ def process_file(infile: str, args) -> None:
                     preserve_invisible=args.invisible,
                     preserve_quotes=args.keep_smart_quotes,
                     preserve_dashes=args.keep_dashes,
+                    preserve_fullwidth_brackets=args.keep_fullwidth_brackets,
                 )
                 cleaned = handle_newlines(cleaned, args.no_newline)
                 _write_text(infile, cleaned, eol)
@@ -167,6 +169,7 @@ def process_file(infile: str, args) -> None:
             preserve_invisible=args.invisible,
             preserve_quotes=args.keep_smart_quotes,
             preserve_dashes=args.keep_dashes,
+            preserve_fullwidth_brackets=args.keep_fullwidth_brackets,
         )
         cleaned = handle_newlines(cleaned, args.no_newline)
 
@@ -202,6 +205,8 @@ def main():
                         help="Preserve Unicode smart quotes")
     parser.add_argument("-D", "--keep-dashes", action="store_true",
                         help="Preserve Unicode EN/EM dashes")
+    parser.add_argument("--keep-fullwidth-brackets", action="store_true",
+                        help="Preserve fullwidth square brackets (【】)")
     parser.add_argument("-n", "--no-newline", action="store_true",
                         help="Do not add a final newline")
     parser.add_argument("-o", "--output",

@@ -9,7 +9,8 @@
 - README: clarified installation modes (standard, editable, and NLP extras), tightened wording, and refreshed badges/links.
 - Setup: improved guidance printed by `setup.sh` after environment creation; clarified quick start steps.
 - Requirements: synced with current packaging to ensure local venv installs match `pyproject.toml` expectations.
-- No behavior changes to the cleaner; tests unchanged.
+- Normalization: fold fullwidth square brackets 【】 to ASCII [] by default; add `--keep-fullwidth-brackets` to preserve them; dagger `†` remains untouched.
+- Minor behavior change: default folding of fullwidth brackets; use the new flag to opt out.
 
 ## 2025-09-18
 

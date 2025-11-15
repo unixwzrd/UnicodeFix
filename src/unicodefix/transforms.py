@@ -23,6 +23,7 @@ def clean_text(
     preserve_invisible: bool = False,
     preserve_quotes: bool = False,
     preserve_dashes: bool = False,
+    preserve_fullwidth_brackets: bool = False,
 ) -> str:
     """
     Normalize problematic/invisible Unicode to safe ASCII where appropriate.
@@ -62,6 +63,15 @@ def clean_text(
         text = re.sub(r"\s*\u2014\s*", " - ", text)  # EM → space-dash-space
         text = text.replace("\u2013", "-")           # EN → dash
 
+    # Fold select fullwidth punctuation that affects monospace alignment
+    if not preserve_fullwidth_brackets:
+        FULLWIDTH_FOLD = {
+            "\u3010": "[",  # 【
+            "\u3011": "]",  # 】
+        }
+        if any(ch in text for ch in FULLWIDTH_FOLD):
+            text = text.translate(str.maketrans(FULLWIDTH_FOLD))
+
     # Zs separators → ASCII space
     text = re.sub(r"[\u00A0\u1680\u2000-\u200A\u202F\u205F\u3000]", " ", text)
 
@@ -89,3 +99,16 @@ def handle_newlines(text: str, no_newline: bool = False) -> str:
     if no_newline:
         return text
     return text if text.endswith(("\n", "\r", "\r\n")) else text + "\n"
+
+
+def fold_for_terminal_display(text: str) -> str:
+    """
+    Fold a minimal set of width-breaking Unicode punctuation for better terminal alignment.
+    - Fullwidth square brackets 【】 → ASCII [].
+    - Intentionally does not touch † (dagger) and similar glyphs.
+    """
+    mapping = {
+        "\u3010": "[",  # 【
+        "\u3011": "]",  # 】
+    }
+    return text.translate(str.maketrans(mapping))

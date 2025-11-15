@@ -102,7 +102,7 @@ Once installed and activated:
 ```bash
 (LLaSA-speech) [unixwzrd@xanax: bin]$ cleanup-text --help
 
-usage: cleanup-text [-h] [-i] [-Q] [-D] [-n] [-o OUTPUT] [-t] [-p] [infile ...]
+usage: cleanup-text [-h] [-i] [-Q] [-D] [--keep-fullwidth-brackets] [-n] [-o OUTPUT] [-t] [-p] [infile ...]
 
 Clean Unicode quirks from text. If no input files are given, reads from STDIN and writes to STDOUT (filter mode). If input files are given, creates cleaned files with .clean before the extension (e.g., foo.txt -> foo.clean.txt). Use -o - to force output to STDOUT for all input files, or -o <file> to specify a single output file (only with one
 input file).
@@ -116,6 +116,8 @@ options:
   -Q, --keep-smart-quotes
                         Preserve Unicode smart quotes (do not convert to ASCII)
   -D, --keep-dashes     Preserve Unicode EN/EM dashes (do not convert to ASCII)
+  --keep-fullwidth-brackets
+                        Preserve fullwidth square brackets (【】) (do not fold to ASCII)
   -n, --no-newline      Do not add a newline at the end of the output file (suppress final newline).
   -o OUTPUT, --output OUTPUT
                         Output file name, or '-' for STDOUT. Only valid with one input file, or use '-' for STDOUT with multiple files.
@@ -127,6 +129,7 @@ options:
 
 - `-Q`, `--keep-smart-quotes`: Preserve Unicode smart quotes (curly single/double quotes). Useful when preparing prose/blog posts where typographic quotes are intentional. Default behavior converts them to ASCII for shell/CI safety.
 - `-D`, `--keep-dashes`: Preserve EN/EM dashes. Useful when stylistic punctuation is desired in prose. Default behavior converts EM dash to ` - ` and EN dash to `-`.
+- `--keep-fullwidth-brackets`: Preserve fullwidth square brackets (`【】`). By default, they are folded to ASCII `[]` to keep monospace alignment in terminals and fixed-width tables.
 - `-R`, `--report`: Audit text for anomalies, human-readable.
 - `-J`, `--json`: Audit text for anomalies, JSON format.
 - `-T`, `--threshold`: Fail CI if anomalies exceed threshold.
