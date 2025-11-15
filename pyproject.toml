@@ -13,6 +13,12 @@ dependencies = [
   "rich>=13.7"
 ]
 
+[project.urls]
+Homepage = "https://github.com/unixwzrd/UnicodeFix"
+Repository = "https://github.com/unixwzrd/UnicodeFix"
+Changelog = "https://github.com/unixwzrd/UnicodeFix/blob/main/CHANGELOG.md"
+Documentation = "https://github.com/unixwzrd/UnicodeFix/blob/main/docs/cleanup-text.md"
+
 [project.optional-dependencies]
 nlp = ["nltk>=3.9"]
 
