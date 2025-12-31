@@ -1,8 +1,8 @@
 # Changelog for UnicodeFix
 
-*Last updated: 2025-11-15*
+*Last updated: 2025-12-30*
 
-## 2025-11-15
+## 2025-12-30
 
 ### Aggressive Unicode normalization fix (v1.1.4)
 

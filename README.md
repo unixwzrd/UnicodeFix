@@ -1,6 +1,6 @@
 # UnicodeFix - *CodExorcism Edition+ v1.1.4*
 
-*Last updated: 2025-09-18*
+*Last updated: 2025-12-30*
 
 ![UnicodeFix Hero Image](docs/controlling-unicode.png)
 
