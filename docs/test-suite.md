@@ -1,4 +1,4 @@
-# Test Suite for cleanup-text - v1.1.3
+# Test Suite for cleanup-text - v1.1.4
 
 *Last updated: 2025-11-15*
 
@@ -24,12 +24,15 @@ tests/test_all.sh
 
 This processes every file in `data/` through all scenarios.
 
-- Results are written to `test_output/` with a subdirectory for each scenario (e.g., `default`, `invisible`, `nonewline`, etc.).
-- Each scenario directory contains:
-  - Cleaned output files
+- Results are written to `test_output/` with a subdirectory for each scenario (e.g., `default`, `batch`, `invisible`, `nonewline`, `report_human`, etc.).
+- Each cleaning scenario directory contains:
+  - Cleaned output files (or `.clean.*` files for default/batch scenarios)
   - `.diff` files showing changes from the original
   - `wcpost.txt` (word counts after cleaning)
   - `wcdiff.txt` (diff of word counts before/after)
+- Report scenario directories contain:
+  - `.report` or `.json` files with audit results
+  - No diffs or word counts (reports don't modify files)
 
 ### Cleaning Up Test Output
 
@@ -49,22 +52,41 @@ tests/test_all.sh --help
 
 The script tests the following scenarios:
 
-- **default:** Standard cleaning (removes Unicode quirks, normalizes text)
-- **invisible:** Preserves invisible Unicode characters (`-i`)
-- **nonewline:** Suppresses final newline at EOF (`-n`)
+**Cleaning Scenarios:**
+
+- **default:** Standard cleaning (removes Unicode quirks, normalizes text, writes `*.clean.*` files)
+- **batch:** Batch processing with glob patterns (e.g., `cleanup-text *)
+- **invisible:** Preserves invisible Unicode characters (`-i`) with in-place editing (`-t`)
+- **nonewline:** Suppresses final newline at EOF (`-n`) with in-place editing (`-t`)
 - **customout:** Uses a custom output file name (`-o`)
 - **temp:** In-place cleaning with temp file safety (`-t`)
 - **preservetmp:** In-place cleaning, preserves temp file for backup (`-t -p`)
 - **stdout:** Cleans via STDIN/STDOUT mode (skips binary fixtures because Python's STDIN path is text-only)
-- **keep_quotes:** Preserves smart quotes (`-Q`)
-- **keep_dashes:** Preserves EN/EM dashes (`-D`)
+- **keep_quotes:** Preserves smart quotes (`-Q`) with in-place editing (`-t`)
+- **keep_dashes:** Preserves EN/EM dashes (`-D`) with in-place editing (`-t`)
+
+**Report/Audit Scenarios:**
+
+- **report_human:** Human-readable audit report (`--report`)
+- **report_json:** JSON-formatted audit report (`--report --json`)
+- **report_threshold1:** Report with threshold check (`--report --threshold 1`)
+- **report_stdin_json:** JSON report from STDIN input (`--report --json` with stdin)
 
 ## Interpreting Results
 
+**For Cleaning Scenarios:**
+
 - **Diffs:** Each `.diff` file shows the exact changes made to each file in each scenario.
 - **Word Counts:** `wcpost.txt` shows word/line/character counts after cleaning. `wcdiff.txt` shows the difference from the original.
-- **No Change:** If a file is already clean, the script will note "No change (already clean?)".
-- **Cleaned:** If a file was modified, the script will note "Cleaned".
+- **No Change:** If a file is already clean, the diff may be empty or show only newline differences.
+- **Cleaned:** If a file was modified, the diff will show all Unicode normalizations and whitespace changes.
+
+**For Report Scenarios:**
+
+- **Human Reports:** `.report` files contain formatted text summaries of Unicode anomalies found.
+- **JSON Reports:** `.json` files contain structured data with counts per category (smart_quotes, dashes, invisibles, etc.).
+- **Threshold Tests:** `report_threshold1` will exit with code 1 if any file has >= 1 anomaly (useful for CI/CD validation).
+- **No File Changes:** Report scenarios never modify files—they only analyze and report.
 
 ## Best Practices
 

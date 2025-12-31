@@ -31,30 +31,84 @@ def clean_text(
     _require_ftfy()
     text = ftfy.fix_text(text)
 
-    # Quote normalization (deduped)
+    # Quote normalization - aggressive by default
     if not preserve_quotes:
-        # Pass 1: explicit fast translations
+        # Pass 1: comprehensive explicit map for all known quote variants
         QUOTE_ELLIPSIS_MAP = {
-            "\u2018": "'", "\u2019": "'", "\u201B": "'", "\u201A": "'",
-            "\u2039": "'", "\u203A": "'", "\u02BC": "'", "\uFF07": "'",
-            "\u201C": '"', "\u201D": '"', "\u201E": '"', "\u201F": '"',
-            "\u00AB": '"', "\u00BB": '"', "\uFF02": '"',
-            "\u2026": "...", "\u22EF": "...", "\u2025": "..",
+            # Single quotes / apostrophes
+            "\u2018": "'",  # LEFT SINGLE QUOTATION MARK
+            "\u2019": "'",  # RIGHT SINGLE QUOTATION MARK
+            "\u201B": "'",  # SINGLE HIGH-REVERSED-9 QUOTATION MARK
+            "\u201A": "'",  # SINGLE LOW-9 QUOTATION MARK
+            "\u2039": "'",  # SINGLE LEFT-POINTING ANGLE QUOTATION MARK
+            "\u203A": "'",  # SINGLE RIGHT-POINTING ANGLE QUOTATION MARK
+            "\u02BC": "'",  # MODIFIER LETTER APOSTROPHE
+            "\uFF07": "'",  # FULLWIDTH APOSTROPHE
+            "\u02BB": "'",  # MODIFIER LETTER TURNED COMMA
+            "\u02BD": "'",  # MODIFIER LETTER REVERSED COMMA
+            "\u02BE": "'",  # MODIFIER LETTER RIGHT HALF RING
+            "\u02BF": "'",  # MODIFIER LETTER LEFT HALF RING
+            "\u02C8": "'",  # MODIFIER LETTER VERTICAL LINE
+            "\u02EE": "'",  # MODIFIER LETTER DOUBLE APOSTROPHE
+            "\u05F3": "'",  # HEBREW PUNCTUATION GERESH
+            "\u1FBF": "'",  # GREEK PSILI
+            "\u1FFE": "'",  # GREEK DASIA
+            # Double quotes
+            "\u201C": '"',  # LEFT DOUBLE QUOTATION MARK
+            "\u201D": '"',  # RIGHT DOUBLE QUOTATION MARK
+            "\u201E": '"',  # DOUBLE LOW-9 QUOTATION MARK
+            "\u201F": '"',  # DOUBLE HIGH-REVERSED-9 QUOTATION MARK
+            "\u00AB": '"',  # LEFT-POINTING DOUBLE ANGLE QUOTATION MARK
+            "\u00BB": '"',  # RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK
+            "\uFF02": '"',  # FULLWIDTH QUOTATION MARK
+            "\u301D": '"',  # REVERSED DOUBLE PRIME QUOTATION MARK
+            "\u301E": '"',  # DOUBLE PRIME QUOTATION MARK
+            "\u301F": '"',  # LOW DOUBLE PRIME QUOTATION MARK
+            "\u05F4": '"',  # HEBREW PUNCTUATION GERSHAYIM
+            # Ellipses
+            "\u2026": "...",  # HORIZONTAL ELLIPSIS
+            "\u22EF": "...",  # MIDLINE HORIZONTAL ELLIPSIS
+            "\u2025": "..",   # TWO DOT LEADER
         }
         text = text.translate(str.maketrans(QUOTE_ELLIPSIS_MAP))
 
-        # Pass 2: fallback only for remaining opening/closing punctuation
+        # Pass 2: aggressive fallback - catch ANY remaining quote-like characters
+        # Normalize quotes even if they're in extended ASCII range (they're problematic)
         mapped = []
         for ch in text:
-            if unicodedata.category(ch) in ("Pi", "Pf"):
-                name = unicodedata.name(ch, "")
-                if "DOUBLE" in name:
+            code = ord(ch)
+            
+            # Get Unicode name for pattern matching (even for extended ASCII)
+            try:
+                name = unicodedata.name(ch, "").upper()
+            except ValueError:
+                name = ""
+            
+            # Check for quote/apostrophe patterns in name (including extended ASCII quotes)
+            is_quote_like = any(pattern in name for pattern in [
+                "QUOTATION", "QUOTE", "APOSTROPHE", "PRIME", "GERSH", "DASIA", "PSILI"
+            ])
+            
+            # Also check category for Pi/Pf (initial/final punctuation) that might be quotes
+            is_pi_pf = unicodedata.category(ch) in ("Pi", "Pf")
+            
+            if is_quote_like or is_pi_pf:
+                # Determine if single or double based on name
+                if "DOUBLE" in name or "GERSHAYIM" in name:
                     mapped.append('"')
-                elif "SINGLE" in name or "PRIME" in name:
+                elif "SINGLE" in name or "APOSTROPHE" in name or "PRIME" in name or "GERSH" in name or "DASIA" in name or "PSILI" in name:
                     mapped.append("'")
+                elif is_pi_pf:
+                    # For Pi/Pf without clear name match, default to double quote
+                    mapped.append('"')
                 else:
-                    mapped.append('"')  # safe default
+                    # Default to double quote for ambiguous cases
+                    mapped.append('"')
+            elif code <= 255:
+                # Preserve ASCII (0-127) and extended ASCII (128-255) that aren't quotes
+                mapped.append(ch)
             else:
+                # Preserve other Unicode characters (non-quote, non-problematic)
                 mapped.append(ch)
         text = "".join(mapped)
 

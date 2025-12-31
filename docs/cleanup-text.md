@@ -1,4 +1,4 @@
-# Unicode Text Cleaner (`cleanup-text`) - v1.1.3
+# Unicode Text Cleaner (`cleanup-text`) - v1.1.4
 
 *Last updated: 2025-11-15*
 
@@ -23,19 +23,40 @@ cleanup-text [options] [infile ...]
 
 ### Options
 
-- `-i`, `--invisible`      Preserve invisible Unicode characters (zero-width, non-breaking, etc.)
-- `-n`, `--no-newline`     Do not add a newline at the end of the output file (suppress final newline)
-- `-o`, `--output`         Output file name, or '-' for STDOUT. Only valid with one input file, or use '-' for STDOUT with multiple files.
-- `-t`, `--temp`           In-place cleaning: move each input file to .tmp, clean it, write cleaned output to original name, and delete .tmp after success.
-- `-p`, `--preserve-tmp`   With -t, preserve the .tmp file after cleaning (do not delete it). Useful for backup or manual recovery.
-- `-R`, `--report`         Generate a human-readable audit summary.
-- `--json`                 Emit audit results as JSON.
-- `--metrics`              Attach experimental semantic metrics (entropy, AI score, diversity, etc.) to reports.
-- `--metrics-help`         Print a legend explaining each metric and the ↑/↓ cues.
-- `--exit-zero`            Force report mode to exit with status 0 (useful for informative hooks/CI jobs).
-- `-h`, `--help`           Show help message and exit
+**Cleaning Options:**
+
+- `-i`, `--invisible`              Preserve invisible Unicode characters (zero-width, non-breaking, etc.)
+- `-Q`, `--keep-smart-quotes`      Preserve Unicode smart quotes (curly quotes, angle quotes, etc.)
+- `-D`, `--keep-dashes`            Preserve Unicode EN/EM dashes
+- `--keep-fullwidth-brackets`      Preserve fullwidth square brackets (【】)
+- `-n`, `--no-newline`             Do not add a newline at the end of the output file (suppress final newline)
+
+**Output Options:**
+
+- `-o`, `--output`                 Output file name, or '-' for STDOUT. Only valid with one input file, or use '-' for STDOUT with multiple files.
+- `-t`, `--temp`                   In-place cleaning: move each input file to .tmp, clean it, write cleaned output to original name, and delete .tmp after success.
+- `-p`, `--preserve-tmp`           With -t, preserve the .tmp file after cleaning (do not delete it). Useful for backup or manual recovery.
+- `-q`, `--quiet`                  Suppress status lines on stderr
+
+**Report/Audit Options:**
+
+- `--report`                       Generate a human-readable audit summary (no changes made to files)
+- `--json`                         With --report, emit audit results as JSON
+- `--csv`                          With --report, emit audit results as CSV (one row per file)
+- `--label`                        When reading from STDIN ('-'), use this display name in report/CSV
+- `--threshold` N                  With --report, exit 1 if total anomalies >= N
+- `--metrics`                      With --report, include experimental semantic metrics (entropy, AI score, diversity, etc.)
+- `--metrics-help`                 Print a legend explaining each metric and the ↑/↓ cues
+- `--exit-zero`                    Force report mode to exit with status 0 (useful for informative hooks/CI jobs)
+- `--no-color`                     Disable ANSI colors (plain output)
+
+**General:**
+
+- `-h`, `--help`                   Show help message and exit
 
 ### Behavior
+
+**Input/Output:**
 
 - **No input files:** Reads from STDIN and writes to STDOUT (filter mode)
 - **Input files:** Creates cleaned files with `.clean` before the extension (e.g., `foo.txt` → `foo.clean.txt`)
@@ -44,8 +65,21 @@ cleanup-text [options] [infile ...]
 - **-t:** In-place cleaning with temp file safety
 - **-t -p:** In-place cleaning, but preserves the temp file for manual recovery
 - **-n:** Suppresses the final newline at EOF
-- **--metrics/--metrics-help:** Pair with `--report`/`--json` to include enhanced analytics or print the legend without running a report.
-- **--exit-zero:** Keep the command from failing even when the threshold is exceeded—ideal for pre-commit warnings.
+
+**Preservation Flags:**
+
+- **-Q:** Preserves Unicode smart quotes (useful for documents where typography matters)
+- **-D:** Preserves EN/EM dashes (useful for documents where proper typography is desired)
+- **--keep-fullwidth-brackets:** Preserves fullwidth brackets (useful for documents with CJK text)
+- **-i:** Preserves invisible characters (rare, mainly for debugging)
+
+**Report Mode:**
+
+- **--report:** Generates an audit without modifying files. Use with `--json` or `--csv` for machine-readable output.
+- **--threshold N:** Exits with code 1 if total anomalies >= N (useful for CI/CD)
+- **--exit-zero:** Always exits with code 0 even if threshold exceeded (useful for pre-commit warnings)
+- **--metrics:** Requires NLP extras (`pip install .[nlp]`) for semantic analysis
+- **--metrics-help:** Print legend without running a report
 
 ### Semantic Metrics (preview)
 

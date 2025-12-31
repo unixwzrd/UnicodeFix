@@ -4,13 +4,16 @@
 
 ## 2025-11-15
 
-### Docs and installer polish (v1.1.3)
+### Aggressive Unicode normalization fix (v1.1.4)
 
+- **Fixed quote normalization**: Expanded comprehensive mapping to catch ALL Unicode quote and apostrophe variants, including Hebrew (geresh/gershayim), Greek (psili/dasia), modifier letters, and fullwidth variants. Default behavior now aggressively normalizes all quote-like characters to ASCII ' and ".
+- **Improved fallback logic**: Enhanced pattern matching to catch quote-like characters by Unicode name patterns, not just category, ensuring no quotes slip through by default.
+- **Extended ASCII preservation**: Quotes in extended ASCII range (like « and ») are now normalized while preserving intentional extended ASCII characters (é, ñ, etc.).
 - README: clarified installation modes (standard, editable, and NLP extras), tightened wording, and refreshed badges/links.
 - Setup: improved guidance printed by `setup.sh` after environment creation; clarified quick start steps.
 - Requirements: synced with current packaging to ensure local venv installs match `pyproject.toml` expectations.
 - Normalization: fold fullwidth square brackets 【】 to ASCII [] by default; add `--keep-fullwidth-brackets` to preserve them; dagger `†` remains untouched.
-- Minor behavior change: default folding of fullwidth brackets; use the new flag to opt out.
+- **Breaking change**: Default behavior is now more aggressive—all Unicode quotes are normalized unless `-Q` flag is used. This aligns with the package name "UnicodeFix"—fixing Unicode by default, not preserving it.
 
 ## 2025-09-18
 
