@@ -1,6 +1,14 @@
 # Changelog for UnicodeFix
 
-*Last updated: 2025-12-30*
+*Last updated: 2026-01-07*
+
+## 2026-01-07
+
+### Unicode normalization fix (v1.1.5)
+
+- **Fixed replacement character removal**: Explicitly removed Unicode replacement characters (U+FFFD) from the text to prevent them from being displayed in the output.
+- **Improved fallback logic**: Enhanced pattern matching to catch quote-like characters by Unicode name patterns, not just category, ensuring no quotes slip through by default.
+- **Extended ASCII preservation**: Quotes in extended ASCII range (like « and ») are now normalized while preserving intentional extended ASCII characters (é, ñ, etc.).
 
 ## 2025-12-30
 

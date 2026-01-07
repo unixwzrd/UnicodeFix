@@ -24,12 +24,20 @@ def clean_text(
     preserve_quotes: bool = False,
     preserve_dashes: bool = False,
     preserve_fullwidth_brackets: bool = False,
+    preserve_replacement_chars: bool = False,
 ) -> str:
     """
     Normalize problematic/invisible Unicode to safe ASCII where appropriate.
     """
     _require_ftfy()
     text = ftfy.fix_text(text)
+
+    # Remove Unicode replacement characters (U+FFFD) by default
+    # These indicate invalid/undecodable bytes and should be removed
+    # Do this early, right after ftfy fixes encoding issues
+    if not preserve_replacement_chars:
+        text = text.replace("\ufffd", "")  # U+FFFD REPLACEMENT CHARACTER
+        text = text.replace("\uFFFD", "")  # Same, different case (case-insensitive check)
 
     # Quote normalization - aggressive by default
     if not preserve_quotes:
@@ -77,21 +85,21 @@ def clean_text(
         mapped = []
         for ch in text:
             code = ord(ch)
-            
+
             # Get Unicode name for pattern matching (even for extended ASCII)
             try:
                 name = unicodedata.name(ch, "").upper()
             except ValueError:
                 name = ""
-            
+
             # Check for quote/apostrophe patterns in name (including extended ASCII quotes)
             is_quote_like = any(pattern in name for pattern in [
                 "QUOTATION", "QUOTE", "APOSTROPHE", "PRIME", "GERSH", "DASIA", "PSILI"
             ])
-            
+
             # Also check category for Pi/Pf (initial/final punctuation) that might be quotes
             is_pi_pf = unicodedata.category(ch) in ("Pi", "Pf")
-            
+
             if is_quote_like or is_pi_pf:
                 # Determine if single or double based on name
                 if "DOUBLE" in name or "GERSHAYIM" in name:

@@ -1,6 +1,6 @@
-# Unicode Text Cleaner (`cleanup-text`) - v1.1.4
+# Unicode Text Cleaner (`cleanup-text`) - v1.1.5
 
-*Last updated: 2025-12-30*
+*Last updated: 2026-01-07*
 
 A robust command-line tool to normalize and clean problematic Unicode characters, invisible characters, and formatting quirks from text files. Designed to make code and text more human, linter-friendly, and free of "AI tells" or watermarks.
 
