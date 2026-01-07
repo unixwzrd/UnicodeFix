@@ -141,6 +141,42 @@ def clean_text(
         # Remove zero-width, bidi, and control invisibles
         text = re.sub(r"[\u200B-\u200D\uFEFF\u200E\u200F\u202A-\u202E\u2066-\u2069]", "", text)
 
+    # Remove invalid/unassigned/private-use Unicode characters
+    # These can appear when decoding is corrupted or bytes are invalid
+    cleaned_chars = []
+    for char in text:
+        code = ord(char)
+
+        # Check if character is valid and assigned
+        try:
+            name = unicodedata.name(char)
+            category = unicodedata.category(char)
+        except ValueError:
+            # Character has no Unicode name (invalid/unassigned)
+            # Skip it unless it's a basic printable ASCII character
+            if code < 128 and char.isprintable():
+                cleaned_chars.append(char)
+            # Otherwise skip invalid characters
+            continue
+
+        # Skip private use area characters (often artifacts from encoding issues)
+        # Private Use Areas: U+E000-U+F8FF, U+F0000-U+FFFFD, U+100000-U+10FFFD
+        if (0xE000 <= code <= 0xF8FF) or (0xF0000 <= code <= 0xFFFFD) or (0x100000 <= code <= 0x10FFFD):
+            continue
+
+        # Skip unassigned characters (category "Cn" = "Other, not assigned")
+        if category == "Cn" and code > 0x007F:  # Allow ASCII control chars to pass through if printable
+            continue
+
+        # Skip surrogates (shouldn't appear in valid UTF-8, but check anyway)
+        if 0xD800 <= code <= 0xDFFF:
+            continue
+
+        # Keep the character
+        cleaned_chars.append(char)
+
+    text = "".join(cleaned_chars)
+
     # Strip trailing spaces/tabs on each line
     text = re.sub(r"[ \t]+(\r?\n)", r"\1", text)
 

@@ -2,6 +2,19 @@
 
 *Last updated: 2026-01-07*
 
+## 20260107_01 - v1.1.6
+
+### **Enhanced Invalid Unicode Character Filtering**
+
+- **Added comprehensive invalid character removal**: Now removes characters that raise `ValueError` when looking up Unicode name (invalid/unassigned code points)
+- **Private Use Area filtering**: Removes private use area characters (U+E000-U+F8FF, U+F0000-U+FFFFD, U+100000-U+10FFFD) which are often artifacts from encoding issues
+- **Unassigned character removal**: Filters out unassigned characters (category "Cn") above ASCII range
+- **Surrogate character filtering**: Removes surrogate characters (U+D800-U+DFFF) that shouldn't appear in valid UTF-8 strings
+- **Preserves valid ASCII**: Basic printable ASCII characters (code < 128) are preserved even if they lack Unicode metadata
+- **Better handling of corrupted encoding**: Catches edge cases where invalid bytes are decoded incorrectly, preventing display of garbage characters like `e249`, `9980`, `bfef` sequences
+
+These changes improve the robustness of text cleaning, especially when processing text from language models or corrupted input sources.
+
 ## 2026-01-07
 
 ### Unicode normalization fix (v1.1.5)
