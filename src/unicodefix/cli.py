@@ -138,24 +138,24 @@ def process_file(infile: str, args) -> None:
                     raise
             try:
                 # Process the previously read content and write back to original path
-            cleaned = clean_text(
-                raw,
-                preserve_invisible=args.invisible,
-                preserve_quotes=args.keep_smart_quotes,
-                preserve_dashes=args.keep_dashes,
+                cleaned = clean_text(
+                    raw,
+                    preserve_invisible=args.invisible,
+                    preserve_quotes=args.keep_smart_quotes,
+                    preserve_dashes=args.keep_dashes,
                     preserve_fullwidth_brackets=args.keep_fullwidth_brackets,
-            )
-            cleaned = handle_newlines(cleaned, args.no_newline)
+                )
+                cleaned = handle_newlines(cleaned, args.no_newline)
                 _write_text(infile, cleaned, eol)
-            log(f"[✓] Cleaned (in-place): {infile}")
-            if not args.preserve_tmp:
+                log(f"[✓] Cleaned (in-place): {infile}")
+                if not args.preserve_tmp:
                     try:
-                os.remove(tmpfile)
+                        os.remove(tmpfile)
                     except FileNotFoundError:
                         pass
-            else:
-                log(f"[i] Preserved temp file: {tmpfile}")
-            return
+                else:
+                    log(f"[i] Preserved temp file: {tmpfile}")
+                return
             except Exception:
                 # Attempt to restore original from tmp
                 try:

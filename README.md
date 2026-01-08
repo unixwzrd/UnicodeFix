@@ -1,4 +1,4 @@
-# UnicodeFix - *CodExorcism Edition+ v1.1.6*
+# UnicodeFix - *CodExorcism Edition+ v1.1.7*
 
 *Last updated: 2026-01-07*
 
@@ -6,7 +6,7 @@
 
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue)](#) [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE) [![Release](https://img.shields.io/github/v/tag/unixwzrd/UnicodeFix?label=release)](https://github.com/unixwzrd/UnicodeFix/releases)
 
-- [UnicodeFix - *CodExorcism Edition+ v1.1.6*](#unicodefix---codexorcism-edition-v116)
+- [UnicodeFix - *CodExorcism Edition+ v1.1.7*](#unicodefix---codexorcism-edition-v117)
     - [**Finally - a tool that blasts AI fingerprints, torches those infuriating smart quotes, and leaves your code \& docs squeaky clean for real humans.**](#finally---a-tool-that-blasts-ai-fingerprints-torches-those-infuriating-smart-quotes-and-leaves-your-code--docs-squeaky-clean-for-real-humans)
   - [Why Is This Happening?](#why-is-this-happening)
   - [Installation](#installation)

@@ -2,6 +2,14 @@
 
 *Last updated: 2026-01-07*
 
+## 20260107_02 - v1.1.7
+
+### **Fixed CLI Indentation Errors**
+
+- **Fixed syntax errors in `cli.py`**: Corrected indentation issues in the `try/except` block within the `process_file` function that were causing syntax errors and preventing the CLI from running correctly
+- **Proper exception handling**: Fixed misaligned exception handling blocks that were causing `IndentationError` exceptions
+- **Code quality**: All linter errors resolved, ensuring the CLI module can be imported and executed without syntax errors
+
 ## 20260107_01 - v1.1.6
 
 ### **Enhanced Invalid Unicode Character Filtering**

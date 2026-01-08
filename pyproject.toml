@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "unicodefix"
-version = "1.1.6"
+version = "1.1.7"
 description = "Clean Unicode quirks and audit text."
 readme = "README.md"
 requires-python = ">=3.9"
