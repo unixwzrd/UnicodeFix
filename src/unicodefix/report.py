@@ -13,8 +13,8 @@ from rich.text import Text
 __all__ = ["print_human", "print_json", "print_metrics_help", "print_csv"]
 
 # Fixed column widths (as preferred)
-CAT_COL_WIDTH = 24      # left column width (Category / Metric)
-VALUE_COL_WIDTH = 8     # right-justified numeric column width (Total / Value)
+CAT_COL_WIDTH = 24  # left column width (Category / Metric)
+VALUE_COL_WIDTH = 8  # right-justified numeric column width (Total / Value)
 
 # Optional clamped body width (unset or 0 = no clamping)
 # e.g. UNICODEFIX_WIDTH=96 to create side margins on wide terminals
@@ -61,15 +61,27 @@ def _sev_ratio(name: str, x: float) -> str:
     if name == "sentence_len_cv":
         return "red" if x <= 0.15 else ("yellow3" if x <= 0.30 else "green")
     if name == "stopword_ratio":
-        return "red" if (x < 0.20 or x > 0.70) else ("yellow3" if (x < 0.30 or x > 0.60) else "green")
+        return (
+            "red"
+            if (x < 0.20 or x > 0.70)
+            else ("yellow3" if (x < 0.30 or x > 0.60) else "green")
+        )
     if name == "punctuation_ratio":
-        return "red" if (x < 0.01 or x > 0.15) else ("yellow3" if (x < 0.02 or x > 0.08) else "green")
+        return (
+            "red"
+            if (x < 0.01 or x > 0.15)
+            else ("yellow3" if (x < 0.02 or x > 0.08) else "green")
+        )
     if name == "ascii_ratio":
         return "red" if x < 0.80 else ("yellow3" if x < 0.95 else "green")
     if name == "digits_ratio":
         return "green" if x <= 0.05 else ("yellow3" if x <= 0.20 else "red")
     if name == "avg_sentence_len_tokens":
-        return "red" if (x < 8 or x > 45) else ("yellow3" if (x < 12 or x > 30) else "green")
+        return (
+            "red"
+            if (x < 8 or x > 45)
+            else ("yellow3" if (x < 12 or x > 30) else "green")
+        )
     return ""
 
 
@@ -80,9 +92,9 @@ def _fmt_float(val) -> str:
 def _overall_score(metrics: dict) -> float:
     """Heuristic blend—transparent & tunable."""
     base = float(metrics.get("ai_score", 0.0) or 0.0)
-    ttr  = float(metrics.get("type_token_ratio", 0.0) or 0.0)
-    rep  = float(metrics.get("repetition_ratio", 0.0) or 0.0)
-    cv   = float(metrics.get("sentence_len_cv", 0.0) or 0.0)
+    ttr = float(metrics.get("type_token_ratio", 0.0) or 0.0)
+    rep = float(metrics.get("repetition_ratio", 0.0) or 0.0)
+    cv = float(metrics.get("sentence_len_cv", 0.0) or 0.0)
     score = base + 0.20 * rep + 0.20 * max(0.0, 0.55 - ttr) + 0.15 * max(0.0, 0.20 - cv)
     return max(0.0, min(1.0, score))
 
@@ -96,10 +108,22 @@ def _pretty_metric(name: str) -> str:
 def _cols_for_anomalies():
     """Locked columns for anomalies + summary so numbers align exactly."""
     return (
-        Column("Category", style="bold", no_wrap=True,
-               width=CAT_COL_WIDTH, min_width=CAT_COL_WIDTH, max_width=CAT_COL_WIDTH),
-        Column("Total", justify="right", no_wrap=True,
-               width=VALUE_COL_WIDTH, min_width=VALUE_COL_WIDTH, max_width=VALUE_COL_WIDTH),
+        Column(
+            "Category",
+            style="bold",
+            no_wrap=True,
+            width=CAT_COL_WIDTH,
+            min_width=CAT_COL_WIDTH,
+            max_width=CAT_COL_WIDTH,
+        ),
+        Column(
+            "Total",
+            justify="right",
+            no_wrap=True,
+            width=VALUE_COL_WIDTH,
+            min_width=VALUE_COL_WIDTH,
+            max_width=VALUE_COL_WIDTH,
+        ),
         Column("Details", overflow="fold", no_wrap=False),
     )
 
@@ -107,10 +131,21 @@ def _cols_for_anomalies():
 def _cols_for_metrics(signal_w: int):
     """Locked columns for metrics + overall score."""
     return (
-        Column("Metric", no_wrap=True,
-               width=CAT_COL_WIDTH, min_width=CAT_COL_WIDTH, max_width=CAT_COL_WIDTH),
-        Column("Value", justify="right", no_wrap=True,
-               width=VALUE_COL_WIDTH, min_width=VALUE_COL_WIDTH, max_width=VALUE_COL_WIDTH),
+        Column(
+            "Metric",
+            no_wrap=True,
+            width=CAT_COL_WIDTH,
+            min_width=CAT_COL_WIDTH,
+            max_width=CAT_COL_WIDTH,
+        ),
+        Column(
+            "Value",
+            justify="right",
+            no_wrap=True,
+            width=VALUE_COL_WIDTH,
+            min_width=VALUE_COL_WIDTH,
+            max_width=VALUE_COL_WIDTH,
+        ),
         Column("Signal", max_width=signal_w, no_wrap=False, overflow="fold"),
     )
 
@@ -135,35 +170,61 @@ def _print_clamped(con: Console, renderable, body_w: int) -> None:
 # -------------------- Renderers --------------------
 def _render_anomalies(con: Console, path: str, data: dict) -> None:
     body_w = _clamp_body_width(con)
-    ug = data["unicode_ghosts"]; ty = data["typographic"]; ws = data["whitespace"]
-    ug_total = _sumv(ug); ty_total = _sumv(ty); ws_total = _sumv(ws)
+    ug = data["unicode_ghosts"]
+    ty = data["typographic"]
+    ws = data["whitespace"]
+    ug_total = _sumv(ug)
+    ty_total = _sumv(ty)
+    ws_total = _sumv(ws)
     final_ok = bool(data["final_newline"])
-    total    = int(data["total"])
+    total = int(data["total"])
 
     # Header + blank line
     _print_clamped(con, Text(f"File: {path}", style="bold"), body_w)
     _print_clamped(con, Text(""), body_w)
 
     # Main anomalies table
-    t = Table(*_cols_for_anomalies(), show_header=True, header_style="bold",
-              box=None, pad_edge=False, expand=False)
+    t = Table(
+        *_cols_for_anomalies(),
+        show_header=True,
+        header_style="bold",
+        box=None,
+        pad_edge=False,
+        expand=False,
+    )
     ug_details = ", ".join(f"{k}={v}" for k, v in ug.items() if v)
     ty_details = ", ".join(f"{k}={v}" for k, v in ty.items() if v)
     ws_details = ", ".join(f"{k}={v}" for k, v in ws.items() if v)
 
-    t.add_row("unicode_ghosts", Text(str(ug_total), style=_sev_count(ug_total)), ug_details)
-    t.add_row("typographic",    Text(str(ty_total), style=_sev_count(ty_total)), ty_details)
-    t.add_row("whitespace",     Text(str(ws_total), style=_sev_count(ws_total)), ws_details)
+    t.add_row(
+        "unicode_ghosts", Text(str(ug_total), style=_sev_count(ug_total)), ug_details
+    )
+    t.add_row(
+        "typographic", Text(str(ty_total), style=_sev_count(ty_total)), ty_details
+    )
+    t.add_row("whitespace", Text(str(ws_total), style=_sev_count(ws_total)), ws_details)
 
     fn_mark = "/" if final_ok else "X"
-    t.add_row("final_newline", Text(fn_mark, style=_sev_count(fn_mark)), "ok" if final_ok else "missing")
+    t.add_row(
+        "final_newline",
+        Text(fn_mark, style=_sev_count(fn_mark)),
+        "ok" if final_ok else "missing",
+    )
 
     _print_clamped(con, t, body_w)
     _print_clamped(con, Rule(), body_w)
 
     # Summary mini-table
-    t2 = Table(*_cols_for_anomalies(), show_header=False, box=None, pad_edge=False, expand=False)
-    t2.add_row("Total", Text(str(total), style=_sev_count(total)), "Overall anomaly count")
+    t2 = Table(
+        *_cols_for_anomalies(),
+        show_header=False,
+        box=None,
+        pad_edge=False,
+        expand=False,
+    )
+    t2.add_row(
+        "Total", Text(str(total), style=_sev_count(total)), "Overall anomaly count"
+    )
     _print_clamped(con, t2, body_w)
     _print_clamped(con, Text(""), body_w)
 
@@ -181,13 +242,29 @@ def _render_metrics(con: Console, metrics: dict) -> None:
     # Signal column width from current body width (no arbitrary 80-col clamp)
     signal_w = max(24, body_w - (CAT_COL_WIDTH + VALUE_COL_WIDTH + 8))
 
-    mt = Table(*_cols_for_metrics(signal_w), show_header=True, header_style="bold magenta",
-               box=None, pad_edge=False, expand=False)
+    mt = Table(
+        *_cols_for_metrics(signal_w),
+        show_header=True,
+        header_style="bold magenta",
+        box=None,
+        pad_edge=False,
+        expand=False,
+    )
 
     order = [
-        "ai_score","type_token_ratio","repetition_ratio","sentence_len_cv",
-        "avg_sentence_len_tokens","avg_token_len","stopword_ratio","punctuation_ratio",
-        "ascii_ratio","entropy","digits_ratio","tokens","sentences",
+        "ai_score",
+        "type_token_ratio",
+        "repetition_ratio",
+        "sentence_len_cv",
+        "avg_sentence_len_tokens",
+        "avg_token_len",
+        "stopword_ratio",
+        "punctuation_ratio",
+        "ascii_ratio",
+        "entropy",
+        "digits_ratio",
+        "tokens",
+        "sentences",
     ]
     labels = {
         "ai_score": "Heuristic 0–1; higher ≈ more AI-like. Not a detector.",
@@ -222,7 +299,13 @@ def _render_metrics(con: Console, metrics: dict) -> None:
     _print_clamped(con, Rule(), body_w)
 
     overall = _overall_score(metrics)
-    mt2 = Table(*_cols_for_metrics(signal_w), show_header=False, box=None, pad_edge=False, expand=False)
+    mt2 = Table(
+        *_cols_for_metrics(signal_w),
+        show_header=False,
+        box=None,
+        pad_edge=False,
+        expand=False,
+    )
     mt2.add_row(
         "Overall score",
         Text(f"{overall:.4f}", style=_sev_ratio("ai_score", overall)),

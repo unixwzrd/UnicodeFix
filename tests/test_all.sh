@@ -97,7 +97,7 @@ for spec in "${SCENARIOS[@]}"; do
   fi
 
   if [[ "$mode" == "batch" && ${#SOURCES[@]} -gt 0 ]]; then
-    ( cd "$DATA_DIR" && cleanup-text "${opt_array[@]}" * )
+    ( cd "$DATA_DIR" && cleanup-text "${opt_array[@]}" ./* )
   fi
 
   for idx in "${!SOURCES[@]}"; do
@@ -197,29 +197,42 @@ done
 # Validation: Check that newlines are preserved in cleaned files
 echo "[i] Validating newline preservation..."
 validation_failed=0
+# Set nullglob to handle empty globs gracefully (saves current state)
+if shopt -q nullglob 2>/dev/null; then
+  nullglob_was_set=true
+else
+  nullglob_was_set=false
+  shopt -s nullglob
+fi
 for dir in "$OUT_DIR"/default "$OUT_DIR"/batch "$OUT_DIR"/temp "$OUT_DIR"/invisible; do
-  if [ -d "$dir" ]; then
-    for file in "$dir"/*.txt "$dir"/*.py "$dir"/*.c "$dir"/*.md 2>/dev/null; do
-      if [ -f "$file" ]; then
-        # Check that file has at least one line (has newlines)
-        line_count=$(wc -l < "$file" 2>/dev/null || echo "0")
-        if [ "$line_count" -lt 1 ]; then
-          echo "[✗] ERROR: $(basename "$file") in $(basename "$dir") has no lines (newlines may have been stripped)"
-          validation_failed=1
-        fi
-        # Check that file doesn't appear to be a single collapsed line
-        # (files with content should have multiple lines or at least one newline)
-        if [ "$line_count" -eq 0 ] && [ -s "$file" ]; then
-          # File has content but no newlines - this is suspicious for multi-line files
-          content_lines=$(cat "$file" | wc -l)
-          if [ "$content_lines" -eq 0 ]; then
-            echo "[✗] WARNING: $(basename "$file") in $(basename "$dir") has content but no newlines"
-          fi
+  if [ ! -d "$dir" ]; then
+    continue
+  fi
+  # Check each file type separately to avoid shellcheck issues with glob patterns
+  for ext in txt py c md; do
+    for file in "$dir"/*."$ext"; do
+      # With nullglob, loop won't execute if no matches, but check anyway
+      [ ! -f "$file" ] && continue
+      # Check that file has at least one line (has newlines)
+      line_count=$(wc -l < "$file" 2>/dev/null || echo "0")
+      if [ "$line_count" -lt 1 ]; then
+        echo "[✗] ERROR: $(basename "$file") in $(basename "$dir") has no lines (newlines may have been stripped)"
+        validation_failed=1
+      fi
+      # Check that file doesn't appear to be a single collapsed line
+      if [ "$line_count" -eq 0 ] && [ -s "$file" ]; then
+        content_lines=$(wc -l < "$file" 2>/dev/null || echo "0")
+        if [ "$content_lines" -eq 0 ]; then
+          echo "[✗] WARNING: $(basename "$file") in $(basename "$dir") has content but no newlines"
         fi
       fi
     done
-  fi
+  done
 done
+# Restore nullglob setting
+if [ "$nullglob_was_set" = false ]; then
+  shopt -u nullglob
+fi
 
 if [ $validation_failed -eq 0 ]; then
   echo "[✓] Newline preservation validation passed"

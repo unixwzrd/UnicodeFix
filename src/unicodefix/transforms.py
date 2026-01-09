@@ -37,7 +37,9 @@ def clean_text(
     # Do this early, right after ftfy fixes encoding issues
     if not preserve_replacement_chars:
         text = text.replace("\ufffd", "")  # U+FFFD REPLACEMENT CHARACTER
-        text = text.replace("\uFFFD", "")  # Same, different case (case-insensitive check)
+        text = text.replace(
+            "\ufffd", ""
+        )  # Same, different case (case-insensitive check)
 
     # Quote normalization - aggressive by default
     if not preserve_quotes:
@@ -46,37 +48,37 @@ def clean_text(
             # Single quotes / apostrophes
             "\u2018": "'",  # LEFT SINGLE QUOTATION MARK
             "\u2019": "'",  # RIGHT SINGLE QUOTATION MARK
-            "\u201B": "'",  # SINGLE HIGH-REVERSED-9 QUOTATION MARK
-            "\u201A": "'",  # SINGLE LOW-9 QUOTATION MARK
+            "\u201b": "'",  # SINGLE HIGH-REVERSED-9 QUOTATION MARK
+            "\u201a": "'",  # SINGLE LOW-9 QUOTATION MARK
             "\u2039": "'",  # SINGLE LEFT-POINTING ANGLE QUOTATION MARK
-            "\u203A": "'",  # SINGLE RIGHT-POINTING ANGLE QUOTATION MARK
-            "\u02BC": "'",  # MODIFIER LETTER APOSTROPHE
-            "\uFF07": "'",  # FULLWIDTH APOSTROPHE
-            "\u02BB": "'",  # MODIFIER LETTER TURNED COMMA
-            "\u02BD": "'",  # MODIFIER LETTER REVERSED COMMA
-            "\u02BE": "'",  # MODIFIER LETTER RIGHT HALF RING
-            "\u02BF": "'",  # MODIFIER LETTER LEFT HALF RING
-            "\u02C8": "'",  # MODIFIER LETTER VERTICAL LINE
-            "\u02EE": "'",  # MODIFIER LETTER DOUBLE APOSTROPHE
-            "\u05F3": "'",  # HEBREW PUNCTUATION GERESH
-            "\u1FBF": "'",  # GREEK PSILI
-            "\u1FFE": "'",  # GREEK DASIA
+            "\u203a": "'",  # SINGLE RIGHT-POINTING ANGLE QUOTATION MARK
+            "\u02bc": "'",  # MODIFIER LETTER APOSTROPHE
+            "\uff07": "'",  # FULLWIDTH APOSTROPHE
+            "\u02bb": "'",  # MODIFIER LETTER TURNED COMMA
+            "\u02bd": "'",  # MODIFIER LETTER REVERSED COMMA
+            "\u02be": "'",  # MODIFIER LETTER RIGHT HALF RING
+            "\u02bf": "'",  # MODIFIER LETTER LEFT HALF RING
+            "\u02c8": "'",  # MODIFIER LETTER VERTICAL LINE
+            "\u02ee": "'",  # MODIFIER LETTER DOUBLE APOSTROPHE
+            "\u05f3": "'",  # HEBREW PUNCTUATION GERESH
+            "\u1fbf": "'",  # GREEK PSILI
+            "\u1ffe": "'",  # GREEK DASIA
             # Double quotes
-            "\u201C": '"',  # LEFT DOUBLE QUOTATION MARK
-            "\u201D": '"',  # RIGHT DOUBLE QUOTATION MARK
-            "\u201E": '"',  # DOUBLE LOW-9 QUOTATION MARK
-            "\u201F": '"',  # DOUBLE HIGH-REVERSED-9 QUOTATION MARK
-            "\u00AB": '"',  # LEFT-POINTING DOUBLE ANGLE QUOTATION MARK
-            "\u00BB": '"',  # RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK
-            "\uFF02": '"',  # FULLWIDTH QUOTATION MARK
-            "\u301D": '"',  # REVERSED DOUBLE PRIME QUOTATION MARK
-            "\u301E": '"',  # DOUBLE PRIME QUOTATION MARK
-            "\u301F": '"',  # LOW DOUBLE PRIME QUOTATION MARK
-            "\u05F4": '"',  # HEBREW PUNCTUATION GERSHAYIM
+            "\u201c": '"',  # LEFT DOUBLE QUOTATION MARK
+            "\u201d": '"',  # RIGHT DOUBLE QUOTATION MARK
+            "\u201e": '"',  # DOUBLE LOW-9 QUOTATION MARK
+            "\u201f": '"',  # DOUBLE HIGH-REVERSED-9 QUOTATION MARK
+            "\u00ab": '"',  # LEFT-POINTING DOUBLE ANGLE QUOTATION MARK
+            "\u00bb": '"',  # RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK
+            "\uff02": '"',  # FULLWIDTH QUOTATION MARK
+            "\u301d": '"',  # REVERSED DOUBLE PRIME QUOTATION MARK
+            "\u301e": '"',  # DOUBLE PRIME QUOTATION MARK
+            "\u301f": '"',  # LOW DOUBLE PRIME QUOTATION MARK
+            "\u05f4": '"',  # HEBREW PUNCTUATION GERSHAYIM
             # Ellipses
             "\u2026": "...",  # HORIZONTAL ELLIPSIS
-            "\u22EF": "...",  # MIDLINE HORIZONTAL ELLIPSIS
-            "\u2025": "..",   # TWO DOT LEADER
+            "\u22ef": "...",  # MIDLINE HORIZONTAL ELLIPSIS
+            "\u2025": "..",  # TWO DOT LEADER
         }
         text = text.translate(str.maketrans(QUOTE_ELLIPSIS_MAP))
 
@@ -93,9 +95,18 @@ def clean_text(
                 name = ""
 
             # Check for quote/apostrophe patterns in name (including extended ASCII quotes)
-            is_quote_like = any(pattern in name for pattern in [
-                "QUOTATION", "QUOTE", "APOSTROPHE", "PRIME", "GERSH", "DASIA", "PSILI"
-            ])
+            is_quote_like = any(
+                pattern in name
+                for pattern in [
+                    "QUOTATION",
+                    "QUOTE",
+                    "APOSTROPHE",
+                    "PRIME",
+                    "GERSH",
+                    "DASIA",
+                    "PSILI",
+                ]
+            )
 
             # Also check category for Pi/Pf (initial/final punctuation) that might be quotes
             is_pi_pf = unicodedata.category(ch) in ("Pi", "Pf")
@@ -104,7 +115,14 @@ def clean_text(
                 # Determine if single or double based on name
                 if "DOUBLE" in name or "GERSHAYIM" in name:
                     mapped.append('"')
-                elif "SINGLE" in name or "APOSTROPHE" in name or "PRIME" in name or "GERSH" in name or "DASIA" in name or "PSILI" in name:
+                elif (
+                    "SINGLE" in name
+                    or "APOSTROPHE" in name
+                    or "PRIME" in name
+                    or "GERSH" in name
+                    or "DASIA" in name
+                    or "PSILI" in name
+                ):
                     mapped.append("'")
                 elif is_pi_pf:
                     # For Pi/Pf without clear name match, default to double quote
@@ -123,7 +141,7 @@ def clean_text(
     # Dash normalization
     if not preserve_dashes:
         text = re.sub(r"\s*\u2014\s*", " - ", text)  # EM → space-dash-space
-        text = text.replace("\u2013", "-")           # EN → dash
+        text = text.replace("\u2013", "-")  # EN → dash
 
     # Fold select fullwidth punctuation that affects monospace alignment
     if not preserve_fullwidth_brackets:
@@ -139,7 +157,9 @@ def clean_text(
 
     if not preserve_invisible:
         # Remove zero-width, bidi, and control invisibles
-        text = re.sub(r"[\u200B-\u200D\uFEFF\u200E\u200F\u202A-\u202E\u2066-\u2069]", "", text)
+        text = re.sub(
+            r"[\u200B-\u200D\uFEFF\u200E\u200F\u202A-\u202E\u2066-\u2069]", "", text
+        )
 
     # Remove invalid/unassigned/private-use Unicode characters
     # These can appear when decoding is corrupted or bytes are invalid
@@ -149,7 +169,7 @@ def clean_text(
 
         # Always preserve common control characters (newlines, tabs, etc.)
         # These are essential for text structure even if they don't have Unicode names
-        if code < 32 and char in '\n\r\t':
+        if code < 32 and char in "\n\r\t":
             cleaned_chars.append(char)
             continue
 
@@ -167,11 +187,17 @@ def clean_text(
 
         # Skip private use area characters (often artifacts from encoding issues)
         # Private Use Areas: U+E000-U+F8FF, U+F0000-U+FFFFD, U+100000-U+10FFFD
-        if (0xE000 <= code <= 0xF8FF) or (0xF0000 <= code <= 0xFFFFD) or (0x100000 <= code <= 0x10FFFD):
+        if (
+            (0xE000 <= code <= 0xF8FF)
+            or (0xF0000 <= code <= 0xFFFFD)
+            or (0x100000 <= code <= 0x10FFFD)
+        ):
             continue
 
         # Skip unassigned characters (category "Cn" = "Other, not assigned")
-        if category == "Cn" and code > 0x007F:  # Allow ASCII control chars to pass through if printable
+        if (
+            category == "Cn" and code > 0x007F
+        ):  # Allow ASCII control chars to pass through if printable
             continue
 
         # Skip surrogates (shouldn't appear in valid UTF-8, but check anyway)

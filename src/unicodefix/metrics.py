@@ -33,6 +33,7 @@ def _sentences(text: str):
 def _stopwords():
     try:
         from nltk.corpus import stopwords  # type: ignore
+
         return set(stopwords.words("english"))
     except Exception:
         return set()
@@ -140,21 +141,27 @@ def ai_score(text: str, tokens, sentences) -> float:
         return 0.0
 
     # base features
-    ttr_v = ttr(tokens)                       # 0..1 (higher = more human/diverse)
-    rep_v = repetition_ratio(tokens)          # 0..1 (higher = more repetitive = more AI-like)
-    cv_v  = sentence_len_cv(tokens, sentences) # 0..inf (lower = more AI-like)
-    punc  = punctuation_ratio(text)           # ~0..0.2 typical
-    swr   = stopword_ratio(tokens)            # ~0.3..0.6 typical English
+    ttr_v = ttr(tokens)  # 0..1 (higher = more human/diverse)
+    rep_v = repetition_ratio(tokens)  # 0..1 (higher = more repetitive = more AI-like)
+    cv_v = sentence_len_cv(tokens, sentences)  # 0..inf (lower = more AI-like)
+    punc = punctuation_ratio(text)  # ~0..0.2 typical
+    swr = stopword_ratio(tokens)  # ~0.3..0.6 typical English
     # normalize-ish
-    ttr_h = 1 - min(max(ttr_v, 0.0), 1.0)     # invert so higher = more AI-like
+    ttr_h = 1 - min(max(ttr_v, 0.0), 1.0)  # invert so higher = more AI-like
     rep_h = min(max(rep_v, 0.0), 1.0)
-    cv_h  = 1 - min(cv_v / 1.0, 1.0)          # treat CV<=1 as fully AI-like, >1 bleeds to 0
+    cv_h = 1 - min(cv_v / 1.0, 1.0)  # treat CV<=1 as fully AI-like, >1 bleeds to 0
     punc_h = 1 - min(abs(punc - 0.05) / 0.05, 1.0)  # 0.05 sweet spot
-    swr_h  = 1 - min(abs(swr - 0.45) / 0.25, 1.0)   # 0.45 sweet spot
+    swr_h = 1 - min(abs(swr - 0.45) / 0.25, 1.0)  # 0.45 sweet spot
 
     # weights (sum ~1)
     w_ttr, w_rep, w_cv, w_punc, w_swr = 0.25, 0.30, 0.20, 0.15, 0.10
-    score = (w_ttr * ttr_h) + (w_rep * rep_h) + (w_cv * cv_h) + (w_punc * punc_h) + (w_swr * swr_h)
+    score = (
+        (w_ttr * ttr_h)
+        + (w_rep * rep_h)
+        + (w_cv * cv_h)
+        + (w_punc * punc_h)
+        + (w_swr * swr_h)
+    )
     return round(max(0.0, min(1.0, score)), 3)
 
 
@@ -170,14 +177,12 @@ def compute_metrics(text: str) -> dict:
         "avg_sentence_len_tokens": round(avg_sentence_len(tokens, sents), 4),
         "tokens": len(tokens),
         "sentences": len(sents),
-
         # extra features useful for ranking
         "punctuation_ratio": round(punctuation_ratio(text), 4),
         "stopword_ratio": round(stopword_ratio(tokens), 4),
         "repetition_ratio": round(repetition_ratio(tokens), 4),
         "sentence_len_cv": round(sentence_len_cv(tokens, sents), 4),
         "digits_ratio": round(digits_ratio(text), 4),
-
         # heuristic overall score
         "ai_score": ai_score(text, tokens, sents),
     }

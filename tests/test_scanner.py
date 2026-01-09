@@ -2,7 +2,7 @@ from unicodefix.scanner import scan_text_for_report
 
 
 def test_scanner_counts_core_signals():
-    s = "a\u200Bb “q”—r…\nline \t\n  \n"
+    s = "a\u200bb “q”—r…\nline \t\n  \n"
     d = scan_text_for_report(s)
     assert d["unicode_ghosts"]["ZWSP"] == 1
     assert d["typographic"]["smart_quotes"] >= 1

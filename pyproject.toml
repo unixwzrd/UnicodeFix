@@ -21,6 +21,12 @@ Documentation = "https://github.com/unixwzrd/UnicodeFix/blob/main/docs/cleanup-t
 
 [project.optional-dependencies]
 nlp = ["nltk>=3.9"]
+dev = [
+    "black>=24.0",
+    "ruff>=0.1.0",
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+]
 
 [project.scripts]
 cleanup-text = "unicodefix.cli:main"

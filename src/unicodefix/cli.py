@@ -15,6 +15,7 @@ def _maybe_metrics(text: str, enabled: bool):
         return None
     try:
         from unicodefix.metrics import compute_metrics
+
         return compute_metrics(text)
     except Exception as e:
         return {"error": str(e)}
@@ -64,13 +65,21 @@ def _write_text(path: str, content: str, eol: str = "\n") -> None:
 
 
 # ----- actions
-def run_report(files: list[str], json_mode: bool, csv_mode: bool, threshold: int | None, metrics: bool,
-               no_color: bool, display_label: str | None = None, warn_only: bool = False) -> int:
+def run_report(
+    files: list[str],
+    json_mode: bool,
+    csv_mode: bool,
+    threshold: int | None,
+    metrics: bool,
+    no_color: bool,
+    display_label: str | None = None,
+    warn_only: bool = False,
+) -> int:
     results: dict[str, dict] = {}
     exit_hits = 0
 
     for path in files:
-        raw = _read_text(path)              # still read the real path or "-"
+        raw = _read_text(path)  # still read the real path or "-"
         data = scan_text_for_report(raw)
 
         m = _maybe_metrics(raw, metrics)
@@ -109,7 +118,11 @@ def run_filter_mode(args) -> None:
     # VSCode quirk: append only to stdout
     process_title = os.environ.get("VSCODE_PROCESS_TITLE", "")
     app_insights = os.environ.get("APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL", "")
-    if not args.no_newline and process_title.startswith("extension-host") and app_insights != "true":
+    if (
+        not args.no_newline
+        and process_title.startswith("extension-host")
+        and app_insights != "true"
+    ):
         cleaned += "\n"
     sys.stdout.write(cleaned)
 
@@ -131,7 +144,10 @@ def process_file(infile: str, args) -> None:
             try:
                 os.replace(infile, tmpfile)
             except OSError as e:
-                if e.errno in (errno.EXDEV, getattr(errno, "ERROR_NOT_SAME_DEVICE", 18)):
+                if e.errno in (
+                    errno.EXDEV,
+                    getattr(errno, "ERROR_NOT_SAME_DEVICE", 18),
+                ):
                     shutil.copy2(infile, tmpfile)
                     os.remove(infile)
                 else:
@@ -199,51 +215,89 @@ def main():
         epilog="\n",
     )
     parser.add_argument("infile", nargs="*", help="Input file(s)")
-    parser.add_argument("-i", "--invisible", action="store_true",
-                        help="Preserve invisible Unicode (ZW*, bidi controls)")
-    parser.add_argument("-Q", "--keep-smart-quotes", action="store_true",
-                        help="Preserve Unicode smart quotes")
-    parser.add_argument("-D", "--keep-dashes", action="store_true",
-                        help="Preserve Unicode EN/EM dashes")
-    parser.add_argument("--keep-fullwidth-brackets", action="store_true",
-                        help="Preserve fullwidth square brackets (【】)")
-    parser.add_argument("-n", "--no-newline", action="store_true",
-                        help="Do not add a final newline")
-    parser.add_argument("-o", "--output",
-                        help="Output filename or '-' for STDOUT (only valid with one input)")
-    parser.add_argument("-t", "--temp", action="store_true",
-                        help="In-place clean via .tmp swap, then write back")
-    parser.add_argument("-p", "--preserve-tmp", action="store_true",
-                        help="With -t, keep the .tmp file after success")
+    parser.add_argument(
+        "-i",
+        "--invisible",
+        action="store_true",
+        help="Preserve invisible Unicode (ZW*, bidi controls)",
+    )
+    parser.add_argument(
+        "-Q",
+        "--keep-smart-quotes",
+        action="store_true",
+        help="Preserve Unicode smart quotes",
+    )
+    parser.add_argument(
+        "-D", "--keep-dashes", action="store_true", help="Preserve Unicode EN/EM dashes"
+    )
+    parser.add_argument(
+        "--keep-fullwidth-brackets",
+        action="store_true",
+        help="Preserve fullwidth square brackets (【】)",
+    )
+    parser.add_argument(
+        "-n", "--no-newline", action="store_true", help="Do not add a final newline"
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        help="Output filename or '-' for STDOUT (only valid with one input)",
+    )
+    parser.add_argument(
+        "-t",
+        "--temp",
+        action="store_true",
+        help="In-place clean via .tmp swap, then write back",
+    )
+    parser.add_argument(
+        "-p",
+        "--preserve-tmp",
+        action="store_true",
+        help="With -t, keep the .tmp file after success",
+    )
 
     # Audit
-    parser.add_argument("--report", action="store_true",
-                        help="Audit counts per category (no changes)")
+    parser.add_argument(
+        "--report", action="store_true", help="Audit counts per category (no changes)"
+    )
 
     fmt = parser.add_mutually_exclusive_group()
-    fmt.add_argument("--csv", action="store_true",
-                     help="With --report, emit CSV (one row per file)")
-    fmt.add_argument("--json", action="store_true",
-                     help="With --report, emit JSON")
-    parser.add_argument("--label",
-                        help="When reading from STDIN ('-'), use this display name in report/CSV")
+    fmt.add_argument(
+        "--csv", action="store_true", help="With --report, emit CSV (one row per file)"
+    )
+    fmt.add_argument("--json", action="store_true", help="With --report, emit JSON")
+    parser.add_argument(
+        "--label",
+        help="When reading from STDIN ('-'), use this display name in report/CSV",
+    )
 
-    parser.add_argument("--threshold", type=int, default=None,
-                        help="With --report, exit 1 if total anomalies >= N")
-    parser.add_argument("--metrics", action="store_true",
-                        help="Include semantic metrics in report")
-    parser.add_argument("--metrics-help", action="store_true",
-                        help="Explain metrics and arrows (↑/↓).")
-    parser.add_argument("--exit-zero", action="store_true",
-                        help="Always exit with code 0 (useful for pre-commit reporting)")
+    parser.add_argument(
+        "--threshold",
+        type=int,
+        default=None,
+        help="With --report, exit 1 if total anomalies >= N",
+    )
+    parser.add_argument(
+        "--metrics", action="store_true", help="Include semantic metrics in report"
+    )
+    parser.add_argument(
+        "--metrics-help", action="store_true", help="Explain metrics and arrows (↑/↓)."
+    )
+    parser.add_argument(
+        "--exit-zero",
+        action="store_true",
+        help="Always exit with code 0 (useful for pre-commit reporting)",
+    )
 
     # Output control
-    parser.add_argument("--no-color", action="store_true",
-                        help="Disable ANSI colors (plain output)")
+    parser.add_argument(
+        "--no-color", action="store_true", help="Disable ANSI colors (plain output)"
+    )
 
     # Logging
-    parser.add_argument("-q", "--quiet", action="store_true",
-                        help="Suppress status lines on stderr")
+    parser.add_argument(
+        "-q", "--quiet", action="store_true", help="Suppress status lines on stderr"
+    )
 
     args = parser.parse_args()
     log._quiet = bool(args.quiet)
@@ -263,9 +317,16 @@ def main():
             log("[✗] --csv and --json are mutually exclusive.")
             sys.exit(2)
         files = args.infile or ["-"]
-        code = run_report(files, json_mode=args.json, csv_mode=args.csv, threshold=args.threshold,
-                          metrics=args.metrics, no_color=args.no_color, display_label=args.label,
-                          warn_only=args.exit_zero)   # <-- use label for display
+        code = run_report(
+            files,
+            json_mode=args.json,
+            csv_mode=args.csv,
+            threshold=args.threshold,
+            metrics=args.metrics,
+            no_color=args.no_color,
+            display_label=args.label,
+            warn_only=args.exit_zero,
+        )  # <-- use label for display
         sys.exit(0 if args.exit_zero else code)
 
     # STDIN → STDOUT filter mode when no files provided
