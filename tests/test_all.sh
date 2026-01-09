@@ -88,7 +88,11 @@ for spec in "${SCENARIOS[@]}"; do
   declare -a targets=()
 
   echo "[i] Running: $name (${opts:-no opts})"
-  IFS=' ' read -r -a opt_array <<< "$opts"
+  # Initialize opt_array as empty array to avoid unbound variable errors
+  opt_array=()
+  if [ -n "${opts:-}" ]; then
+    IFS=' ' read -r -a opt_array <<< "$opts"
+  fi
 
   if [[ "$mode" == "clean" || "$mode" == "batch" ]]; then
     for produced in "${CLEAN_NAMES[@]}"; do

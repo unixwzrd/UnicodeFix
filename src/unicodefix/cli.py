@@ -3,6 +3,7 @@ import errno
 import os
 import shutil
 import sys
+from typing import Dict, List, Optional, Union
 
 from unicodefix.report import print_csv, print_human, print_json, print_metrics_help
 from unicodefix.scanner import scan_text_for_report
@@ -66,16 +67,16 @@ def _write_text(path: str, content: str, eol: str = "\n") -> None:
 
 # ----- actions
 def run_report(
-    files: list[str],
+    files: List[str],
     json_mode: bool,
     csv_mode: bool,
-    threshold: int | None,
+    threshold: Optional[int],
     metrics: bool,
     no_color: bool,
-    display_label: str | None = None,
+    display_label: Optional[str] = None,
     warn_only: bool = False,
 ) -> int:
-    results: dict[str, dict] = {}
+    results: Dict[str, dict] = {}
     exit_hits = 0
 
     for path in files:

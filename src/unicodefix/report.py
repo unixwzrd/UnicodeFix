@@ -2,6 +2,7 @@ import csv
 import json
 import os
 import sys
+from typing import Union
 
 from rich.align import Align
 from rich.console import Console
@@ -39,7 +40,7 @@ def _sumv(d: dict) -> int:
     return sum(int(v) for v in d.values())
 
 
-def _sev_count(v: int | str) -> str:
+def _sev_count(v: Union[int, str]) -> str:
     """Severity color for integer counts (or status markers '/' / 'X')."""
     if isinstance(v, str) and v in {"X", "/"}:
         return "blue"
