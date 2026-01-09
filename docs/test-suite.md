@@ -1,6 +1,6 @@
-# Test Suite for cleanup-text - v1.1.7
+# Test Suite for cleanup-text - v1.1.8
 
-*Last updated: 2026-01-07*
+*Last updated: 2026-01-08*
 
 ## Overview
 

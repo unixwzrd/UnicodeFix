@@ -147,6 +147,12 @@ def clean_text(
     for char in text:
         code = ord(char)
 
+        # Always preserve common control characters (newlines, tabs, etc.)
+        # These are essential for text structure even if they don't have Unicode names
+        if code < 32 and char in '\n\r\t':
+            cleaned_chars.append(char)
+            continue
+
         # Check if character is valid and assigned
         try:
             name = unicodedata.name(char)

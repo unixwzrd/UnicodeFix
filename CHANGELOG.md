@@ -1,6 +1,14 @@
 # Changelog for UnicodeFix
 
-*Last updated: 2026-01-07*
+*Last updated: 2026-01-08*
+
+## 20260108_01 - v1.1.8
+
+### **Critical Bug Fix: Newline Preservation**
+
+- **Fixed newline stripping bug:** The character validation logic was incorrectly removing newlines (`\n`), carriage returns (`\r`), and tabs (`\t`) because `unicodedata.name()` raises `ValueError` for these control characters and they're not "printable". Fixed by explicitly preserving these essential control characters before the validation check.
+- **Impact:** Files were being collapsed into single lines. This is now fixed and newlines are properly preserved.
+- **Root cause:** The invalid character filtering code was checking `char.isprintable()` for characters without Unicode names, which excluded essential control characters like newlines.
 
 ## 20260107_02 - v1.1.7
 
