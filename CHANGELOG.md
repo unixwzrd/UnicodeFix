@@ -1,23 +1,31 @@
 # Changelog for UnicodeFix
 
-*Last updated: 2026-01-08*
+Last updated: 2026-01-08
 
-## 20260108_01 - v1.1.9
+## 20260108_02 - v1.1.9
 
-### **CI/CD Pipeline & Enhanced Test Coverage**
+### **CI/CD Pipeline & Python 3.9 Compatibility**
 
-- **Added GitHub Actions CI/CD pipeline**: Automated testing on push and pull requests across multiple Python versions (3.9-3.12) and operating systems (Ubuntu, macOS)
-- **Comprehensive newline preservation tests**: Added 7 new pytest tests to prevent regression of the newline stripping bug:
-  - Single-line newline preservation
-  - Multi-line structure preservation
-  - Newlines with Unicode normalization
-  - Tabs and newlines together
-  - CRLF line ending handling
-  - Empty lines (consecutive newlines)
-  - Files without trailing newlines
-- **Integration test validation**: Enhanced `tests/test_all.sh` to automatically validate newline preservation in cleaned files
-- **Linting jobs**: Added code formatting (black) and linting (ruff) checks, plus shell script linting (shellcheck)
-- **Test coverage**: All tests now run automatically on every commit, preventing bugs like the newline stripping issue from reaching production
+- **GitHub Actions CI/CD**: Comprehensive automated testing pipeline running on every push and pull request
+  - **Test matrix**: Ubuntu latest and macOS latest × Python 3.9, 3.10, 3.11, and 3.12 (8 combinations)
+  - **Test jobs**: Python unit tests (pytest with coverage), integration test suite, newline preservation validation
+  - **Linting jobs**: Code formatting (black), linting (ruff), shell script linting (shellcheck)
+  - **All tests passing**: Verified working across all OS and Python version combinations
+- **Python 3.9 compatibility fixes**: Replaced Python 3.10+ type hint syntax with Python 3.9-compatible alternatives
+  - Changed `int | str` to `Union[int, str]` from `typing` module
+  - Changed `int | None` to `Optional[int]` from `typing` module
+  - Changed `list[str]` to `List[str]` and `dict[str, dict]` to `Dict[str, dict]` for type hints
+  - All code now compatible with Python 3.9 through 3.12
+- **Enhanced test coverage**: Added 7 comprehensive newline preservation tests to prevent regression
+- **Test suite robustness**: Fixed bash script issues for strict mode (`set -euo pipefail`)
+  - Fixed unbound variable errors with empty arrays using `declare -a` and safe length checks
+  - Fixed shellcheck warnings and syntax errors
+  - Improved glob pattern handling with `nullglob` for better compatibility
+- **Development dependencies**: Added `dev` optional dependencies group to `pyproject.toml`
+  - Includes: `black>=24.0`, `ruff>=0.1.0`, `pytest>=7.0`, `pytest-cov>=4.0`
+  - Install with: `pip install -e ".[dev]"`
+- **Code formatting**: All Python files formatted with black to meet style standards
+- **CI workflow improvements**: Better PATH handling, fallback to `python -m unicodefix.cli` when `cleanup-text` not in PATH
 
 ## 20260108_00 - v1.1.8
 
@@ -80,7 +88,6 @@ These changes improve the robustness of text cleaning, especially when processin
 - Bumped version to 1.1.0 and documented the experimental semantic metrics (`--metrics`, `--metrics-help`).
 - Added `--exit-zero` so report/metrics runs can inform pre-commit hooks without aborting the workflow.
 - Installation is now Pip based.
-
 
 ## 2025-09-07
 
