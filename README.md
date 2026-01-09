@@ -4,15 +4,16 @@
 
 ![UnicodeFix Hero Image](docs/controlling-unicode.png)
 
-[![Python](https://img.shields.io/badge/Python-3.10%2B-blue)](#) [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE) [![Release](https://img.shields.io/github/v/tag/unixwzrd/UnicodeFix?label=release)](https://github.com/unixwzrd/UnicodeFix/releases)
+[![Python](https://img.shields.io/badge/Python-3.9%2B-blue)](#) [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE) [![Release](https://img.shields.io/github/v/tag/unixwzrd/UnicodeFix?label=release)](https://github.com/unixwzrd/UnicodeFix/releases) [![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-blue)](.github/workflows/ci.yml)
 
-- [UnicodeFix - *CodExorcism Edition+ v1.1.9*](#unicodefix---codexorcism-edition-v118)
+- [UnicodeFix - *CodExorcism Edition+ v1.1.9*](#unicodefix---codexorcism-edition-v119)
     - [**Finally - a tool that blasts AI fingerprints, torches those infuriating smart quotes, and leaves your code \& docs squeaky clean for real humans.**](#finally---a-tool-that-blasts-ai-fingerprints-torches-those-infuriating-smart-quotes-and-leaves-your-code--docs-squeaky-clean-for-real-humans)
   - [Why Is This Happening?](#why-is-this-happening)
   - [Installation](#installation)
   - [Usage](#usage)
     - [New options](#new-options)
       - [When to preserve invisible characters (`-i`)](#when-to-preserve-invisible-characters--i)
+  - [Python API Usage](#python-api-usage)
   - [Brief Examples](#brief-examples)
     - [Pipe / Filter (STDIN to STDOUT)](#pipe--filter-stdin-to-stdout)
     - [Batch Clean](#batch-clean)
@@ -146,6 +147,44 @@ In most code/CI workflows, invisible/bidi controls are accidental and should be 
 - Linguistic text where ZWJ/ZWNJ influence shaping
 - Intentional watermarks/markers in text
 - Forensic/debug inspections before deciding what to strip
+
+## Python API Usage
+
+UnicodeFix provides a clean Python API for programmatic text cleaning and analysis. Import and use the functions directly in your Python code:
+
+```python
+from unicodefix.transforms import clean_text, handle_newlines
+from unicodefix.scanner import scan_text_for_report
+from unicodefix.report import print_human, print_json
+from unicodefix.metrics import compute_metrics  # Experimental
+
+# Clean text with default settings (aggressive normalization)
+cleaned = clean_text(""Hello" — world…")
+
+# Clean with preservation options
+cleaned = clean_text(
+    text="'Smart quotes' and — dashes",
+    preserve_quotes=True,      # Keep smart quotes
+    preserve_dashes=True,       # Keep em/en dashes
+    preserve_invisible=False    # Remove invisible chars (default)
+)
+
+# Scan text for anomalies (report mode)
+anomalies = scan_text_for_report(""text"\u200b")
+# Returns: {'unicode_ghosts': {...}, 'typographic': {...}, ...}
+
+# Generate human-readable report
+print_human("file.txt", anomalies)
+
+# Generate JSON report
+print_json({"file.txt": anomalies})
+
+# Compute semantic metrics (experimental, requires NLTK)
+metrics = compute_metrics("Some text to analyze...")
+# Returns: {'entropy': 0.85, 'ai_score': 0.42, ...}
+```
+
+**See [API Documentation](docs/api.md) for complete details on all available functions, parameters, and return values.**
 
 ## Brief Examples
 
@@ -345,7 +384,7 @@ Thank you for keeping solo development alive!
 
 ## License
 
-Copyright 2025
+Copyright 2025  
 [unixwzrd@unixwzrd.ai](mailto:unixwzrd@unixwzrd.ai)
 
 [MIT License](LICENSE)
