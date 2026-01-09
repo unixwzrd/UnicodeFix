@@ -89,10 +89,12 @@ for spec in "${SCENARIOS[@]}"; do
 
   echo "[i] Running: $name (${opts:-no opts})"
   # Initialize opt_array as empty array to avoid unbound variable errors
-  opt_array=()
+  declare -a opt_array=()
   if [ -n "${opts:-}" ]; then
     IFS=' ' read -r -a opt_array <<< "$opts"
   fi
+  # Get array length safely for use in conditionals
+  array_len=${#opt_array[@]}
 
   if [[ "$mode" == "clean" || "$mode" == "batch" ]]; then
     for produced in "${CLEAN_NAMES[@]}"; do
@@ -101,7 +103,12 @@ for spec in "${SCENARIOS[@]}"; do
   fi
 
   if [[ "$mode" == "batch" && ${#SOURCES[@]} -gt 0 ]]; then
-    ( cd "$DATA_DIR" && cleanup-text "${opt_array[@]}" ./* )
+    # Use conditional expansion to avoid unbound variable errors with empty arrays
+    if [ "$array_len" -gt 0 ]; then
+      ( cd "$DATA_DIR" && cleanup-text "${opt_array[@]}" ./* )
+    else
+      ( cd "$DATA_DIR" && cleanup-text ./* )
+    fi
   fi
 
   for idx in "${!SOURCES[@]}"; do
@@ -113,7 +120,11 @@ for spec in "${SCENARIOS[@]}"; do
 
     case "$mode" in
       clean)
-        cleanup-text "${opt_array[@]}" "$src"
+        if [ "$array_len" -gt 0 ]; then
+          cleanup-text "${opt_array[@]}" "$src"
+        else
+          cleanup-text "$src"
+        fi
         produced="$DATA_DIR/$clean_name"
         if [[ -f "$produced" ]]; then
           target="$dir/$clean_name"
@@ -130,7 +141,11 @@ for spec in "${SCENARIOS[@]}"; do
       inplace)
         target="$dir/$fname"
         cp "$src" "$target"
-        local_opts=("${opt_array[@]}")
+        # Copy opt_array safely, handling empty arrays
+        local_opts=()
+        if [ "$array_len" -gt 0 ]; then
+          local_opts=("${opt_array[@]}")
+        fi
         needs_t=1
         for opt in "${local_opts[@]}"; do
           if [[ "$opt" == "-t" ]]; then
@@ -146,34 +161,69 @@ for spec in "${SCENARIOS[@]}"; do
           continue
         fi
         target="$dir/$fname"
-        cleanup-text "${opt_array[@]}" < "$src" > "$target"
+        if [ "$array_len" -gt 0 ]; then
+          cleanup-text "${opt_array[@]}" < "$src" > "$target"
+        else
+          cleanup-text < "$src" > "$target"
+        fi
         ;;
       custom_out)
         target="$dir/$out_name"
-        cleanup-text "${opt_array[@]}" "$src" -o "$target"
+        if [ "$array_len" -gt 0 ]; then
+          cleanup-text "${opt_array[@]}" "$src" -o "$target"
+        else
+          cleanup-text "$src" -o "$target"
+        fi
         ;;
       report)
-        if cleanup-text "${opt_array[@]}" "$src" > "$dir/$fname.report"; then
-          :
+        if [ "$array_len" -gt 0 ]; then
+          if cleanup-text "${opt_array[@]}" "$src" > "$dir/$fname.report"; then
+            :
+          else
+            status=$?
+            printf '[w] cleanup-text exited %s for %s (%s)\n' "$status" "$fname" "$name" >&2
+          fi
         else
-          status=$?
-          printf '[w] cleanup-text exited %s for %s (%s)\n' "$status" "$fname" "$name" >&2
+          if cleanup-text "$src" > "$dir/$fname.report"; then
+            :
+          else
+            status=$?
+            printf '[w] cleanup-text exited %s for %s (%s)\n' "$status" "$fname" "$name" >&2
+          fi
         fi
         ;;
       report_json)
-        if cleanup-text "${opt_array[@]}" "$src" > "$dir/$fname.json"; then
-          :
+        if [ "$array_len" -gt 0 ]; then
+          if cleanup-text "${opt_array[@]}" "$src" > "$dir/$fname.json"; then
+            :
+          else
+            status=$?
+            printf '[w] cleanup-text exited %s for %s (%s)\n' "$status" "$fname" "$name" >&2
+          fi
         else
-          status=$?
-          printf '[w] cleanup-text exited %s for %s (%s)\n' "$status" "$fname" "$name" >&2
+          if cleanup-text "$src" > "$dir/$fname.json"; then
+            :
+          else
+            status=$?
+            printf '[w] cleanup-text exited %s for %s (%s)\n' "$status" "$fname" "$name" >&2
+          fi
         fi
         ;;
       report_stdin)
-        if cleanup-text "${opt_array[@]}" < "$src" > "$dir/$fname.json"; then
-          :
+        if [ "$array_len" -gt 0 ]; then
+          if cleanup-text "${opt_array[@]}" < "$src" > "$dir/$fname.json"; then
+            :
+          else
+            status=$?
+            printf '[w] cleanup-text exited %s for %s (%s)\n' "$status" "$fname" "$name" >&2
+          fi
         else
-          status=$?
-          printf '[w] cleanup-text exited %s for %s (%s)\n' "$status" "$fname" "$name" >&2
+          if cleanup-text < "$src" > "$dir/$fname.json"; then
+            :
+          else
+            status=$?
+            printf '[w] cleanup-text exited %s for %s (%s)\n' "$status" "$fname" "$name" >&2
+          fi
         fi
         ;;
     esac
