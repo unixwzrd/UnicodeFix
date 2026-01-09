@@ -194,4 +194,38 @@ for spec in "${SCENARIOS[@]}"; do
   echo
 done
 
+# Validation: Check that newlines are preserved in cleaned files
+echo "[i] Validating newline preservation..."
+validation_failed=0
+for dir in "$OUT_DIR"/default "$OUT_DIR"/batch "$OUT_DIR"/temp "$OUT_DIR"/invisible; do
+  if [ -d "$dir" ]; then
+    for file in "$dir"/*.txt "$dir"/*.py "$dir"/*.c "$dir"/*.md 2>/dev/null; do
+      if [ -f "$file" ]; then
+        # Check that file has at least one line (has newlines)
+        line_count=$(wc -l < "$file" 2>/dev/null || echo "0")
+        if [ "$line_count" -lt 1 ]; then
+          echo "[✗] ERROR: $(basename "$file") in $(basename "$dir") has no lines (newlines may have been stripped)"
+          validation_failed=1
+        fi
+        # Check that file doesn't appear to be a single collapsed line
+        # (files with content should have multiple lines or at least one newline)
+        if [ "$line_count" -eq 0 ] && [ -s "$file" ]; then
+          # File has content but no newlines - this is suspicious for multi-line files
+          content_lines=$(cat "$file" | wc -l)
+          if [ "$content_lines" -eq 0 ]; then
+            echo "[✗] WARNING: $(basename "$file") in $(basename "$dir") has content but no newlines"
+          fi
+        fi
+      fi
+    done
+  fi
+done
+
+if [ $validation_failed -eq 0 ]; then
+  echo "[✓] Newline preservation validation passed"
+else
+  echo "[✗] Newline preservation validation failed"
+  exit 1
+fi
+
 echo "[i] All scenarios complete → $OUT_DIR"

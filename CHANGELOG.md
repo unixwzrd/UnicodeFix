@@ -2,7 +2,24 @@
 
 *Last updated: 2026-01-08*
 
-## 20260108_01 - v1.1.8
+## 20260108_01 - v1.1.9
+
+### **CI/CD Pipeline & Enhanced Test Coverage**
+
+- **Added GitHub Actions CI/CD pipeline**: Automated testing on push and pull requests across multiple Python versions (3.9-3.12) and operating systems (Ubuntu, macOS)
+- **Comprehensive newline preservation tests**: Added 7 new pytest tests to prevent regression of the newline stripping bug:
+  - Single-line newline preservation
+  - Multi-line structure preservation
+  - Newlines with Unicode normalization
+  - Tabs and newlines together
+  - CRLF line ending handling
+  - Empty lines (consecutive newlines)
+  - Files without trailing newlines
+- **Integration test validation**: Enhanced `tests/test_all.sh` to automatically validate newline preservation in cleaned files
+- **Linting jobs**: Added code formatting (black) and linting (ruff) checks, plus shell script linting (shellcheck)
+- **Test coverage**: All tests now run automatically on every commit, preventing bugs like the newline stripping issue from reaching production
+
+## 20260108_00 - v1.1.8
 
 ### **Critical Bug Fix: Newline Preservation**
 
