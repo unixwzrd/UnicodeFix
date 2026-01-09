@@ -2,7 +2,7 @@
 
 Last updated: 2026-01-08
 
-## 20260108_02 - v1.1.9
+## 20260108_02 - v1.1.9.1
 
 ### **CI/CD Pipeline & Python 3.9 Compatibility**
 
@@ -26,6 +26,7 @@ Last updated: 2026-01-08
   - Install with: `pip install -e ".[dev]"`
 - **Code formatting**: All Python files formatted with black to meet style standards
 - **CI workflow improvements**: Better PATH handling, fallback to `python -m unicodefix.cli` when `cleanup-text` not in PATH
+- Added Python API documentation to `docs/api.md`
 
 ## 20260108_00 - v1.1.8
 
