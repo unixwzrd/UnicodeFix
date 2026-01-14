@@ -9,6 +9,10 @@ except Exception as e:
     ftfy = None
     _ftfy_err = e
 
+# Characters cleaned / normalized (exported for scanner/docs consistency)
+UNICODEFIX_ZS_SPACES_RE = r"[\u00A0\u1680\u2000-\u200A\u202F\u205F\u3000]"
+UNICODEFIX_INVISIBLES_RE = r"[\u200B-\u200D\uFEFF\u200E\u200F\u202A-\u202E\u2066-\u2069]"
+
 
 def _require_ftfy():
     if ftfy is None:
@@ -36,10 +40,8 @@ def clean_text(
     # These indicate invalid/undecodable bytes and should be removed
     # Do this early, right after ftfy fixes encoding issues
     if not preserve_replacement_chars:
-        text = text.replace("\ufffd", "")  # U+FFFD REPLACEMENT CHARACTER
-        text = text.replace(
-            "\ufffd", ""
-        )  # Same, different case (case-insensitive check)
+        # U+FFFD REPLACEMENT CHARACTER: indicates decode errors / corrupted bytes
+        text = text.replace("\ufffd", "")
 
     # Quote normalization - aggressive by default
     if not preserve_quotes:
@@ -140,7 +142,10 @@ def clean_text(
 
     # Dash normalization
     if not preserve_dashes:
-        text = re.sub(r"\s*\u2014\s*", " - ", text)  # EM → space-dash-space
+        # EM DASH: normalize to space-dash-space, but avoid creating double spaces
+        text = re.sub(r"\u2014", " - ", text)
+        text = re.sub(r"[ \t]{2,}", " ", text)
+        # EN DASH: normalize to '-'
         text = text.replace("\u2013", "-")  # EN → dash
 
     # Fold select fullwidth punctuation that affects monospace alignment
@@ -153,14 +158,12 @@ def clean_text(
             text = text.translate(str.maketrans(FULLWIDTH_FOLD))
 
     # Zs separators → ASCII space
-    text = re.sub(r"[\u00A0\u1680\u2000-\u200A\u202F\u205F\u3000]", " ", text)
+    text = re.sub(UNICODEFIX_ZS_SPACES_RE, " ", text)
 
     if not preserve_invisible:
         # Remove zero-width, bidi, and control invisibles
-        text = re.sub(
-            r"[\u200B-\u200D\uFEFF\u200E\u200F\u202A-\u202E\u2066-\u2069]", "", text
-        )
-
+        text = re.sub(UNICODEFIX_INVISIBLES_RE, "", text)
+    
     # Remove invalid/unassigned/private-use Unicode characters
     # These can appear when decoding is corrupted or bytes are invalid
     cleaned_chars = []

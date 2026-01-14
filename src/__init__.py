@@ -1,2 +1,2 @@
 __all__ = ["clean_text", "handle_newlines"]
-__version__ = "1.1.9.1"
+__version__ = "1.2.0"

@@ -1,6 +1,17 @@
 # Changelog for UnicodeFix
 
-Last updated: 2026-01-08
+Last updated: 2026-01-14
+
+## 20260114_00 - v1.2.0
+
+### **Release Hardening + Audit/Report Improvements**
+
+- **CI/CD pipeline hardened**: full cross-platform test matrix (Ubuntu/macOS × Python 3.9–3.12) with integration tests + lint + shellcheck.
+- **Regression protection**: added/strengthened newline preservation validation to prevent accidental line-collapsing failures.
+- **CLI/report consistency**: clarified and aligned filter vs file modes, output handling, and audit/report formatting.
+- **Scanner improvements**: improved anomaly detection and reporting accuracy; cleaner category breakdowns.
+- **Transform refinements**: tightened Unicode cleaning behavior while preserving text structure (EOL handling, whitespace normalization).
+- **Docs refresh**: README + CLI docs updated to better explain “clean mode vs audit mode” and the “forensics” use case.
 
 ## 20260108_02 - v1.1.9.1
 

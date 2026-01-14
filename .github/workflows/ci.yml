@@ -48,7 +48,13 @@ jobs:
         chmod +x tests/test_all.sh
         # Ensure cleanup-text is in PATH
         export PATH="$HOME/.local/bin:$PATH"
-        which cleanup-text || (echo "cleanup-text not found, using python module" && alias cleanup-text="python -m unicodefix.cli")
+        mkdir -p /tmp/bin
+        cat > /tmp/bin/cleanup-text <<'EOF'
+        #!/usr/bin/env bash
+        python -m unicodefix.cli "$@"
+        EOF
+        chmod +x /tmp/bin/cleanup-text
+        export PATH="/tmp/bin:$PATH"
         bash tests/test_all.sh
 
     - name: Validate newline preservation

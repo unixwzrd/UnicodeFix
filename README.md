@@ -1,4 +1,4 @@
-# UnicodeFix - *CodExorcism Edition+ v1.1.9.1*
+# UnicodeFix - *CodExorcism Edition+ v1.2.0*
 
 *Last updated: 2026-01-08*
 
@@ -6,8 +6,9 @@
 
 [![Python](https://img.shields.io/badge/Python-3.9%2B-blue)](#) [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE) [![Release](https://img.shields.io/github/v/tag/unixwzrd/UnicodeFix?label=release)](https://github.com/unixwzrd/UnicodeFix/releases) [![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-blue)](.github/workflows/ci.yml)
 
-- [UnicodeFix - *CodExorcism Edition+ v1.1.9.1*](#unicodefix---codexorcism-edition-v119)
+- [UnicodeFix - *CodExorcism Edition+ v1.2.0*](#unicodefix---codexorcism-edition-v1191)
     - [**Finally - a tool that blasts AI fingerprints, torches those infuriating smart quotes, and leaves your code \& docs squeaky clean for real humans.**](#finally---a-tool-that-blasts-ai-fingerprints-torches-those-infuriating-smart-quotes-and-leaves-your-code--docs-squeaky-clean-for-real-humans)
+    - [Two modes (cleaner + auditor)](#two-modes-cleaner--auditor)
   - [Why Is This Happening?](#why-is-this-happening)
   - [Installation](#installation)
   - [Usage](#usage)
@@ -51,6 +52,15 @@ UnicodeFix vaporizes all the weird dashes, curly quotes, invisible space ninjas,
 *Yes, it helps students cheat on their homework.*
 It also makes blog posts and AI-proofed emails look like you sweated over every character.
 Nearly a thousand people have grabbed it. Nobody's bought me a coffee yet, but hey… there's a first time for everything.
+
+---
+
+### Two modes (cleaner + auditor)
+
+- **Clean mode (default):** scrub Unicode artifacts from files or stdin → stdout.
+- **Audit mode (`--report`):** scan text for anomalies + (optional) semantic metrics. Works for CI gates, pre-commit hooks, and yes - professors looking for shenanigans.
+
+A combination of Jules and Vincent... plus Winston Wolf. It solves problems.
 
 ---
 
@@ -101,29 +111,38 @@ For serious environment nerds: [VenvUtil](https://github.com/unixwzrd/venvutil) 
 Once installed and activated:
 
 ```bash
-(LLaSA-speech) [unixwzrd@xanax: bin]$ cleanup-text --help
+(ConnectomeAI) [unixwzrd@xanax: unicodefix]$ cleanup-text --help
+usage: cleanup-text [-h] [-i] [-Q] [-D] [--keep-fullwidth-brackets] [-n] [-o OUTPUT] [-t] [-p] [--report] [--csv | --json] [--label LABEL] [--threshold THRESHOLD] [--metrics] [--metrics-help] [--exit-zero] [--no-color] [-q] [infile ...]
 
-usage: cleanup-text [-h] [-i] [-Q] [-D] [--keep-fullwidth-brackets] [-n] [-o OUTPUT] [-t] [-p] [infile ...]
-
-Clean Unicode quirks from text. If no input files are given, reads from STDIN and writes to STDOUT (filter mode). If input files are given, creates cleaned files with .clean before the extension (e.g., foo.txt -> foo.clean.txt). Use -o - to force output to STDOUT for all input files, or -o <file> to specify a single output file (only with one
-input file).
+Clean Unicode quirks from text. STDIN→STDOUT if no files; otherwise writes .clean files or -o.
 
 positional arguments:
   infile                Input file(s)
 
 options:
   -h, --help            show this help message and exit
-  -i, --invisible       Preserve invisible Unicode characters (zero-width, bidi controls, etc.)
+  -i, --invisible       Preserve invisible Unicode (ZW*, bidi controls)
   -Q, --keep-smart-quotes
-                        Preserve Unicode smart quotes (do not convert to ASCII)
-  -D, --keep-dashes     Preserve Unicode EN/EM dashes (do not convert to ASCII)
+                        Preserve Unicode smart quotes
+  -D, --keep-dashes     Preserve Unicode EN/EM dashes
   --keep-fullwidth-brackets
-                        Preserve fullwidth square brackets (【】) (do not fold to ASCII)
-  -n, --no-newline      Do not add a newline at the end of the output file (suppress final newline).
+                        Preserve fullwidth square brackets (【】)
+  -n, --no-newline      Do not add a final newline
   -o OUTPUT, --output OUTPUT
-                        Output file name, or '-' for STDOUT. Only valid with one input file, or use '-' for STDOUT with multiple files.
-  -t, --temp            In-place cleaning: Move each input file to .tmp, clean it, write cleaned output to original name, and delete .tmp after success.
-  -p, --preserve-tmp    With -t, preserve the .tmp file after cleaning (do not delete it). Useful for backup or manual recovery.
+                        Output filename or '-' for STDOUT (only valid with one input)
+  -t, --temp            In-place clean via .tmp swap, then write back
+  -p, --preserve-tmp    With -t, keep the .tmp file after success
+  --report              Audit counts per category (no changes)
+  --csv                 With --report, emit CSV (one row per file)
+  --json                With --report, emit JSON
+  --label LABEL         When reading from STDIN ('-'), use this display name in report/CSV
+  --threshold THRESHOLD
+                        With --report, exit 1 if total anomalies >= N
+  --metrics             Include semantic metrics in report
+  --metrics-help        Explain metrics and arrows (↑/↓).
+  --exit-zero           Always exit with code 0 (useful for pre-commit reporting)
+  --no-color            Disable ANSI colors (plain output)
+  -q, --quiet           Suppress status lines on stderr
 ```
 
 ### New options

@@ -242,7 +242,7 @@ def main():
     parser.add_argument(
         "-o",
         "--output",
-        help="Output filename or '-' for STDOUT (only valid with one input)",
+        help="Output filename or '-' for STDOUT will aggregate all files into teh STDOUT stream.",
     )
     parser.add_argument(
         "-t",
@@ -304,11 +304,6 @@ def main():
     log._quiet = bool(args.quiet)
 
     # Metrics help: print and exit (stdout, honors --no-color)
-    if args.metrics_help:
-        print_metrics_help(no_color=args.no_color)
-        sys.exit(0)
-
-    # Report mode (data→stdout only)
     if args.metrics_help:
         print_metrics_help(no_color=args.no_color)
         sys.exit(0)
