@@ -4,9 +4,9 @@
 
 ![UnicodeFix Hero Image](docs/controlling-unicode.png)
 
-[![Python](https://img.shields.io/badge/Python-3.9%2B-blue)](#) [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE) [![Release](https://img.shields.io/github/v/tag/unixwzrd/UnicodeFix?label=release)](https://github.com/unixwzrd/UnicodeFix/releases) [![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-blue)](.github/workflows/ci.yml)
+[![Python](https://img.shields.io/badge/Python-3.9%2B-blue)](#) [![Platforms](https://img.shields.io/badge/Platforms-macOS%20%7C%20Ubuntu-informational)](#) [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE) [![Release](https://img.shields.io/github/v/tag/unixwzrd/UnicodeFix?label=release)](https://github.com/unixwzrd/UnicodeFix/releases) [![CI](https://github.com/unixwzrd/UnicodeFix/actions/workflows/ci.yml/badge.svg)](.github/workflows/ci.yml)
 
-- [UnicodeFix - *CodExorcism Edition+ v1.2.0*](#unicodefix---codexorcism-edition-v1191)
+- [UnicodeFix - *CodExorcism Edition+ v1.2.0*](#unicodefix---codexorcism-edition-v120)
     - [**Finally - a tool that blasts AI fingerprints, torches those infuriating smart quotes, and leaves your code \& docs squeaky clean for real humans.**](#finally---a-tool-that-blasts-ai-fingerprints-torches-those-infuriating-smart-quotes-and-leaves-your-code--docs-squeaky-clean-for-real-humans)
     - [Two modes (cleaner + auditor)](#two-modes-cleaner--auditor)
   - [Why Is This Happening?](#why-is-this-happening)
@@ -28,8 +28,7 @@
     - [Using in vi/vim/macvim](#using-in-vivimmacvim)
   - [What's New / What's Cool](#whats-new--whats-cool)
     - [CodexExorcism+ Release (Sept 2025)](#codexexorcism-release-sept-2025)
-    - [CodexExorcism Release (Sept 2025)](#codexexorcism-release-sept-2025-1)
-    - [Previous Releases](#previous-releases)
+    - [CodexExorcism+ Release (Sept 2025)](#codexexorcism-release-sept-2025-1)
     - [Keep It Fresh](#keep-it-fresh)
   - [Shortcut for macOS](#shortcut-for-macos)
     - [To add the Shortcut](#to-add-the-shortcut)
@@ -203,7 +202,7 @@ metrics = compute_metrics("Some text to analyze...")
 # Returns: {'entropy': 0.85, 'ai_score': 0.42, ...}
 ```
 
-**See [API Documentation](docs/api.md) for complete details on all available functions, parameters, and return values.**
+**See [API Documentation](docs/API.md) for complete details on all available functions, parameters, and return values.**
 
 ## Brief Examples
 
@@ -285,6 +284,17 @@ See [cleanup-text.md](docs/cleanup-text.md) for deeper dives and arcane options.
 
 ## What's New / What's Cool
 
+
+### CodexExorcism+ Release (Sept 2025)  
+
+- **CI/CD pipeline hardened**: full cross-platform test matrix (Ubuntu/macOS × Python 3.9–3.12) with integration tests + lint + shellcheck.
+- **Cross-platform verified**: tested on GitHub Actions `ubuntu-latest` and `macos-latest` runners across Python 3.9–3.12 (see `.github/workflows/ci.yml` for the current OS images).
+- **Regression protection**: added/strengthened newline preservation validation to prevent accidental line-collapsing failures.
+- **CLI/report consistency**: clarified and aligned filter vs file modes, output handling, and audit/report formatting.
+- **Scanner improvements**: improved anomaly detection and reporting accuracy; cleaner category breakdowns.
+- **Transform refinements**: tightened Unicode cleaning behavior while preserving text structure (EOL handling, whitespace normalization).
+- **Docs refresh**: README + CLI docs updated to better explain “clean mode vs audit mode” and the “forensics” use case.
+
 ### CodexExorcism+ Release (Sept 2025)  
 
 The follow-up release keeps the Unicode exorcism vibe but layers on early-stage semantics:  
@@ -293,23 +303,6 @@ The follow-up release keeps the Unicode exorcism vibe but layers on early-stage 
 - **Metrics legend on demand** – `--metrics-help` explains every stat plus the ↑/↓ hints.  
 - **Hook-friendly reporting** – `--exit-zero` means pre-commit hooks can flag anomalies without blocking your commit.  
 - **Slimmer all-in-one test harness** – `tests/test_all.sh` derives its run list from `data/`, handles STDIN/STDOUT quirks, and drops per-scenario diffs/word-count deltas.  
-
-### CodexExorcism Release (Sept 2025)  
-
-Exorcise your code from VS Code/Codex’s funky Unicode artifacts (NBSPs, bidi controls, smart quotes).  
-
-- **Safer EOF handling in VS Code filter mode**  
-- **Normalizes more sneaky Codex/AI fingerprints**
-- **Ellipsis Eradication**
-
-### Previous Releases
-
-- **Normalizes EM/EN dashes to true ASCII - no more AI " - " nonsense**
-- **Wipes AI "tells," watermarks, and digital fingerprints**
-- **Fixes trailing whitespace, normalizes newlines, burns the digital junk**
-- **Portable (Python 3.7+), cross-platform**
-- **Integrated macOS Shortcut for right-click cleaning in Finder**
-- **Can be used in CI/CD - but also by normal humans, not just pipeline freaks**
 
 > *Fun fact*: Even Python will execute code with "curly quotes." Your IDE, email client, and browser all sneak these in. UnicodeFix hunts them down and torches them, ...so your coding homework looks *lovingly hand-crafted* at 4:37 a.m., rather than LLM spawn.
 

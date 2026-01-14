@@ -11,7 +11,9 @@ except Exception as e:
 
 # Characters cleaned / normalized (exported for scanner/docs consistency)
 UNICODEFIX_ZS_SPACES_RE = r"[\u00A0\u1680\u2000-\u200A\u202F\u205F\u3000]"
-UNICODEFIX_INVISIBLES_RE = r"[\u200B-\u200D\uFEFF\u200E\u200F\u202A-\u202E\u2066-\u2069]"
+UNICODEFIX_INVISIBLES_RE = (
+    r"[\u200B-\u200D\uFEFF\u200E\u200F\u202A-\u202E\u2066-\u2069]"
+)
 
 
 def _require_ftfy():
@@ -163,7 +165,7 @@ def clean_text(
     if not preserve_invisible:
         # Remove zero-width, bidi, and control invisibles
         text = re.sub(UNICODEFIX_INVISIBLES_RE, "", text)
-    
+
     # Remove invalid/unassigned/private-use Unicode characters
     # These can appear when decoding is corrupted or bytes are invalid
     cleaned_chars = []

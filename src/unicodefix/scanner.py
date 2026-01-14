@@ -90,13 +90,15 @@ class ScanResult:
 
 def scan_text_for_report(s: str) -> dict:
     # whitespace separators you normalize in transforms.py
-    zs_separators = "\u00A0\u1680\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u202F\u205F\u3000"
+    zs_separators = (
+        "\u00a0\u1680\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009"
+        "\u200a\u202f\u205f\u3000"
+    )
 
     ghosts = {
         # space oddities
         "NBSP_family": _count_many(s, "\u00a0\u202f\u2002\u2003\u2009\u3000"),
         "Zs_spaces": _count_many(s, zs_separators),
-
         # invisible / controls you strip
         "ZWSP": s.count("\u200b"),
         "ZWNJ": s.count("\u200c"),
@@ -104,24 +106,23 @@ def scan_text_for_report(s: str) -> dict:
         "LRM": s.count("\u200e"),
         "RLM": s.count("\u200f"),
         "BOM": s.count("\ufeff"),
-
         # bidi controls: embeddings/overrides + isolates
         "bidi_overrides": _count_range(s, 0x202A, 0x202E),
         "bidi_isolates": _count_range(s, 0x2066, 0x2069),
-
         # encoding corruption
         "replacement_char": s.count("\ufffd"),
     }
 
+    smart_basic = _count_many(s, "“”‘’")
     typographic = {
-        # keep your original simple counts, but also expose quote-like
-        "smart_quotes_basic": _count_many(s, "“”‘’"),
+        # Keep schema stability: tests + downstream expect "smart_quotes"
+        "smart_quotes": smart_basic,
+        # Extra detail fields (fine to keep)
+        "smart_quotes_basic": smart_basic,
         "quote_like_total": _count_quote_like(s),
-
         "emdash": s.count("\u2014"),
         "endash": s.count("\u2013"),
         "ellipsis": s.count("\u2026") + s.count("\u22ef") + s.count("\u2025"),
-
         # fullwidth punct you fold (【】)
         "fullwidth_brackets": _count_many(s, "\u3010\u3011"),
     }
@@ -139,7 +140,9 @@ def scan_text_for_report(s: str) -> dict:
 
     lines = s.splitlines(keepends=True)
     trailing = sum(1 for ln in lines if ln.rstrip("\r\n").endswith((" ", "\t")))
-    blank_indent = sum(1 for ln in lines if (ln.strip("\r\n") != "" and ln.strip() == ""))
+    blank_indent = sum(
+        1 for ln in lines if (ln.strip("\r\n") != "" and ln.strip() == "")
+    )
     whitespace = {"trailing_lines": trailing, "blank_with_indent": blank_indent}
 
     final_nl = bool(s) and s.endswith(("\n", "\r", "\r\n"))

@@ -7,6 +7,7 @@ Last updated: 2026-01-14
 ### **Release Hardening + Audit/Report Improvements**
 
 - **CI/CD pipeline hardened**: full cross-platform test matrix (Ubuntu/macOS × Python 3.9–3.12) with integration tests + lint + shellcheck.
+- **Cross-platform verified**: tested on GitHub Actions `ubuntu-latest` and `macos-latest` runners across Python 3.9–3.12 (see `.github/workflows/ci.yml` for the current OS images).
 - **Regression protection**: added/strengthened newline preservation validation to prevent accidental line-collapsing failures.
 - **CLI/report consistency**: clarified and aligned filter vs file modes, output handling, and audit/report formatting.
 - **Scanner improvements**: improved anomaly detection and reporting accuracy; cleaner category breakdowns.
@@ -37,7 +38,7 @@ Last updated: 2026-01-14
   - Install with: `pip install -e ".[dev]"`
 - **Code formatting**: All Python files formatted with black to meet style standards
 - **CI workflow improvements**: Better PATH handling, fallback to `python -m unicodefix.cli` when `cleanup-text` not in PATH
-- Added Python API documentation to `docs/api.md`
+- Added Python API documentation to `docs/API.md`
 
 ## 20260108_00 - v1.1.8
 
