@@ -1,4 +1,4 @@
-# UnicodeFix - *CodExorcism Edition+ v1.2.0*
+# UnicodeFix - *Wolf Edition v1.2.0" - it solves "problems."
 
 *Last updated: 2026-01-08*
 
@@ -6,7 +6,7 @@
 
 [![Python](https://img.shields.io/badge/Python-3.9%2B-blue)](#) [![Platforms](https://img.shields.io/badge/Platforms-macOS%20%7C%20Ubuntu-informational)](#) [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE) [![Release](https://img.shields.io/github/v/tag/unixwzrd/UnicodeFix?label=release)](https://github.com/unixwzrd/UnicodeFix/releases) [![CI](https://github.com/unixwzrd/UnicodeFix/actions/workflows/ci.yml/badge.svg)](.github/workflows/ci.yml)
 
-- [UnicodeFix - *CodExorcism Edition+ v1.2.0*](#unicodefix---codexorcism-edition-v120)
+- [UnicodeFix - \*Wolf Edition v1.2.0" - it solves "problems."](#unicodefix---wolf-edition-v120---it-solves-problems)
     - [**Finally - a tool that blasts AI fingerprints, torches those infuriating smart quotes, and leaves your code \& docs squeaky clean for real humans.**](#finally---a-tool-that-blasts-ai-fingerprints-torches-those-infuriating-smart-quotes-and-leaves-your-code--docs-squeaky-clean-for-real-humans)
     - [Two modes (cleaner + auditor)](#two-modes-cleaner--auditor)
   - [Why Is This Happening?](#why-is-this-happening)
