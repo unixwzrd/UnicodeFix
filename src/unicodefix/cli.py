@@ -300,7 +300,9 @@ def main():
         help="With --report, exit 1 if total anomalies >= N",
     )
     parser.add_argument(
-        "--metrics", action="store_true", help="Include semantic metrics in report"
+        "--metrics",
+        action="store_true",
+        help="Include semantic metrics and imply report mode",
     )
     parser.add_argument(
         "--metrics-help", action="store_true", help="Explain metrics and arrows (↑/↓)."
@@ -329,6 +331,9 @@ def main():
 
     args = parser.parse_args()
     log._quiet = bool(args.quiet)
+
+    if args.metrics:
+        args.report = True
 
     # Metrics help: print and exit (stdout, honors --no-color)
     if args.metrics_help:

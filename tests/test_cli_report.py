@@ -69,3 +69,13 @@ def test_filter_mode_stdout_roundtrip():
     j = json.loads(out)
     # stdin path key should be "-" per our CLI
     assert "-" in j
+
+
+def test_metrics_implies_report_mode(tmp_path: pathlib.Path):
+    f = tmp_path / "metrics.txt"
+    f.write_text("plain ascii text\n", encoding="utf-8")
+    code, out, err = run_cli(["--metrics", str(f)])
+    assert code == 0, f"Expected exit code 0, got {code}. stderr: {err}"
+    assert "File:" in out, f"Expected report output, got: {out!r}"
+    assert "Metrics" in out, f"Expected metrics section, got: {out!r}"
+    assert not (tmp_path / "metrics.clean.txt").exists(), "Should not clean in report mode"

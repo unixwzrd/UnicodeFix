@@ -137,7 +137,7 @@ options:
   --label LABEL         When reading from STDIN ('-'), use this display name in report/CSV
   --threshold THRESHOLD
                         With --report, exit 1 if total anomalies >= N
-  --metrics             Include semantic metrics in report
+  --metrics             Include semantic metrics and imply report mode
   --metrics-help        Explain metrics and arrows (↑/↓).
   --exit-zero           Always exit with code 0 (useful for pre-commit reporting)
   --no-color            Disable ANSI colors (plain output)
@@ -152,7 +152,7 @@ options:
 - `-R`, `--report`: Audit text for anomalies, human-readable.
 - `-J`, `--json`: Audit text for anomalies, JSON format.
 - `-T`, `--threshold`: Fail CI if anomalies exceed threshold.
-- `--metrics`: Attach experimental semantic metrics (entropy, AI-score, etc.) to reports.
+- `--metrics`: Attach experimental semantic metrics (entropy, AI-score, etc.) and implicitly switch to report mode.
 - `--metrics-help`: Print friendly descriptions of each metric and the ↑/↓ hints.
 - `--exit-zero`: Force a zero exit code for report mode (handy for informative hooks/CI jobs).
 - `-H`, `--help`: Show help message and exit.
@@ -245,10 +245,11 @@ cleanup-text --report --json foo.txt
 ### Audit with Semantic Metrics (experimental)
 
 ```bash
+cleanup-text --metrics foo.txt
 cleanup-text --report --json --metrics foo.txt
 ```
 
-Produces the JSON report plus a `metrics` section containing entropy, diversity, heuristic AI score, and more. Install the optional NLP support with `./setup.sh --nlp`.
+`--metrics` now implies report mode, so the first command prints a human-readable report with metrics and the second emits JSON. Install the optional NLP support with `./setup.sh --nlp`.
 
 ### Report without blocking commits
 
@@ -299,7 +300,7 @@ See [cleanup-text.md](docs/cleanup-text.md) for deeper dives and arcane options.
 
 The follow-up release keeps the Unicode exorcism vibe but layers on early-stage semantics:  
 
-- **Semantic metrics preview** – opt into `--metrics` for entropy, diversity, repetition, and a heuristic AI-likeness score right inside `--report` / `--json` output.  
+- **Semantic metrics preview** – opt into `--metrics` for entropy, diversity, repetition, and a heuristic AI-likeness score; it automatically switches into report mode.  
 - **Metrics legend on demand** – `--metrics-help` explains every stat plus the ↑/↓ hints.  
 - **Hook-friendly reporting** – `--exit-zero` means pre-commit hooks can flag anomalies without blocking your commit.  
 - **Slimmer all-in-one test harness** – `tests/test_all.sh` derives its run list from `data/`, handles STDIN/STDOUT quirks, and drops per-scenario diffs/word-count deltas.  
