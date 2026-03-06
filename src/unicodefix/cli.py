@@ -7,7 +7,10 @@ from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 from typing import Dict, List, Optional, Union
 
-import tomllib
+try:
+    import tomllib
+except ModuleNotFoundError:  # pragma: no cover - Python < 3.11
+    import tomli as tomllib
 
 from unicodefix.report import print_csv, print_human, print_json, print_metrics_help
 from unicodefix.scanner import scan_text_for_report
