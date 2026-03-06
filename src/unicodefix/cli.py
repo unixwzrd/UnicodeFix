@@ -332,7 +332,7 @@ def main():
     args = parser.parse_args()
     log._quiet = bool(args.quiet)
 
-    if args.metrics:
+    if args.metrics and not (args.output or args.temp):
         args.report = True
 
     # Metrics help: print and exit (stdout, honors --no-color)

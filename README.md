@@ -152,7 +152,7 @@ options:
 - `-R`, `--report`: Audit text for anomalies, human-readable.
 - `-J`, `--json`: Audit text for anomalies, JSON format.
 - `-T`, `--threshold`: Fail CI if anomalies exceed threshold.
-- `--metrics`: Attach experimental semantic metrics (entropy, AI-score, etc.) and implicitly switch to report mode.
+- `--metrics`: Attach experimental semantic metrics (entropy, AI-score, etc.) and implicitly switch to report mode unless you explicitly request cleaned output with `-o` or `-t`.
 - `--metrics-help`: Print friendly descriptions of each metric and the ↑/↓ hints.
 - `--exit-zero`: Force a zero exit code for report mode (handy for informative hooks/CI jobs).
 - `-H`, `--help`: Show help message and exit.
@@ -249,7 +249,7 @@ cleanup-text --metrics foo.txt
 cleanup-text --report --json --metrics foo.txt
 ```
 
-`--metrics` now implies report mode, so the first command prints a human-readable report with metrics and the second emits JSON. Install the optional NLP support with `./setup.sh --nlp`.
+`--metrics` now implies report mode, so the first command prints a human-readable report with metrics and the second emits JSON. If you explicitly request cleaned output with `-o` or `-t`, that clean-output behavior takes precedence. Install the optional NLP support with `./setup.sh --nlp`.
 
 ### Report without blocking commits
 

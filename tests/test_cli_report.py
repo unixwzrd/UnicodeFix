@@ -79,3 +79,14 @@ def test_metrics_implies_report_mode(tmp_path: pathlib.Path):
     assert "File:" in out, f"Expected report output, got: {out!r}"
     assert "Metrics" in out, f"Expected metrics section, got: {out!r}"
     assert not (tmp_path / "metrics.clean.txt").exists(), "Should not clean in report mode"
+
+
+def test_metrics_with_explicit_output_stays_in_clean_mode(tmp_path: pathlib.Path):
+    f = tmp_path / "metrics.txt"
+    out_file = tmp_path / "explicit.txt"
+    f.write_text("“quoted” text\n", encoding="utf-8")
+    code, out, err = run_cli(["--metrics", "-o", str(out_file), str(f)])
+    assert code == 0, f"Expected exit code 0, got {code}. stderr: {err}"
+    assert out == "", f"Expected no report output, got: {out!r}"
+    assert out_file.exists(), "Expected explicit output file to be written"
+    assert out_file.read_text(encoding="utf-8") == '"quoted" text\n'
