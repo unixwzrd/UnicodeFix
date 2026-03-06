@@ -10,7 +10,9 @@ def run_cli(args, stdin=None):
     env = os.environ.copy()
     src_path = str(pathlib.Path(__file__).resolve().parents[1] / "src")
     env["PYTHONPATH"] = (
-        src_path if not env.get("PYTHONPATH") else f"{src_path}{os.pathsep}{env['PYTHONPATH']}"
+        src_path
+        if not env.get("PYTHONPATH")
+        else f"{src_path}{os.pathsep}{env['PYTHONPATH']}"
     )
     # Try cleanup-text first, fall back to python -m unicodefix.cli if not found
     cmd_list = ["cleanup-text"]
@@ -82,7 +84,9 @@ def test_metrics_implies_report_mode(tmp_path: pathlib.Path):
     assert code == 0, f"Expected exit code 0, got {code}. stderr: {err}"
     assert "File:" in out, f"Expected report output, got: {out!r}"
     assert "Metrics" in out, f"Expected metrics section, got: {out!r}"
-    assert not (tmp_path / "metrics.clean.txt").exists(), "Should not clean in report mode"
+    assert not (
+        tmp_path / "metrics.clean.txt"
+    ).exists(), "Should not clean in report mode"
 
 
 def test_metrics_with_explicit_output_writes_clean_file_and_side_report(

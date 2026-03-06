@@ -95,9 +95,7 @@ class ScanResult:
 
     def total_counts(self) -> int:
         total = sum(
-            int(v)
-            for k, v in self.unicode_ghosts.items()
-            if k not in {"NBSP_family"}
+            int(v) for k, v in self.unicode_ghosts.items() if k not in {"NBSP_family"}
         )
         total += sum(
             int(v)
