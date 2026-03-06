@@ -45,7 +45,7 @@ cleanup-text [options] [infile ...]
 - `--csv`                          With --report, emit audit results as CSV (one row per file)
 - `--label`                        When reading from STDIN ('-'), use this display name in report/CSV
 - `--threshold` N                  With --report, exit 1 if total anomalies >= N
-- `--metrics`                      Include experimental semantic metrics and imply report mode unless `-o` or `-t` is used
+- `--metrics`                      Include experimental semantic metrics and imply report mode unless `-o` or `-t` is used; with explicit clean output, the report is shown on stderr
 - `--metrics-help`                 Print a legend explaining each metric and the ↑/↓ cues
 - `--exit-zero`                    Force report mode to exit with status 0 (useful for informative hooks/CI jobs)
 - `--no-color`                     Disable ANSI colors (plain output)
@@ -78,12 +78,12 @@ cleanup-text [options] [infile ...]
 - **--report:** Generates an audit without modifying files. Use with `--json` or `--csv` for machine-readable output.
 - **--threshold N:** Exits with code 1 if total anomalies >= N (useful for CI/CD)
 - **--exit-zero:** Always exits with code 0 even if threshold exceeded (useful for pre-commit warnings)
-- **--metrics:** Requires NLP extras (`./setup.sh --nlp`) for semantic analysis and automatically switches to report mode unless you explicitly request cleaned output with `-o` or `-t`
+- **--metrics:** Requires NLP extras (`./setup.sh --nlp`) for semantic analysis and automatically switches to report mode unless you explicitly request cleaned output with `-o` or `-t`; in that case, the report is emitted on stderr while the cleaned file is written
 - **--metrics-help:** Print legend without running a report
 
 ### Semantic Metrics (preview)
 
-Enabling `--metrics` appends a `metrics` block that captures entropy, ASCII ratio, type/token diversity, heuristic AI-likeness scoring, and more, and automatically switches into report mode unless you explicitly request cleaned output with `-o` or `-t`. The feature requires the optional NLP extras (`./setup.sh --nlp`) to supply the NLTK resources used for tokenization. Use `--metrics-help` for a quick legend explaining each metric and the ↑/↓ direction hints shown in the report. Pair with `--exit-zero` if you want to surface the data without failing pre-commit.
+Enabling `--metrics` appends a `metrics` block that captures entropy, ASCII ratio, type/token diversity, heuristic AI-likeness scoring, and more, and automatically switches into report mode unless you explicitly request cleaned output with `-o` or `-t`. In the explicit-output case, the cleaned file is still written and the human-readable report is emitted on stderr. The feature requires the optional NLP extras (`./setup.sh --nlp`) to supply the NLTK resources used for tokenization. Use `--metrics-help` for a quick legend explaining each metric and the ↑/↓ direction hints shown in the report. Pair with `--exit-zero` if you want to surface the data without failing pre-commit.
 
 ## Test Suite
 

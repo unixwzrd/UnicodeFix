@@ -99,11 +99,7 @@ def run_report(
 
     for path in files:
         raw = _read_text(path)  # still read the real path or "-"
-        data = scan_text_for_report(raw)
-
-        m = _maybe_metrics(raw, metrics)
-        if m is not None:
-            data["metrics"] = m
+        data = _build_report_data(raw, metrics)
 
         # If a label was provided, always use it as the display key.
         # Otherwise, use the actual path (or "-" for stdin).
@@ -122,6 +118,28 @@ def run_report(
         print_csv(results)
 
     return 0 if warn_only else exit_hits
+
+
+def _build_report_data(raw: str, metrics: bool) -> dict:
+    data = scan_text_for_report(raw)
+    m = _maybe_metrics(raw, metrics)
+    if m is not None:
+        data["metrics"] = m
+    return data
+
+
+def _emit_side_report(path: str, raw: str, args) -> int:
+    data = _build_report_data(raw, args.metrics)
+    target = args.label or path
+    if args.json:
+        print_json({target: data}, file=sys.stderr)
+    elif args.csv:
+        print_csv({target: data}, file=sys.stderr)
+    else:
+        print_human(target, data, no_color=args.no_color, file=sys.stderr)
+    if args.threshold is not None and data["total"] >= args.threshold:
+        return 1
+    return 0
 
 
 def run_filter_mode(args) -> None:
@@ -190,7 +208,7 @@ def process_file(infile: str, args) -> None:
                         pass
                 else:
                     log(f"[i] Preserved temp file: {tmpfile}")
-                return
+                return _emit_side_report(infile, raw, args) if args.metrics else 0
             except Exception:
                 # Attempt to restore original from tmp
                 try:
@@ -220,8 +238,10 @@ def process_file(infile: str, args) -> None:
 
         _write_text(outfile, cleaned, eol)
         log(f"[✓] Cleaned: {infile} → {outfile}")
+        return _emit_side_report(infile, raw, args) if args.metrics else 0
     except Exception as e:
         log(f"[✗] Failed to process {infile}: {e}")
+        return 1
 
 
 # ----- CLI
@@ -367,12 +387,14 @@ def main():
         sys.exit(1)
 
     seen = set()
+    exit_code = 0
     for infile in args.infile:
         if infile in seen:
             log(f"[!] Skipping duplicate: {infile}")
             continue
         seen.add(infile)
-        process_file(infile, args)
+        exit_code = max(exit_code, process_file(infile, args))
+    sys.exit(0 if args.exit_zero else exit_code)
 
 
 if __name__ == "__main__":

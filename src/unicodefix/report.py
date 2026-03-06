@@ -2,7 +2,7 @@ import csv
 import json
 import os
 import sys
-from typing import Union
+from typing import TextIO, Union
 
 from rich.align import Align
 from rich.console import Console
@@ -29,15 +29,22 @@ _SPECIAL_NAMES = {
     "type_token_ratio": "Type–token ratio",
     "sentence_len_cv": "Sentence len CV",
 }
+_UNICODE_GHOST_INFO_KEYS = {"NBSP_family"}
+_TYPOGRAPHIC_INFO_KEYS = {"smart_quotes_basic", "ascii_quote_like"}
+_TYPOGRAPHIC_DETAIL_HIDDEN_KEYS = {"smart_quotes_basic"}
 
 
 # -------------------- Console / helpers --------------------
-def _console(no_color: bool) -> Console:
-    return Console(no_color=no_color)
+def _console(no_color: bool, file: TextIO = sys.stdout) -> Console:
+    return Console(no_color=no_color, file=file)
 
 
 def _sumv(d: dict) -> int:
     return sum(int(v) for v in d.values())
+
+
+def _sum_anomaly_counts(d: dict, info_keys: set[str]) -> int:
+    return sum(int(v) for k, v in d.items() if k not in info_keys)
 
 
 def _sev_count(v: Union[int, str]) -> str:
@@ -174,8 +181,8 @@ def _render_anomalies(con: Console, path: str, data: dict) -> None:
     ug = data["unicode_ghosts"]
     ty = data["typographic"]
     ws = data["whitespace"]
-    ug_total = _sumv(ug)
-    ty_total = _sumv(ty)
+    ug_total = _sum_anomaly_counts(ug, _UNICODE_GHOST_INFO_KEYS)
+    ty_total = _sum_anomaly_counts(ty, _TYPOGRAPHIC_INFO_KEYS)
     ws_total = _sumv(ws)
     final_ok = bool(data["final_newline"])
     total = int(data["total"])
@@ -194,7 +201,11 @@ def _render_anomalies(con: Console, path: str, data: dict) -> None:
         expand=False,
     )
     ug_details = ", ".join(f"{k}={v}" for k, v in ug.items() if v)
-    ty_details = ", ".join(f"{k}={v}" for k, v in ty.items() if v)
+    ty_details = ", ".join(
+        f"{k}={v}"
+        for k, v in ty.items()
+        if v and k not in _TYPOGRAPHIC_DETAIL_HIDDEN_KEYS
+    )
     ws_details = ", ".join(f"{k}={v}" for k, v in ws.items() if v)
 
     t.add_row(
@@ -317,19 +328,21 @@ def _render_metrics(con: Console, metrics: dict) -> None:
 
 
 # -------------------- Public API --------------------
-def print_human(path: str, data: dict, *, no_color: bool = False) -> None:
-    con = _console(no_color)
+def print_human(
+    path: str, data: dict, *, no_color: bool = False, file: TextIO = sys.stdout
+) -> None:
+    con = _console(no_color, file=file)
     con.print()  # spacer so header doesn’t collide with shell prompt
     _render_anomalies(con, path, data)
     _render_metrics(con, data.get("metrics") or {})
 
 
-def print_json(all_results: dict) -> None:  # noqa: F401
+def print_json(all_results: dict, *, file: TextIO = sys.stdout) -> None:  # noqa: F401
     """Pretty-print the full results as JSON (to stdout)."""
-    print(json.dumps(all_results, indent=2, ensure_ascii=False))
+    print(json.dumps(all_results, indent=2, ensure_ascii=False), file=file)
 
 
-def print_csv(all_results: dict) -> None:
+def print_csv(all_results: dict, *, file: TextIO = sys.stdout) -> None:
     """Print results in CSV format (one row per file)."""
     # base columns
     fieldnames = ["file", "ug_total", "ty_total", "ws_total", "final_newline", "total"]
@@ -346,7 +359,7 @@ def print_csv(all_results: dict) -> None:
 
     fieldnames += metrics_cols
 
-    writer = csv.DictWriter(sys.stdout, fieldnames=fieldnames)
+    writer = csv.DictWriter(file, fieldnames=fieldnames)
     writer.writeheader()
 
     for label, data in all_results.items():
@@ -356,8 +369,8 @@ def print_csv(all_results: dict) -> None:
         ty = data.get("typographic", {})
         ws = data.get("whitespace", {})
 
-        row["ug_total"] = sum(int(v) for v in ug.values())
-        row["ty_total"] = sum(int(v) for v in ty.values())
+        row["ug_total"] = _sum_anomaly_counts(ug, _UNICODE_GHOST_INFO_KEYS)
+        row["ty_total"] = _sum_anomaly_counts(ty, _TYPOGRAPHIC_INFO_KEYS)
         row["ws_total"] = sum(int(v) for v in ws.values())
         row["final_newline"] = int(bool(data.get("final_newline")))
         row["total"] = int(data.get("total", 0))
