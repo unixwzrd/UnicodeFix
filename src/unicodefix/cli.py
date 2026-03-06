@@ -3,11 +3,26 @@ import errno
 import os
 import shutil
 import sys
+from importlib.metadata import PackageNotFoundError, version
+from pathlib import Path
 from typing import Dict, List, Optional, Union
+
+import tomllib
 
 from unicodefix.report import print_csv, print_human, print_json, print_metrics_help
 from unicodefix.scanner import scan_text_for_report
 from unicodefix.transforms import clean_text, handle_newlines
+
+
+def _package_version() -> str:
+    pyproject = Path(__file__).resolve().parents[2] / "pyproject.toml"
+    if pyproject.exists():
+        with pyproject.open("rb") as fh:
+            return tomllib.load(fh)["project"]["version"]
+    try:
+        return version("unicodefix")
+    except PackageNotFoundError:
+        return "unknown"
 
 
 # optional metrics
@@ -229,7 +244,10 @@ def main():
         help="Preserve Unicode smart quotes",
     )
     parser.add_argument(
-        "-D", "--keep-dashes", action="store_true", help="Preserve Unicode EN/EM dashes"
+        "-D",
+        "--keep-dashes",
+        action="store_true",
+        help="Preserve Unicode dash and hyphen variants",
     )
     parser.add_argument(
         "--keep-fullwidth-brackets",
@@ -242,7 +260,7 @@ def main():
     parser.add_argument(
         "-o",
         "--output",
-        help="Output filename or '-' for STDOUT will aggregate all files into teh STDOUT stream.",
+        help="Output filename or '-' for STDOUT.",
     )
     parser.add_argument(
         "-t",
@@ -298,6 +316,12 @@ def main():
     # Logging
     parser.add_argument(
         "-q", "--quiet", action="store_true", help="Suppress status lines on stderr"
+    )
+    parser.add_argument(
+        "-V",
+        "--version",
+        action="version",
+        version=f"%(prog)s {_package_version()}",
     )
 
     args = parser.parse_args()

@@ -1,27 +1,79 @@
 #!/usr/bin/env bash
 
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
+set -euo pipefail
 
-# Add the script to your PATH
-if [[ ! "$PATH" =~ "$PWD/bin" ]]; then
-    echo "adding necessary items for Python script to run"
-    echo "source $PWD/venv/bin/activate" >> ~/.bashrc
-    echo "export PATH=\"$PWD/bin:\$PATH\"" >> ~/.bashrc
+usage() {
+    cat <<'EOF'
+Usage: ./setup.sh [--dev] [--nlp]
+
+Bootstraps UnicodeFix using pyproject.toml as the only dependency source.
+
+Options:
+  --dev   Install development dependencies and use editable mode.
+  --nlp   Install optional NLP/metrics dependencies.
+  -h      Show this help text.
+EOF
+}
+
+extras=()
+editable=0
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --dev)
+            editable=1
+            extras+=("dev")
+            ;;
+        --nlp|--metrics)
+            extras+=("nlp")
+            ;;
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        *)
+            echo "Unknown option: $1" >&2
+            usage >&2
+            exit 2
+            ;;
+    esac
+    shift
+done
+
+env_label=""
+created_env=0
+
+if [[ -n "${CONDA_PREFIX:-}" && -n "${CONDA_DEFAULT_ENV:-}" && "${CONDA_DEFAULT_ENV}" != "base" ]]; then
+    env_label="active Conda environment '${CONDA_DEFAULT_ENV}'"
+elif [[ -n "${VIRTUAL_ENV:-}" ]]; then
+    env_label="active virtualenv '${VIRTUAL_ENV}'"
+else
+    venv_dir="${UNICODEFIX_VENV_DIR:-.venv}"
+    if [[ ! -d "${venv_dir}" ]]; then
+        python3 -m venv "${venv_dir}"
+        created_env=1
+    fi
+    # shellcheck disable=SC1090
+    source "${venv_dir}/bin/activate"
+    env_label="local virtualenv '${venv_dir}'"
 fi
 
-# Source the .bashrc file to add the necessary items to the PATH
-source ~/.bashrc
+python -m pip install --upgrade pip
 
-echo "You will need to install the package using pip as described in the README.md file. Additional information is in the README.md file for more features of the package."
-echo ""
-echo "Quick Start - simply run the following command and it will install the package and make it available to use:"
-echo "pip install ."
-echo ""
-echo "If you wish to do development, or want to use the package in your own projects, use the following command:"
-echo "pip install -e ."
-echo ""
-echo "If you wish to use the optional NLTK analytics, install the following optional extras for current and future NLP metrics:"
-echo "pip install .[nlp]"
-echo ""
+spec="."
+if [[ ${#extras[@]} -gt 0 ]]; then
+    extras_csv="$(IFS=,; echo "${extras[*]}")"
+    spec=".[${extras_csv}]"
+fi
+
+if [[ ${editable} -eq 1 ]]; then
+    python -m pip install -e "${spec}"
+else
+    python -m pip install "${spec}"
+fi
+
+echo "UnicodeFix installed into ${env_label}."
+if [[ ${created_env} -eq 1 ]]; then
+    echo "Activate it with: source ${venv_dir}/bin/activate"
+fi
+echo "Run: cleanup-text --help"

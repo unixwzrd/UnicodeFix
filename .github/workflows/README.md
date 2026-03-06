@@ -41,9 +41,8 @@ The CI pipeline includes comprehensive tests for:
 Before pushing, you can run the same tests locally:
 
 ```bash
-# Install dependencies
-pip install -r requirements.txt
-pip install pytest pytest-cov ruff black
+# Bootstrap a local editable dev environment
+./setup.sh --dev
 
 # Run Python unit tests
 pytest tests/ -v

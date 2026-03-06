@@ -14,6 +14,14 @@ UNICODEFIX_ZS_SPACES_RE = r"[\u00A0\u1680\u2000-\u200A\u202F\u205F\u3000]"
 UNICODEFIX_INVISIBLES_RE = (
     r"[\u200B-\u200D\uFEFF\u200E\u200F\u202A-\u202E\u2066-\u2069]"
 )
+UNICODEFIX_ASCII_DASH_FOLD = {
+    "\u2010": "-",  # HYPHEN
+    "\u2011": "-",  # NON-BREAKING HYPHEN
+    "\u2012": "-",  # FIGURE DASH
+    "\u2013": "-",  # EN DASH
+    "\u2014": " - ",  # EM DASH
+    "\u2015": " - ",  # HORIZONTAL BAR
+}
 
 
 def _require_ftfy():
@@ -144,11 +152,8 @@ def clean_text(
 
     # Dash normalization
     if not preserve_dashes:
-        # EM DASH: normalize to space-dash-space, but avoid creating double spaces
-        text = re.sub(r"\u2014", " - ", text)
+        text = text.translate(str.maketrans(UNICODEFIX_ASCII_DASH_FOLD))
         text = re.sub(r"[ \t]{2,}", " ", text)
-        # EN DASH: normalize to '-'
-        text = text.replace("\u2013", "-")  # EN → dash
 
     # Fold select fullwidth punctuation that affects monospace alignment
     if not preserve_fullwidth_brackets:

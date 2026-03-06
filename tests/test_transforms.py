@@ -9,6 +9,24 @@ def test_quotes_and_dashes_normalize():
     assert "..." in out  # ellipsis normalized
 
 
+def test_hyphen_variants_normalize():
+    s = "co\u2010op re\u2011enter score\u2012line a\u2013b x\u2014y m\u2015n"
+    out = clean_text(s)
+    assert "co-op" in out
+    assert "re-enter" in out
+    assert "score-line" in out
+    assert "a-b" in out
+    assert "x - y" in out
+    assert "m - n" in out
+
+
+def test_keep_dashes_preserves_hyphen_variants():
+    s = "co\u2011op x\u2014y"
+    out = clean_text(s, preserve_dashes=True)
+    assert "\u2011" in out
+    assert "\u2014" in out
+
+
 def test_invisible_removed_by_default():
     s = "a\u200bb"
     out = clean_text(s)

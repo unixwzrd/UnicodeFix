@@ -79,25 +79,25 @@ Clone the repository and run the setup script:
 git clone https://github.com/unixwzrd/UnicodeFix.git
 cd UnicodeFix
 
-# This will create a VENV for python 3.10+ and install the dependencies
+# Installs from pyproject.toml.
+# Reuses an active non-base Conda env if you already have one.
+# Otherwise it creates or reuses a local .venv.
 ./setup.sh
-
-# This will install teh UnicodeFix package, you can install one of three ways -"
-# For simply running the script, use the following command:
-pip install .
-
-# If you wish to do development, or want to use the package in your own projects, use the following command:
-pip install -e .
-
-# if you wish to use teh optional NLTK analytics, install the following optional extras for current and future NLP metrics:
-pip install .[nlp]
 ```
 
 The `setup.sh` script:
 
-- Creates a Python virtual environment just for UnicodeFix
-- Installs dependencies
-- Adds handy startup config to your `.bashrc` for one-command usage
+- Uses `pyproject.toml` as the single source of truth for dependencies
+- Reuses your active non-base Conda environment when one is already active
+- Otherwise creates or reuses a local `.venv`
+- Installs the package directly instead of requiring a second manual `pip install` step
+
+Optional install modes:
+
+```bash
+./setup.sh --dev   # editable install + dev tooling
+./setup.sh --nlp   # optional NLP/metrics dependencies
+```
 
 See [setup.sh](setup.sh) for the nitty-gritty.
 
@@ -147,7 +147,7 @@ options:
 ### New options
 
 - `-Q`, `--keep-smart-quotes`: Preserve Unicode smart quotes (curly single/double quotes). Useful when preparing prose/blog posts where typographic quotes are intentional. Default behavior converts them to ASCII for shell/CI safety.
-- `-D`, `--keep-dashes`: Preserve EN/EM dashes. Useful when stylistic punctuation is desired in prose. Default behavior converts EM dash to ` - ` and EN dash to `-`.
+- `-D`, `--keep-dashes`: Preserve Unicode dash and hyphen variants. Useful when stylistic punctuation is desired in prose. Default behavior folds non-breaking hyphens and EN-style dashes to `-`, and EM-style bars to ` - `.
 - `--keep-fullwidth-brackets`: Preserve fullwidth square brackets (`【】`). By default, they are folded to ASCII `[]` to keep monospace alignment in terminals and fixed-width tables.
 - `-R`, `--report`: Audit text for anomalies, human-readable.
 - `-J`, `--json`: Audit text for anomalies, JSON format.
@@ -248,7 +248,7 @@ cleanup-text --report --json foo.txt
 cleanup-text --report --json --metrics foo.txt
 ```
 
-Produces the JSON report plus a `metrics` section containing entropy, diversity, heuristic AI score, and more. Requires `pip install .[nlp]` for NLTK resources.
+Produces the JSON report plus a `metrics` section containing entropy, diversity, heuristic AI score, and more. Install the optional NLP support with `./setup.sh --nlp`.
 
 ### Report without blocking commits
 
@@ -325,7 +325,7 @@ Right-click files, pick a Quick Action, and - bam - no terminal required.
    ![Shortcuts App Menu](docs/Screenshot%202025-04-25%20at%2005.50.57.png)
 3. Select the Shortcut in `macOS/Strip Unicode.shortcut`.
    ![Import Shortcut](docs/Screenshot%202025-04-25%20at%2005.51.54.png)
-4. Edit it to point to your local `cleanup-text.py`.
+4. Edit it to point to the `cleanup-text` executable in your active environment.
    ![Edit Shortcut Script Path](docs/Screenshot%202025-04-25%20at%2005.07.47.png)
 5. Relaunch Finder (`Cmd+Opt+Esc` → select Finder → Relaunch) if needed.
 6. After setup, right-click files, choose `Quick Actions`, select `Strip Unicode`.
@@ -335,13 +335,14 @@ Right-click files, pick a Quick Action, and - bam - no terminal required.
 
 ## What's in This Repository
 
-- [bin/cleanup-text.py](bin/cleanup-text.py) - Main cleaning script
-- [bin/cleanup-text](bin/cleanup-text) - Symlink for CLI usage
-- [setup.sh](setup.sh) - Easy setup and env configuration
-- [requirements.txt](requirements.txt) - Python dependencies
-- [macOS/](macOS/) - Shortcuts, scripts for Finder
+- [src/unicodefix/cli.py](src/unicodefix/cli.py) - CLI entry point
+- [src/unicodefix/transforms.py](src/unicodefix/transforms.py) - Unicode normalization logic
+- [src/unicodefix/scanner.py](src/unicodefix/scanner.py) - Audit/report scanner
+- [pyproject.toml](pyproject.toml) - Packaging metadata and dependency source of truth
+- [setup.sh](setup.sh) - Unified bootstrap/install script
+- [bin/uniclean.sh](bin/uniclean.sh) - Shell helper
 - [data/](data/) - Example test files
-- [tests/](tests/) - Automated test suite for all features/edge cases
+- [tests/](tests/) - Automated test suite for features and regressions
 - [docs/](docs/) - Documentation and screenshots
 - [LICENSE](LICENSE)
 - [README.md](README.md) - This file

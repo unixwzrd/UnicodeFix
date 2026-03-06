@@ -120,8 +120,12 @@ def scan_text_for_report(s: str) -> dict:
         # Extra detail fields (fine to keep)
         "smart_quotes_basic": smart_basic,
         "quote_like_total": _count_quote_like(s),
+        "unicode_hyphen": s.count("\u2010"),
+        "nonbreaking_hyphen": s.count("\u2011"),
+        "figure_dash": s.count("\u2012"),
         "emdash": s.count("\u2014"),
         "endash": s.count("\u2013"),
+        "horizontal_bar": s.count("\u2015"),
         "ellipsis": s.count("\u2026") + s.count("\u22ef") + s.count("\u2025"),
         # fullwidth punct you fold (【】)
         "fullwidth_brackets": _count_many(s, "\u3010\u3011"),

@@ -2,11 +2,12 @@ from unicodefix.scanner import scan_text_for_report
 
 
 def test_scanner_counts_core_signals():
-    s = "a\u200bb “q”—r…\nline \t\n  \n"
+    s = "a\u200bb “q”—r… re\u2011enter\nline \t\n  \n"
     d = scan_text_for_report(s)
     assert d["unicode_ghosts"]["ZWSP"] == 1
     assert d["typographic"]["smart_quotes"] >= 1
     assert d["typographic"]["emdash"] == 1
+    assert d["typographic"]["nonbreaking_hyphen"] == 1
     assert d["typographic"]["ellipsis"] >= 1
     assert d["whitespace"]["trailing_lines"] >= 1
     assert d["whitespace"]["blank_with_indent"] >= 1

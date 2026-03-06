@@ -6,7 +6,7 @@ A robust command-line tool to normalize and clean problematic Unicode characters
 
 ## Features
 
-- Converts smart quotes, EM/EN dashes, and non-breaking hyphens to ASCII equivalents
+- Converts smart quotes, Unicode dash and hyphen variants, and non-breaking hyphens to ASCII equivalents
 - Removes zero-width and other invisible Unicode characters (unless `-i` is used)
 - Strips trailing whitespace from all lines
 - Ensures (or suppresses) a single newline at EOF
@@ -27,7 +27,7 @@ cleanup-text [options] [infile ...]
 
 - `-i`, `--invisible`              Preserve invisible Unicode characters (zero-width, non-breaking, etc.)
 - `-Q`, `--keep-smart-quotes`      Preserve Unicode smart quotes (curly quotes, angle quotes, etc.)
-- `-D`, `--keep-dashes`            Preserve Unicode EN/EM dashes
+- `-D`, `--keep-dashes`            Preserve Unicode dash and hyphen variants
 - `--keep-fullwidth-brackets`      Preserve fullwidth square brackets (【】)
 - `-n`, `--no-newline`             Do not add a newline at the end of the output file (suppress final newline)
 
@@ -69,7 +69,7 @@ cleanup-text [options] [infile ...]
 **Preservation Flags:**
 
 - **-Q:** Preserves Unicode smart quotes (useful for documents where typography matters)
-- **-D:** Preserves EN/EM dashes (useful for documents where proper typography is desired)
+- **-D:** Preserves Unicode dash and hyphen variants (useful for documents where proper typography is desired)
 - **--keep-fullwidth-brackets:** Preserves fullwidth brackets (useful for documents with CJK text)
 - **-i:** Preserves invisible characters (rare, mainly for debugging)
 
@@ -78,12 +78,12 @@ cleanup-text [options] [infile ...]
 - **--report:** Generates an audit without modifying files. Use with `--json` or `--csv` for machine-readable output.
 - **--threshold N:** Exits with code 1 if total anomalies >= N (useful for CI/CD)
 - **--exit-zero:** Always exits with code 0 even if threshold exceeded (useful for pre-commit warnings)
-- **--metrics:** Requires NLP extras (`pip install .[nlp]`) for semantic analysis
+- **--metrics:** Requires NLP extras (`./setup.sh --nlp`) for semantic analysis
 - **--metrics-help:** Print legend without running a report
 
 ### Semantic Metrics (preview)
 
-Enabling `--metrics` while running in report mode appends a `metrics` block that captures entropy, ASCII ratio, type/token diversity, heuristic AI-likeness scoring, and more. The feature requires the optional NLP extras (`pip install .[nlp]`) to supply the NLTK resources used for tokenization. Use `--metrics-help` for a quick legend explaining each metric and the ↑/↓ direction hints shown in the report. Pair with `--exit-zero` if you want to surface the data without failing pre-commit.
+Enabling `--metrics` while running in report mode appends a `metrics` block that captures entropy, ASCII ratio, type/token diversity, heuristic AI-likeness scoring, and more. The feature requires the optional NLP extras (`./setup.sh --nlp`) to supply the NLTK resources used for tokenization. Use `--metrics-help` for a quick legend explaining each metric and the ↑/↓ direction hints shown in the report. Pair with `--exit-zero` if you want to surface the data without failing pre-commit.
 
 ## Test Suite
 
