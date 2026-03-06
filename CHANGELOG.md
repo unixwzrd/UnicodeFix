@@ -1,6 +1,18 @@
 # Changelog for UnicodeFix
 
-Last updated: 2026-01-14
+Last updated: 2026-03-06
+
+## 20260306_00 - v1.2.1
+
+### **Install Unification, Metrics UX, and Scanner Accuracy**
+
+- **Unified installation flow:** `setup.sh` now uses `pyproject.toml` as the single dependency source, reuses an active non-`base` Conda environment when present, otherwise creates/reuses `.venv`, and no longer edits shell startup files.
+- **Packaging cleanup:** removed the duplicate `requirements.txt` install path, made `setup.sh` executable in Git, and updated CI/docs to match the supported bootstrap workflow.
+- **Python compatibility:** restored Python 3.9/3.10 CLI compatibility by falling back to `tomli` when `tomllib` is unavailable, and expanded the CI matrix to include Python 3.13.
+- **Unicode normalization fixes:** added normalization for additional dash/hyphen variants, including the non-breaking hyphen (`U+2011`) reported in issue #20.
+- **Metrics CLI behavior:** `--metrics` now implies report mode by default, but explicit clean-output flags (`-o`, `-t`) still write cleaned output and emit the metrics report as a side report on `stderr`.
+- **Scanner/report accuracy:** split typographic quote reporting into ASCII and Unicode buckets, stopped counting informational subfields as anomalies, and cleaned up report details so re-scanning already-clean text does not produce misleading quote totals.
+- **Tests and docs:** added regression tests for hyphen folding, metrics/report mode precedence, and scanner quote/space counting; refreshed README and CLI docs to reflect the new behavior.
 
 ## 20260114_00 - v1.2.0
 

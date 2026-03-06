@@ -8,6 +8,10 @@ import tempfile
 
 def run_cli(args, stdin=None):
     env = os.environ.copy()
+    src_path = str(pathlib.Path(__file__).resolve().parents[1] / "src")
+    env["PYTHONPATH"] = (
+        src_path if not env.get("PYTHONPATH") else f"{src_path}{os.pathsep}{env['PYTHONPATH']}"
+    )
     # Try cleanup-text first, fall back to python -m unicodefix.cli if not found
     cmd_list = ["cleanup-text"]
     try:
@@ -102,3 +106,9 @@ def test_metrics_with_explicit_output_uses_stderr_not_stdout(tmp_path: pathlib.P
     code, out, err = run_cli(["--metrics", "-o", str(out_file), str(f)])
     assert code == 0, f"Expected exit code 0, got {code}. stderr: {err}"
     assert out == "", f"Expected no report output on stdout, got: {out!r}"
+
+
+def test_version_flag_reports_current_version():
+    code, out, err = run_cli(["--version"])
+    assert code == 0, f"Expected exit code 0, got {code}. stderr: {err}"
+    assert "1.2.1" in out, f"Expected version output, got: {out!r}"

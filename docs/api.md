@@ -1,6 +1,6 @@
 # UnicodeFix Python API Documentation
 
-*Last updated: 2026-01-08*
+*Last updated: 2026-03-06*
 
 This document describes the Python API provided by UnicodeFix for programmatic text cleaning, scanning, and reporting.
 

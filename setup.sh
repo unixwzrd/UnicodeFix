@@ -43,7 +43,7 @@ done
 env_label=""
 created_env=0
 
-if [[ -n "${CONDA_PREFIX:-}" && -n "${CONDA_DEFAULT_ENV:-}" && "${CONDA_DEFAULT_ENV}" != "base" ]]; then
+if [[ -n "${CONDA_PREFIX:-}" && -n "${CONDA_DEFAULT_ENV:-}" ]]; then
     env_label="active Conda environment '${CONDA_DEFAULT_ENV}'"
 elif [[ -n "${VIRTUAL_ENV:-}" ]]; then
     env_label="active virtualenv '${VIRTUAL_ENV}'"
