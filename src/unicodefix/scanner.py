@@ -39,37 +39,51 @@ def _count_unassigned_cn(s: str) -> int:
     return n
 
 
-def _count_quote_like(s: str) -> int:
+def _is_quote_like(ch: str) -> bool:
+    try:
+        name = unicodedata.name(ch, "").upper()
+        cat = unicodedata.category(ch)
+    except Exception:
+        return False
+
+    if cat in ("Pi", "Pf"):
+        return True
+
+    if any(
+        k in name
+        for k in (
+            "QUOTATION",
+            "QUOTE",
+            "APOSTROPHE",
+            "PRIME",
+            "GERSH",
+            "DASIA",
+            "PSILI",
+        )
+    ):
+        return True
+    return False
+
+
+def _count_quote_like_split(s: str) -> tuple[int, int]:
     """
-    Count quote-like characters beyond the basic “ ” ‘ ’.
-    Mirrors the quote-normalization intent in transforms.clean_text().
+    Split quote-like characters into ASCII and non-ASCII buckets.
+
+    The Unicode count excludes the basic smart quotes we already report
+    explicitly via `smart_quotes` to avoid double-counting in totals.
     """
-    n = 0
+    ascii_count = 0
+    unicode_count = 0
     for ch in s:
-        try:
-            name = unicodedata.name(ch, "").upper()
-            cat = unicodedata.category(ch)
-        except Exception:
+        if ch in "“”‘’":
             continue
-
-        if cat in ("Pi", "Pf"):
-            n += 1
+        if not _is_quote_like(ch):
             continue
-
-        if any(
-            k in name
-            for k in (
-                "QUOTATION",
-                "QUOTE",
-                "APOSTROPHE",
-                "PRIME",
-                "GERSH",
-                "DASIA",
-                "PSILI",
-            )
-        ):
-            n += 1
-    return n
+        if ord(ch) <= 0x7F:
+            ascii_count += 1
+        else:
+            unicode_count += 1
+    return ascii_count, unicode_count
 
 
 @dataclass
@@ -80,9 +94,17 @@ class ScanResult:
     final_newline: bool
 
     def total_counts(self) -> int:
-        total = 0
-        for d in (self.unicode_ghosts, self.typographic, self.whitespace):
-            total += sum(int(v) for v in d.values())
+        total = sum(
+            int(v)
+            for k, v in self.unicode_ghosts.items()
+            if k not in {"NBSP_family"}
+        )
+        total += sum(
+            int(v)
+            for k, v in self.typographic.items()
+            if k not in {"smart_quotes_basic", "ascii_quote_like"}
+        )
+        total += sum(int(v) for v in self.whitespace.values())
         if not self.final_newline:
             total += 1
         return total
@@ -114,12 +136,14 @@ def scan_text_for_report(s: str) -> dict:
     }
 
     smart_basic = _count_many(s, "“”‘’")
+    ascii_quote_like, unicode_quote_like = _count_quote_like_split(s)
     typographic = {
         # Keep schema stability: tests + downstream expect "smart_quotes"
         "smart_quotes": smart_basic,
         # Extra detail fields (fine to keep)
         "smart_quotes_basic": smart_basic,
-        "quote_like_total": _count_quote_like(s),
+        "unicode_quote_like": unicode_quote_like,
+        "ascii_quote_like": ascii_quote_like,
         "unicode_hyphen": s.count("\u2010"),
         "nonbreaking_hyphen": s.count("\u2011"),
         "figure_dash": s.count("\u2012"),
