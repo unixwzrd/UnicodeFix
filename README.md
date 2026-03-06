@@ -99,7 +99,7 @@ Optional install modes:
 ./setup.sh --nlp   # optional NLP/metrics dependencies
 ```
 
-See [setup.sh](setup.sh) for the nitty-gritty.
+See [setup.sh](setup.sh) for the nitty-gritty. If the executable bit is stripped by your tooling, `bash setup.sh --nlp` works too.
 
 For serious environment nerds: [VenvUtil](https://github.com/unixwzrd/venvutil) is my full-featured Python env toolkit.
 
