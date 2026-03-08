@@ -19,9 +19,9 @@ UNICODEFIX_ASCII_DASH_FOLD = {
     "\u2011": "-",  # NON-BREAKING HYPHEN
     "\u2012": "-",  # FIGURE DASH
     "\u2013": "-",  # EN DASH
-    "\u2014": " - ",  # EM DASH
-    "\u2015": " - ",  # HORIZONTAL BAR
 }
+
+UNICODEFIX_EM_DASH_SENTINEL = "<<UNICODEFIX_EM_DASH>>"
 
 
 def _require_ftfy():
@@ -152,8 +152,16 @@ def clean_text(
 
     # Dash normalization
     if not preserve_dashes:
+        # Use a sentinel for em-dash-like characters so we can normalize the
+        # spacing around them without collapsing meaningful indentation.
+        text = text.replace("\u2014", UNICODEFIX_EM_DASH_SENTINEL)
+        text = text.replace("\u2015", UNICODEFIX_EM_DASH_SENTINEL)
         text = text.translate(str.maketrans(UNICODEFIX_ASCII_DASH_FOLD))
-        text = re.sub(r"[ \t]{2,}", " ", text)
+        text = re.sub(
+            rf"[ \t]*{re.escape(UNICODEFIX_EM_DASH_SENTINEL)}[ \t]*",
+            " - ",
+            text,
+        )
 
     # Fold select fullwidth punctuation that affects monospace alignment
     if not preserve_fullwidth_brackets:

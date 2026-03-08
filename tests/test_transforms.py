@@ -20,6 +20,23 @@ def test_hyphen_variants_normalize():
     assert "m - n" in out
 
 
+def test_yaml_indentation_is_preserved():
+    s = (
+        "minima:\n"
+        "  social_links:\n"
+        "    - platform: github\n"
+        '      user_url: "https://github.com/unixwzrd"\n'
+    )
+    out = clean_text(s)
+    assert out == s
+
+
+def test_em_dash_spacing_normalized_without_collapsing_indent():
+    s = "key:\n  note: left \u2014 right\n"
+    out = clean_text(s)
+    assert out == "key:\n  note: left - right\n"
+
+
 def test_keep_dashes_preserves_hyphen_variants():
     s = "co\u2011op x\u2014y"
     out = clean_text(s, preserve_dashes=True)
