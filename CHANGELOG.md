@@ -1,6 +1,16 @@
 # Changelog for UnicodeFix
 
-Last updated: 2026-03-06
+Last updated: 2026-03-28
+
+## 20260328_00 - v1.2.2
+
+### **CI Formatting Consistency and Local Push Guards**
+
+- **Black target pinned:** added repo-level Black configuration targeting Python 3.9 so formatting generated locally is stable when CI runs Black under Python 3.11.
+- **Local push checks:** added `scripts/run_checks.sh` plus a Git `pre-push` hook template so Black, Ruff, and pytest run before a push by default.
+- **Bootstrap update:** `setup.sh` now installs the local `pre-push` hook automatically inside the repo, with `--no-hooks` available when you need to skip hook installation.
+- **Lint cleanup:** removed current Ruff violations from the CLI, metrics module, and CLI report tests.
+- **Docs refresh:** updated the README to document the local check runner and hook installation behavior.
 
 ## 20260306_00 - v1.2.1
 

@@ -5,7 +5,7 @@ import shutil
 import sys
 from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional
 
 try:
     import tomllib

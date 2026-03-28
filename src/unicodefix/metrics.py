@@ -103,7 +103,6 @@ def sentence_len_cv(tokens, sentences) -> float:
         return 0.0
     # Rough per-sentence tokenization
     lens = []
-    start = 0
     toks = tokens
     # Simple split: distribute tokens evenly by sentence count (cheap and robust enough)
     per = max(1, len(toks) // max(1, len(sentences)))

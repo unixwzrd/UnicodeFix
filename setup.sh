@@ -4,19 +4,21 @@ set -euo pipefail
 
 usage() {
     cat <<'EOF'
-Usage: ./setup.sh [--dev] [--nlp]
+Usage: ./setup.sh [--dev] [--nlp] [--no-hooks]
 
 Bootstraps UnicodeFix using pyproject.toml as the only dependency source.
 
 Options:
   --dev   Install development dependencies and use editable mode.
   --nlp   Install optional NLP/metrics dependencies.
+  --no-hooks  Skip Git hook installation.
   -h      Show this help text.
 EOF
 }
 
 extras=()
 editable=0
+install_hooks=1
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -26,6 +28,9 @@ while [[ $# -gt 0 ]]; do
             ;;
         --nlp|--metrics)
             extras+=("nlp")
+            ;;
+        --no-hooks)
+            install_hooks=0
             ;;
         -h|--help)
             usage
@@ -70,6 +75,13 @@ if [[ ${editable} -eq 1 ]]; then
     python -m pip install -e "${spec}"
 else
     python -m pip install "${spec}"
+fi
+
+if [[ ${install_hooks} -eq 1 && -d ".git" ]]; then
+    mkdir -p .git/hooks
+    cp githooks/pre-push .git/hooks/pre-push
+    chmod +x .git/hooks/pre-push scripts/run_checks.sh
+    echo "Installed Git pre-push hook at .git/hooks/pre-push"
 fi
 
 echo "UnicodeFix installed into ${env_label}."

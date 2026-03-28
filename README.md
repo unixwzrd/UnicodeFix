@@ -1,12 +1,12 @@
-# UnicodeFix - *Wolf Edition v1.2.1" - it solves "problems."
+# UnicodeFix - *Wolf Edition v1.2.2" - it solves "problems."
 
-*Last updated: 2026-03-06*
+*Last updated: 2026-03-28*
 
 ![UnicodeFix Hero Image](docs/controlling-unicode.png)
 
 [![Python](https://img.shields.io/badge/Python-3.9%2B-blue)](#) [![Platforms](https://img.shields.io/badge/Platforms-macOS%20%7C%20Ubuntu-informational)](#) [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE) [![Release](https://img.shields.io/github/v/tag/unixwzrd/UnicodeFix?label=release)](https://github.com/unixwzrd/UnicodeFix/releases) [![CI](https://github.com/unixwzrd/UnicodeFix/actions/workflows/ci.yml/badge.svg)](.github/workflows/ci.yml)
 
-- [UnicodeFix - \*Wolf Edition v1.2.1" - it solves "problems."](#unicodefix---wolf-edition-v121---it-solves-problems)
+- [UnicodeFix - \*Wolf Edition v1.2.2" - it solves "problems."](#unicodefix---wolf-edition-v122---it-solves-problems)
     - [**Finally - a tool that blasts AI fingerprints, torches those infuriating smart quotes, and leaves your code \& docs squeaky clean for real humans.**](#finally---a-tool-that-blasts-ai-fingerprints-torches-those-infuriating-smart-quotes-and-leaves-your-code--docs-squeaky-clean-for-real-humans)
     - [Two modes (cleaner + auditor)](#two-modes-cleaner--auditor)
   - [Why Is This Happening?](#why-is-this-happening)
@@ -98,6 +98,14 @@ Optional install modes:
 ./setup.sh --dev   # editable install + dev tooling
 ./setup.sh --nlp   # optional NLP/metrics dependencies
 ```
+
+`./setup.sh` now also installs a local Git `pre-push` hook by default when run inside the repo. That hook runs the same local gate as CI:
+
+```bash
+scripts/run_checks.sh
+```
+
+Use `./setup.sh --no-hooks` if you need to skip hook installation.
 
 See [setup.sh](setup.sh) for the nitty-gritty. If the executable bit is stripped by your tooling, `bash setup.sh --nlp` works too.
 
