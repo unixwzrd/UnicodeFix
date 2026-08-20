@@ -259,3 +259,11 @@ bashexp*.txt
 backup/
 test_output/
 utils/
+
+# UnicodeFix generated output and local research state
+*.clean.*
+*.tmp
+*.tmp.[0-9]*
+research/watermarks/artifacts/
+research/watermarks/results/
+research/watermarks/profiles/local-*.toml

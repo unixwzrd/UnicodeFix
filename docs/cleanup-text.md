@@ -1,141 +1,103 @@
-# Unicode Text Cleaner (`cleanup-text`) - v1.2.1
+# `cleanup-text` CLI
 
-*Last updated: 2026-03-06*
+`cleanup-text` audits and safely cleans observable Unicode, provenance, and formatting artifacts. It operates locally, reads named files as strict UTF-8, and never treats a formatting pattern or negative detector result as an AI-authorship determination.
 
-A robust command-line tool to normalize and clean problematic Unicode characters, invisible characters, and formatting quirks from text files. Designed to make code and text more human, linter-friendly, and free of "AI tells" or watermarks.
+## Invocation
 
-## Features
-
-- Converts smart quotes, Unicode dash and hyphen variants, and non-breaking hyphens to ASCII equivalents
-- Removes zero-width and other invisible Unicode characters (unless `-i` is used)
-- Strips trailing whitespace from all lines
-- Ensures (or suppresses) a single newline at EOF
-- Batch processing of multiple files
-- In-place cleaning with temp file safety
-- Flexible output options (custom file, STDOUT, in-place)
-- Comprehensive test suite for all features
-
-## Usage
-
-```sh
+```text
 cleanup-text [options] [infile ...]
 ```
 
-### Options
+No input files selects stdin-to-stdout filter mode. Named files produce `<base>.clean<extension>` by default. Use `--output FILE` with one input, `--output -` for stdout, or `--temp` for an atomic in-place replacement; add `--preserve-tmp` to copy the untouched original to the first unused `.tmp` or numbered `.tmp.N` backup name.
 
-**Cleaning Options:**
+## Cleaning options
 
-- `-i`, `--invisible`              Preserve invisible Unicode characters (zero-width, non-breaking, etc.)
-- `-Q`, `--keep-smart-quotes`      Preserve Unicode smart quotes (curly quotes, angle quotes, etc.)
-- `-D`, `--keep-dashes`            Preserve Unicode dash and hyphen variants
-- `--keep-fullwidth-brackets`      Preserve fullwidth square brackets (【】)
-- `-n`, `--no-newline`             Do not add a newline at the end of the output file (suppress final newline)
+| Option | Effect |
+| --- | --- |
+| `-i`, `--invisible` | Preserve the legacy invisible-character set. |
+| `--preserve-default-ignorables` | Preserve all Unicode Default_Ignorable_Code_Point characters. This includes variation selectors and tag characters; recognized C2PA is preserved by default regardless. |
+| `-Q`, `--keep-smart-quotes` | Preserve typographic quotes. |
+| `-D`, `--keep-dashes` | Preserve Unicode dash and hyphen variants. |
+| `--keep-fullwidth-brackets` | Preserve `【】` rather than folding to `[]`. |
+| `-n`, `--no-newline` | Do not ensure a final newline. |
+| `--strip-provenance` | Remove complete, recognized local C2PA carriers. No URL is fetched; malformed carriers remain for review. |
+| `--unwrap-markdown` | Safely join Markdown soft breaks and format supported Markdown blocks. |
+| `--source` | Use conservative source-code cleanup. This cannot be combined with `--unwrap-markdown`. |
 
-**Output Options:**
+`--strip-provenance` is intentional and explicit because C2PA credentials may be valuable provenance. UnicodeFix reports C2PA separately from AI generation and does not validate a signature or retrieve an external manifest.
 
-- `-o`, `--output`                 Output file name, or '-' for STDOUT. Only valid with one input file, or use '-' for STDOUT with multiple files.
-- `-t`, `--temp`                   In-place cleaning: move each input file to .tmp, clean it, write cleaned output to original name, and delete .tmp after success.
-- `-p`, `--preserve-tmp`           With -t, preserve the .tmp file after cleaning (do not delete it). Useful for backup or manual recovery.
-- `-q`, `--quiet`                  Suppress status lines on stderr
+## Reporting and preview
 
-**Report/Audit Options:**
+| Option | Effect |
+| --- | --- |
+| `--report` | Audit only; never write input or output files. |
+| `--metrics` | Add deterministic document metrics and imply report mode when no output option is supplied. |
+| `--metrics-help` | Explain deterministic metrics. |
+| `--dry-run` | Run the requested cleanup in memory and report planned before/after changes. It cannot be combined with `--output` or `--temp`. |
+| `--diff` | Show a unified diff for a dry run. It requires `--dry-run` and cannot be combined with JSON or CSV. |
+| `--json`, `--csv` | Select structured report output. |
+| `--label NAME` | Report stdin under `NAME`. |
+| `--threshold N` | Exit 1 when the selected finding count is at least `N`. |
+| `--threshold-category CATEGORY` | Restrict a threshold to a category; repeat for multiple categories. |
+| `--watermark-profile PATH` | Run an explicit local statistical-watermark profile; repeat for multiple profiles. |
+| `--authorship-profile PATH` | Score paragraphs with an explicit local causal-model likelihood profile; repeatable and never treated as proof. |
+| `--exit-zero` | Force status 0 after reporting, including a threshold hit. |
+| `--no-color` | Disable ANSI color in human reports. |
+| `-q`, `--quiet` | Suppress status lines written to stderr. |
 
-- `--report`                       Generate a human-readable audit summary (no changes made to files)
-- `--json`                         With --report, emit audit results as JSON
-- `--csv`                          With --report, emit audit results as CSV (one row per file)
-- `--label`                        When reading from STDIN ('-'), use this display name in report/CSV
-- `--threshold` N                  With --report, exit 1 if total anomalies >= N
-- `--metrics`                      Include experimental semantic metrics and imply report mode unless `-o` or `-t` is used; with explicit clean output, the report is shown on stderr
-- `--metrics-help`                 Print a legend explaining each metric and the ↑/↓ cues
-- `--exit-zero`                    Force report mode to exit with status 0 (useful for informative hooks/CI jobs)
-- `--no-color`                     Disable ANSI colors (plain output)
+Categories are `provenance`, `unicode_security`, `known_watermark`, `authorship_signal`, `typography`, and `formatting`. Human, JSON, and CSV reports use the same versioned findings model with signal, count, location, confidence, removability, and planned action. JSON keeps the detailed locations; CSV is intentionally aggregate-oriented.
 
-**General:**
+```bash
+# Preview every requested change without writing.
+cleanup-text --dry-run --diff --strip-provenance --unwrap-markdown paper.md
 
-- `-h`, `--help`                   Show help message and exit
+# Gate CI only on security-relevant observable findings.
+cleanup-text --report --threshold 1 --threshold-category unicode_security src/module.py
 
-### Behavior
-
-**Input/Output:**
-
-- **No input files:** Reads from STDIN and writes to STDOUT (filter mode)
-- **Input files:** Creates cleaned files with `.clean` before the extension (e.g., `foo.txt` → `foo.clean.txt`)
-- **-o -:** Forces output to STDOUT for all input files
-- **-o <file>:** Writes to a single output file (only with one input file)
-- **-t:** In-place cleaning with temp file safety
-- **-t -p:** In-place cleaning, but preserves the temp file for manual recovery
-- **-n:** Suppresses the final newline at EOF
-
-**Preservation Flags:**
-
-- **-Q:** Preserves Unicode smart quotes (useful for documents where typography matters)
-- **-D:** Preserves Unicode dash and hyphen variants (useful for documents where proper typography is desired)
-- **--keep-fullwidth-brackets:** Preserves fullwidth brackets (useful for documents with CJK text)
-- **-i:** Preserves invisible characters (rare, mainly for debugging)
-
-**Report Mode:**
-
-- **--report:** Generates an audit without modifying files. Use with `--json` or `--csv` for machine-readable output.
-- **--threshold N:** Exits with code 1 if total anomalies >= N (useful for CI/CD)
-- **--exit-zero:** Always exits with code 0 even if threshold exceeded (useful for pre-commit warnings)
-- **--metrics:** Requires NLP extras (`./setup.sh --nlp`) for semantic analysis and automatically switches to report mode unless you explicitly request cleaned output with `-o` or `-t`; in that case, the report is emitted on stderr while the cleaned file is written
-- **--metrics-help:** Print legend without running a report
-
-### Semantic Metrics (preview)
-
-Enabling `--metrics` appends a `metrics` block that captures entropy, ASCII ratio, type/token diversity, heuristic AI-likeness scoring, and more, and automatically switches into report mode unless you explicitly request cleaned output with `-o` or `-t`. In the explicit-output case, the cleaned file is still written and the human-readable report is emitted on stderr. The feature requires the optional NLP extras (`./setup.sh --nlp`) to supply the NLTK resources used for tokenization. Use `--metrics-help` for a quick legend explaining each metric and the ↑/↓ direction hints shown in the report. Pair with `--exit-zero` if you want to surface the data without failing pre-commit.
-
-## Test Suite
-
-A comprehensive test script is provided in `tests/test_all.sh` to verify all features and options.
-
-### Running the Test Suite
-
-From the project root:
-
-```sh
-tests/test_all.sh
+# Retain a machine-readable audit without failing an informational hook.
+cleanup-text --report --metrics --json --exit-zero README.md
 ```
 
-- Builds its file list directly from `data/`, so you always exercise the current fixtures.
-- Generates canonical diffs (`*.diff`) and normalized `wcpost.txt` / `wcdiff.txt` files per scenario.
-- The STDIN/STDOUT scenario skips binary fixtures (everything else still covers them).
-- To clean up all test output:
+## Markdown behavior
 
-```sh
-tests/test_all.sh clean
+Markdown unwrapping joins CommonMark soft line breaks inside a single paragraph. This includes ordinary prose and continuation lines within ordered lists, unordered lists, task lists, nested items, blockquotes, and combinations of these containers. The original list marker remains attached to its item.
+
+It will not merge sibling list items, separate paragraphs, headings, thematic breaks, link definitions, tables, raw HTML, fenced or indented code, or distinct blockquotes. It preserves hard breaks created with two trailing spaces or a backslash, blank lines that make a list loose or introduce another paragraph, and inline code. Fixed-width wrapping at 72, 78, 79, 80, or another width is an informational formatting observation, not provenance or a watermark.
+
+A valid C2PA carrier blocks Markdown reformatting unless `--strip-provenance` is supplied. This avoids silently invalidating signed content through reserialization.
+
+## Source behavior
+
+Source mode is deliberately narrower than document cleanup. It inventories suspicious text by comment, string, identifier, and syntax context; it removes recognized C2PA/hidden payloads only from comments; and it checks that a previously valid source file remains parseable. It reports potentially confusing identifiers and strings without renaming or rewriting them. Source semantics and language-specific code-watermark disruption are outside its scope.
+
+## Statistical-watermark profiles
+
+Profiles run locally and must name a scheme plus every detector prerequisite. The built-in profile adapters currently recognize `literal_fixture`, `kgw`, and `synthid_text`; KGW and SynthID need the optional `unicodefix[watermark-lab]` installation and matching cached local artifacts. Model/tokenizer loads use local-only mode.
+
+`not_detected` applies only to the named profile, detector configuration, and input. It is not a statement that the document contains no watermark. Unknown and proprietary schemes are not generically detectable or removable. Keep profile keys out of source control; reports output a configuration fingerprint rather than secret material.
+
+## Examples
+
+```bash
+# Default file cleanup.
+cleanup-text notes.txt
+
+# Filter mode.
+printf 'hello\u200b\n' | cleanup-text
+
+# In-place cleanup with recoverable temporary copy.
+cleanup-text --temp --preserve-tmp notes.txt
+
+# Audit a local fixture detector.
+cleanup-text --report --watermark-profile profiles/fixture.toml sample.txt
 ```
 
-- For help:
+In-place writes use a unique temporary file in the input file's directory, sync its contents, preserve the original permissions, and then use an atomic replacement with a new modification timestamp. Without `--preserve-tmp`, the internal temporary file is removed by the replacement. With it, an existing backup is never overwritten.
 
-```sh
-tests/test_all.sh --help
+Run a locally calibrated paragraph-level authorship profile:
+
+```bash
+cleanup-text --report --json --authorship-profile profiles/local-authorship.toml sample.txt
 ```
 
-## Best Practices
-
-- Always back up your data before batch processing or in-place cleaning.
-- Review diffs and word counts in `test_output/` to verify results.
-- Use the `-i` flag if you need to preserve invisible Unicode characters for special use cases.
-- Use the `-n` flag if you need to suppress the final newline (rare).
-
-## Alignment & Fullwidth Brackets
-
-- Fullwidth square brackets are now folded to ASCII by default to preserve monospace alignment in terminals and fixed-width tables:
-  - `【` → `[`, `】` → `]`
-  - Use `--keep-fullwidth-brackets` to preserve `【】`.
-  - The dagger glyph `†` (e.g., `†L147-L156`) is preserved.
-- A small helper exists for display-only folding:
-  - `unicodefix.transforms.fold_for_terminal_display(text)` applies the same folding without other cleaning.
-  - Useful when you want ASCII rendering for terminals while keeping the original text for auditing/search.
-- Patterns:
-  1) Global pre-clean before render (default behavior).
-  2) Render-time folding behind a toggle (use the helper).
-
-## Changelog
-
-See `CHANGELOG.md` for a summary of recent changes.
-
-## License
-
-See `LICENSE` for details.
+An authorship profile pins an already-downloaded causal model and tokenizer, metric, comparison, minimum paragraph length, and threshold. Optional logistic calibration coefficients may be supplied only when fitted on a held-out corpus matched to the expected language and domain. Without those coefficients, UnicodeFix shows scores and threshold crossings but no estimated probability. These findings are never cleanup actions.

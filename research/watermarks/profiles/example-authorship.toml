@@ -1,0 +1,14 @@
+# Local causal-language-model authorship signal. This is not a watermark profile.
+# Replace these paths with pinned, already-downloaded artifacts.
+[authorship]
+method = "causal_lm_likelihood"
+model_path = "/absolute/path/to/local/reference-model"
+tokenizer_path = "/absolute/path/to/local/reference-tokenizer"
+metric = "mean_nll"
+threshold = 2.5
+comparison = "lte"
+minimum_tokens = 64
+maximum_tokens = 1024
+
+# Only add calibration_slope and calibration_intercept after fitting them on a
+# held-out, source-matched human/AI corpus. Without them, no probability is shown.

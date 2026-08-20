@@ -10,7 +10,7 @@ Runs on every push and pull request to `main`, `master`, or `develop` branches.
 
 **Jobs:**
 
-1. **Test Suite** - Runs on multiple Python versions (3.9-3.12) and operating systems (Ubuntu, macOS)
+1. **Test Suite** - Runs on Python 3.10-3.14 and operating systems (Ubuntu, macOS)
    - Installs dependencies
    - Runs Python unit tests with pytest and coverage
    - Runs integration test suite (`tests/test_all.sh`)
@@ -22,7 +22,7 @@ Runs on every push and pull request to `main`, `master`, or `develop` branches.
    - Ruff linting
 
 3. **ShellCheck** - Shell script linting
-   - Validates bash scripts in `tests/` directory
+   - Validates `setup.sh` and scripts in `bin/`, `githooks/`, `scripts/`, and `tests/`
 
 ## Test Coverage
 
@@ -51,10 +51,14 @@ pytest tests/ -v
 bash tests/test_all.sh
 
 # Check code formatting
-black --check src/ tests/
+black --check src/ tests/ research/
 
 # Lint code
-ruff check src/ tests/
+ruff check src/ tests/ research/
+
+# Check maintained shell scripts
+find bin githooks scripts tests -type f -name '*.sh' -print0 | xargs -0 shellcheck
+shellcheck setup.sh
 ```
 
 ## Adding New Tests

@@ -1,0 +1,10 @@
+[profile]
+version = 1
+name = "kgw-local-placeholder"
+scheme = "KGW green-list"
+vendor = "research"
+
+[detector]
+adapter = "unsupported"
+reason = "KGW detection requires the exact tokenizer, seeding scheme, green-list configuration, key, and threshold."
+min_characters = 200

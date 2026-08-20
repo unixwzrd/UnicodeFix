@@ -1,0 +1,11 @@
+[profile]
+version = 1
+name = "fixture-marker"
+scheme = "test-only"
+vendor = "UnicodeFix"
+
+[detector]
+# A deterministic test adapter, not an AI watermark detector.
+adapter = "fixture_contains"
+marker = "[[UNICODEFIX-WATERMARK-FIXTURE]]"
+min_characters = 20

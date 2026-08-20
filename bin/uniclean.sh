@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 
-# Uniclean is a wrapper fro cleanup-text.py which ensures the proper virtual environment
-# is activated and the script is run from the root of the project.
+# Compatibility wrapper for the installed UnicodeFix command.
 
-# Activate the virtual environment
-source "${HOME}/.bashrc"
+set -euo pipefail
 
-# Run the cleanup-text.py script
-cleanup-text.py "$@"
+if ! command -v cleanup-text >/dev/null 2>&1; then
+    echo "uniclean: cleanup-text is not installed or is not on PATH" >&2
+    exit 127
+fi
+
+exec cleanup-text "$@"

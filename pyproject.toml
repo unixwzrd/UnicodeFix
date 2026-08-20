@@ -4,14 +4,21 @@ build-backend = "hatchling.build"
 
 [project]
 name = "unicodefix"
-version = "1.2.2"
-description = "Clean Unicode quirks and audit text."
+version = "2.0.0"
+description = "Audit and safely clean Unicode, text provenance, and formatting artifacts."
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
+  "confusable-homoglyphs==3.3.1",
   "ftfy>=6.2",
+  "mdformat>=1.0.0",
+  "mdformat-frontmatter",
+  "mdformat-gfm",
+  "regex>=2026.4.4",
   "rich>=13.7",
   "tomli>=2.0; python_version < '3.11'",
+  "tree-sitter-language-pack>=0.9.0",
+  "unicodedata2>=17.0.0,<18",
 ]
 
 [project.urls]
@@ -21,8 +28,7 @@ Changelog = "https://github.com/unixwzrd/UnicodeFix/blob/main/CHANGELOG.md"
 Documentation = "https://github.com/unixwzrd/UnicodeFix/blob/main/docs/cleanup-text.md"
 
 [project.optional-dependencies]
-nlp = ["nltk>=3.9"]
-metrics = ["nltk>=3.9"]
+watermark-lab = ["torch>=2.4", "transformers>=4.46"]
 dev = [
     "black>=24.0",
     "ruff>=0.1.0",
@@ -37,4 +43,4 @@ cleanup-text = "unicodefix.cli:main"
 packages = ["src/unicodefix"]
 
 [tool.black]
-target-version = ["py39"]
+target-version = ["py310"]

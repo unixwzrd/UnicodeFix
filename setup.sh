@@ -4,13 +4,13 @@ set -euo pipefail
 
 usage() {
     cat <<'EOF'
-Usage: ./setup.sh [--dev] [--nlp] [--no-hooks]
+Usage: ./setup.sh [--dev] [--watermark-lab] [--no-hooks]
 
 Bootstraps UnicodeFix using pyproject.toml as the only dependency source.
 
 Options:
   --dev   Install development dependencies and use editable mode.
-  --nlp   Install optional NLP/metrics dependencies.
+  --watermark-lab  Install optional local statistical-watermark tooling.
   --no-hooks  Skip Git hook installation.
   -h      Show this help text.
 EOF
@@ -26,8 +26,8 @@ while [[ $# -gt 0 ]]; do
             editable=1
             extras+=("dev")
             ;;
-        --nlp|--metrics)
-            extras+=("nlp")
+        --watermark-lab)
+            extras+=("watermark-lab")
             ;;
         --no-hooks)
             install_hooks=0
@@ -58,7 +58,7 @@ else
         python3 -m venv "${venv_dir}"
         created_env=1
     fi
-    # shellcheck disable=SC1090
+    # shellcheck disable=SC1090,SC1091
     source "${venv_dir}/bin/activate"
     env_label="local virtualenv '${venv_dir}'"
 fi

@@ -29,3 +29,23 @@ def test_scanner_reports_nbsp_family():
     assert d["unicode_ghosts"]["NBSP_family"] == 2
     assert d["unicode_ghosts"]["Zs_spaces"] >= 2
     assert d["total"] >= 2
+
+
+def test_scanner_includes_versioned_unicode_security_findings_with_locations():
+    d = scan_text_for_report("a\u2066b\ufe0fc")
+    assert d["schema_version"] == "2.0"
+    signals = {finding["signal"]: finding for finding in d["findings"]}
+    assert signals["bidi_control"]["locations"][0]["line"] == 1
+    assert signals["variation_selector"]["count"] == 1
+
+
+def test_scanner_reports_confusable_skeleton_without_replacement():
+    text = "pаypal\n"  # Cyrillic small a in an otherwise Latin token.
+    result = scan_text_for_report(text)
+    finding = next(
+        item
+        for item in result["findings"]
+        if item["signal"] == "confusable_mixed_script_token"
+    )
+    assert finding["details"]["tokens"][0]["skeleton"] == "paypal"
+    assert finding["removable"] is False

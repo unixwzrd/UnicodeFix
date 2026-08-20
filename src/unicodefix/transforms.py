@@ -1,5 +1,9 @@
 import re
-import unicodedata
+
+import regex
+import unicodedata2 as unicodedata
+
+from unicodefix.c2pa import find_c2pa_carriers, strip_c2pa_carriers
 
 # Import ftfy lazily but give a clear error if missing
 _ftfy_err = None
@@ -22,6 +26,20 @@ UNICODEFIX_ASCII_DASH_FOLD = {
 }
 
 UNICODEFIX_EM_DASH_SENTINEL = "<<UNICODEFIX_EM_DASH>>"
+_DEFAULT_IGNORABLE_RE = regex.compile(r"\p{Default_Ignorable_Code_Point}")
+
+
+def _protect_c2pa(text: str) -> tuple[str, dict[str, str]]:
+    """Protect recognized or malformed provenance carriers from generic cleanup."""
+    replacements: dict[str, str] = {}
+    carriers = find_c2pa_carriers(text)
+    for number, carrier in enumerate(reversed(carriers)):
+        token = f"<<UNICODEFIX_PROTECTED_C2PA_{number}>>"
+        while token in text:
+            token += "_"
+        replacements[token] = text[carrier.start : carrier.end]
+        text = text[: carrier.start] + token + text[carrier.end :]
+    return text, replacements
 
 
 def _require_ftfy():
@@ -39,11 +57,18 @@ def clean_text(
     preserve_dashes: bool = False,
     preserve_fullwidth_brackets: bool = False,
     preserve_replacement_chars: bool = False,
+    preserve_default_ignorables: bool = False,
+    strip_provenance: bool = False,
 ) -> str:
     """
     Normalize problematic/invisible Unicode to safe ASCII where appropriate.
     """
     _require_ftfy()
+    if strip_provenance:
+        text = strip_c2pa_carriers(text)
+        protected: dict[str, str] = {}
+    else:
+        text, protected = _protect_c2pa(text)
     text = ftfy.fix_text(text)
 
     # Remove Unicode replacement characters (U+FFFD) by default
@@ -175,9 +200,13 @@ def clean_text(
     # Zs separators → ASCII space
     text = re.sub(UNICODEFIX_ZS_SPACES_RE, " ", text)
 
-    if not preserve_invisible:
+    if not preserve_invisible and not preserve_default_ignorables:
         # Remove zero-width, bidi, and control invisibles
         text = re.sub(UNICODEFIX_INVISIBLES_RE, "", text)
+        # Cover the complete Unicode Default_Ignorable_Code_Point property,
+        # including variation selectors, tag characters, word joiners, and
+        # soft hyphens. Recognized C2PA carriers were protected above.
+        text = _DEFAULT_IGNORABLE_RE.sub("", text)
 
     # Remove invalid/unassigned/private-use Unicode characters
     # These can appear when decoding is corrupted or bytes are invalid
@@ -236,6 +265,9 @@ def clean_text(
     # If the file ends with spaces/tabs but no newline yet, drop them before
     # newline handling so the final line is truly blank (no trailing space)
     text = re.sub(r"[ \t]+$", "", text)
+
+    for token, carrier in protected.items():
+        text = text.replace(token, carrier)
 
     return text
 

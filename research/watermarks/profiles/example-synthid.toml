@@ -1,0 +1,12 @@
+[profile]
+version = 1
+name = "synthid-local-placeholder"
+scheme = "SynthID Text"
+vendor = "Google DeepMind"
+
+[detector]
+# Deliberately unsupported in core: a valid detector requires matching local
+# tokenizer/model artifacts and the watermark configuration (including keys).
+adapter = "unsupported"
+reason = "Install and configure a local SynthID adapter with exact matching artifacts and keys."
+min_characters = 200

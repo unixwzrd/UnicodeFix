@@ -1,409 +1,246 @@
+"""Human, JSON, and CSV rendering for the shared UnicodeFix report model."""
+
+from __future__ import annotations
+
 import csv
 import json
-import os
 import sys
-from typing import TextIO, Union
+from typing import Any, TextIO
 
-from rich.align import Align
 from rich.console import Console
 from rich.panel import Panel
-from rich.rule import Rule
-from rich.table import Column, Table
-from rich.text import Text
+from rich.table import Table
 
-__all__ = ["print_human", "print_json", "print_metrics_help", "print_csv"]
-
-# Fixed column widths (as preferred)
-CAT_COL_WIDTH = 24  # left column width (Category / Metric)
-VALUE_COL_WIDTH = 8  # right-justified numeric column width (Total / Value)
-
-# Optional clamped body width (unset or 0 = no clamping)
-# e.g. UNICODEFIX_WIDTH=96 to create side margins on wide terminals
-REPORT_BODY_WIDTH = int(os.environ.get("UNICODEFIX_WIDTH", "0"))
-
-_SPECIAL_NAMES = {
-    "ai_score": "AI score",
-    "ascii_ratio": "ASCII ratio",
-    "avg_sentence_len_tokens": "Avg sentence len (tokens)",
-    "avg_token_len": "Avg token len",
-    "type_token_ratio": "Type–token ratio",
-    "sentence_len_cv": "Sentence len CV",
-}
-_UNICODE_GHOST_INFO_KEYS = {"NBSP_family"}
-_TYPOGRAPHIC_INFO_KEYS = {"smart_quotes_basic", "ascii_quote_like"}
-_TYPOGRAPHIC_DETAIL_HIDDEN_KEYS = {"smart_quotes_basic"}
+__all__ = ["print_human", "print_json", "print_csv", "print_metrics_help"]
 
 
-# -------------------- Console / helpers --------------------
-def _console(no_color: bool, file: TextIO = sys.stdout) -> Console:
+def _console(no_color: bool, file: TextIO) -> Console:
     return Console(no_color=no_color, file=file)
 
 
-def _sumv(d: dict) -> int:
-    return sum(int(v) for v in d.values())
+def _location(finding: dict[str, Any]) -> str:
+    locations = finding.get("locations") or []
+    if not locations:
+        return "-"
+    first = locations[0]
+    suffix = f" (+{len(locations) - 1})" if len(locations) > 1 else ""
+    return f"{first.get('line', '?')}:{first.get('column', '?')}{suffix}"
 
 
-def _sum_anomaly_counts(d: dict, info_keys: set[str]) -> int:
-    return sum(int(v) for k, v in d.items() if k not in info_keys)
-
-
-def _sev_count(v: Union[int, str]) -> str:
-    """Severity color for integer counts (or status markers '/' / 'X')."""
-    if isinstance(v, str) and v in {"X", "/"}:
-        return "blue"
-    n = int(v)
-    if n == 0:
-        return "green"
-    if n <= 2:
-        return "yellow3"
-    return "red"
-
-
-def _sev_ratio(name: str, x: float) -> str:
-    if name == "ai_score":
-        return "green" if x < 0.40 else ("yellow3" if x < 0.70 else "red")
-    if name == "type_token_ratio":
-        return "red" if x < 0.35 else ("yellow3" if x < 0.50 else "green")
-    if name == "repetition_ratio":
-        return "green" if x < 0.20 else ("yellow3" if x < 0.35 else "red")
-    if name == "sentence_len_cv":
-        return "red" if x <= 0.15 else ("yellow3" if x <= 0.30 else "green")
-    if name == "stopword_ratio":
-        return (
-            "red"
-            if (x < 0.20 or x > 0.70)
-            else ("yellow3" if (x < 0.30 or x > 0.60) else "green")
-        )
-    if name == "punctuation_ratio":
-        return (
-            "red"
-            if (x < 0.01 or x > 0.15)
-            else ("yellow3" if (x < 0.02 or x > 0.08) else "green")
-        )
-    if name == "ascii_ratio":
-        return "red" if x < 0.80 else ("yellow3" if x < 0.95 else "green")
-    if name == "digits_ratio":
-        return "green" if x <= 0.05 else ("yellow3" if x <= 0.20 else "red")
-    if name == "avg_sentence_len_tokens":
-        return (
-            "red"
-            if (x < 8 or x > 45)
-            else ("yellow3" if (x < 12 or x > 30) else "green")
-        )
-    return ""
-
-
-def _fmt_float(val) -> str:
-    return f"{float(val):.4f}"
-
-
-def _overall_score(metrics: dict) -> float:
-    """Heuristic blend—transparent & tunable."""
-    base = float(metrics.get("ai_score", 0.0) or 0.0)
-    ttr = float(metrics.get("type_token_ratio", 0.0) or 0.0)
-    rep = float(metrics.get("repetition_ratio", 0.0) or 0.0)
-    cv = float(metrics.get("sentence_len_cv", 0.0) or 0.0)
-    score = base + 0.20 * rep + 0.20 * max(0.0, 0.55 - ttr) + 0.15 * max(0.0, 0.20 - cv)
-    return max(0.0, min(1.0, score))
-
-
-def _pretty_metric(name: str) -> str:
-    if name in _SPECIAL_NAMES:
-        return _SPECIAL_NAMES[name]
-    return name.replace("_", " ").title()
-
-
-def _cols_for_anomalies():
-    """Locked columns for anomalies + summary so numbers align exactly."""
-    return (
-        Column(
-            "Category",
-            style="bold",
-            no_wrap=True,
-            width=CAT_COL_WIDTH,
-            min_width=CAT_COL_WIDTH,
-            max_width=CAT_COL_WIDTH,
-        ),
-        Column(
-            "Total",
-            justify="right",
-            no_wrap=True,
-            width=VALUE_COL_WIDTH,
-            min_width=VALUE_COL_WIDTH,
-            max_width=VALUE_COL_WIDTH,
-        ),
-        Column("Details", overflow="fold", no_wrap=False),
-    )
-
-
-def _cols_for_metrics(signal_w: int):
-    """Locked columns for metrics + overall score."""
-    return (
-        Column(
-            "Metric",
-            no_wrap=True,
-            width=CAT_COL_WIDTH,
-            min_width=CAT_COL_WIDTH,
-            max_width=CAT_COL_WIDTH,
-        ),
-        Column(
-            "Value",
-            justify="right",
-            no_wrap=True,
-            width=VALUE_COL_WIDTH,
-            min_width=VALUE_COL_WIDTH,
-            max_width=VALUE_COL_WIDTH,
-        ),
-        Column("Signal", max_width=signal_w, no_wrap=False, overflow="fold"),
-    )
-
-
-def _clamp_body_width(con: Console) -> int:
-    """Return target body width. 0 = no clamp (use terminal width)."""
-    term = con.width or 80
-    if REPORT_BODY_WIDTH <= 0:
-        return term
-    return min(term, REPORT_BODY_WIDTH)
-
-
-def _print_clamped(con: Console, renderable, body_w: int) -> None:
-    """Left-align inside a fixed-width block to create side margins on wide terminals."""
-    if REPORT_BODY_WIDTH <= 0:
-        # No clamping requested: just print as-is (full terminal width)
-        con.print(renderable)
-    else:
-        con.print(Align.left(renderable, width=body_w))
-
-
-# -------------------- Renderers --------------------
-def _render_anomalies(con: Console, path: str, data: dict) -> None:
-    body_w = _clamp_body_width(con)
-    ug = data["unicode_ghosts"]
-    ty = data["typographic"]
-    ws = data["whitespace"]
-    ug_total = _sum_anomaly_counts(ug, _UNICODE_GHOST_INFO_KEYS)
-    ty_total = _sum_anomaly_counts(ty, _TYPOGRAPHIC_INFO_KEYS)
-    ws_total = _sumv(ws)
-    final_ok = bool(data["final_newline"])
-    total = int(data["total"])
-
-    # Header + blank line
-    _print_clamped(con, Text(f"File: {path}", style="bold"), body_w)
-    _print_clamped(con, Text(""), body_w)
-
-    # Main anomalies table
-    t = Table(
-        *_cols_for_anomalies(),
-        show_header=True,
-        header_style="bold",
-        box=None,
-        pad_edge=False,
-        expand=False,
-    )
-    ug_details = ", ".join(f"{k}={v}" for k, v in ug.items() if v)
-    ty_details = ", ".join(
-        f"{k}={v}"
-        for k, v in ty.items()
-        if v and k not in _TYPOGRAPHIC_DETAIL_HIDDEN_KEYS
-    )
-    ws_details = ", ".join(f"{k}={v}" for k, v in ws.items() if v)
-
-    t.add_row(
-        "unicode_ghosts", Text(str(ug_total), style=_sev_count(ug_total)), ug_details
-    )
-    t.add_row(
-        "typographic", Text(str(ty_total), style=_sev_count(ty_total)), ty_details
-    )
-    t.add_row("whitespace", Text(str(ws_total), style=_sev_count(ws_total)), ws_details)
-
-    fn_mark = "/" if final_ok else "X"
-    t.add_row(
-        "final_newline",
-        Text(fn_mark, style=_sev_count(fn_mark)),
-        "ok" if final_ok else "missing",
-    )
-
-    _print_clamped(con, t, body_w)
-    _print_clamped(con, Rule(), body_w)
-
-    # Summary mini-table
-    t2 = Table(
-        *_cols_for_anomalies(),
-        show_header=False,
-        box=None,
-        pad_edge=False,
-        expand=False,
-    )
-    t2.add_row(
-        "Total", Text(str(total), style=_sev_count(total)), "Overall anomaly count"
-    )
-    _print_clamped(con, t2, body_w)
-    _print_clamped(con, Text(""), body_w)
-
-
-def _render_metrics(con: Console, metrics: dict) -> None:
-    if not isinstance(metrics, dict) or not metrics:
+def _render_findings(console: Console, data: dict[str, Any]) -> None:
+    findings = data.get("findings") or []
+    if not findings:
+        console.print("Findings: none", style="green")
         return
-    body_w = _clamp_body_width(con)
+    table = Table(title="Observable findings", box=None, pad_edge=False)
+    table.add_column("Category", style="bold")
+    table.add_column("Signal")
+    table.add_column("Count", justify="right")
+    table.add_column("First location")
+    table.add_column("Action")
+    for finding in findings:
+        table.add_row(
+            str(finding.get("category", "-")),
+            str(finding.get("signal", "-")),
+            str(finding.get("count", 1)),
+            _location(finding),
+            str(finding.get("planned_action", "report")),
+        )
+    console.print(table)
 
-    # Heading
-    _print_clamped(con, Text(""), body_w)
-    _print_clamped(con, Text("Metrics", style="bold"), body_w)
-    _print_clamped(con, Text(""), body_w)
 
-    # Signal column width from current body width (no arbitrary 80-col clamp)
-    signal_w = max(24, body_w - (CAT_COL_WIDTH + VALUE_COL_WIDTH + 8))
+def _render_mapping(console: Console, title: str, values: dict[str, Any]) -> None:
+    if not values:
+        return
+    table = Table(title=title, box=None, pad_edge=False)
+    table.add_column("Metric", style="bold")
+    table.add_column("Value")
+    for name, value in values.items():
+        shown = (
+            json.dumps(value, ensure_ascii=False, sort_keys=True)
+            if isinstance(value, (dict, list))
+            else str(value)
+        )
+        table.add_row(name.replace("_", " "), shown)
+    console.print(table)
 
-    mt = Table(
-        *_cols_for_metrics(signal_w),
-        show_header=True,
-        header_style="bold magenta",
-        box=None,
-        pad_edge=False,
-        expand=False,
+
+def _render_watermarks(console: Console, results: list[dict[str, Any]]) -> None:
+    if not results:
+        return
+    table = Table(title="Configured watermark profiles", box=None, pad_edge=False)
+    table.add_column("Profile")
+    table.add_column("Scheme")
+    table.add_column("Status", style="bold")
+    table.add_column("Score")
+    table.add_column("Configuration")
+    for result in results:
+        table.add_row(
+            str(result.get("profile", "-")),
+            str(result.get("scheme", "-")),
+            str(result.get("status", "-")),
+            "-" if result.get("score") is None else str(result["score"]),
+            str(result.get("configuration_fingerprint", "-")),
+        )
+    console.print(table)
+    console.print(
+        "A negative result applies only to the named profile and configuration.",
+        style="dim",
     )
 
-    order = [
-        "ai_score",
-        "type_token_ratio",
-        "repetition_ratio",
-        "sentence_len_cv",
-        "avg_sentence_len_tokens",
-        "avg_token_len",
-        "stopword_ratio",
-        "punctuation_ratio",
-        "ascii_ratio",
-        "entropy",
-        "digits_ratio",
-        "tokens",
-        "sentences",
-    ]
-    labels = {
-        "ai_score": "Heuristic 0–1; higher ≈ more AI-like. Not a detector.",
-        "type_token_ratio": "Unique words ÷ total words. Higher = more lexical diversity.",
-        "repetition_ratio": "Share of tokens covered by the top-5 most frequent words. Higher = more repetitive.",
-        "sentence_len_cv": "Coefficient of variation (std ÷ mean) of sentence lengths. Lower = more uniform; higher = burstier.",
-        "avg_sentence_len_tokens": "Mean sentence length (in tokens).",
-        "avg_token_len": "Mean token length (avg characters per token/word).",
-        "stopword_ratio": "Fraction of English stopwords. Typical prose ≈ 0.30–0.60.",
-        "punctuation_ratio": "Punctuation characters ÷ total characters. Typical prose ≈ 0.02–0.08.",
-        "ascii_ratio": "ASCII characters ÷ total characters.",
-        "entropy": "Character-level Shannon entropy (variety/complexity indicator).",
-        "digits_ratio": "Digits ÷ total characters.",
-        "tokens": "Total token count (words).",
-        "sentences": "Total sentence count.",
-    }
 
-    for name in order:
-        if name not in metrics:
-            continue
-        disp_name = _pretty_metric(name)
-        val = metrics[name]
-        note = labels.get(name, "—")
-        if isinstance(val, (int, float)):
-            style = _sev_ratio(name, float(val))
-            shown = _fmt_float(val) if isinstance(val, float) else str(val)
-            mt.add_row(disp_name, Text(shown, style=style), note)
-        else:
-            mt.add_row(disp_name, str(val), note)
-
-    _print_clamped(con, mt, body_w)
-    _print_clamped(con, Rule(), body_w)
-
-    overall = _overall_score(metrics)
-    mt2 = Table(
-        *_cols_for_metrics(signal_w),
-        show_header=False,
-        box=None,
-        pad_edge=False,
-        expand=False,
+def _render_authorship(console: Console, results: list[dict[str, Any]]) -> None:
+    if not results:
+        return
+    table = Table(title="Calibrated authorship signals", box=None, pad_edge=False)
+    table.add_column("Profile")
+    table.add_column("Method")
+    table.add_column("Status", style="bold")
+    table.add_column("Metric")
+    table.add_column("Threshold")
+    table.add_column("Flagged paragraphs", justify="right")
+    for result in results:
+        table.add_row(
+            str(result.get("profile", "-")),
+            str(result.get("method", "-")),
+            str(result.get("status", "-")),
+            str(result.get("metric", "-")),
+            "-" if result.get("threshold") is None else str(result["threshold"]),
+            str(sum(bool(item.get("flagged")) for item in result.get("segments", []))),
+        )
+    console.print(table)
+    console.print(
+        "These are profile-calibrated distribution signals, not watermark detections or proof of authorship.",
+        style="dim",
     )
-    mt2.add_row(
-        "Overall score",
-        Text(f"{overall:.4f}", style=_sev_ratio("ai_score", overall)),
-        "Composite probability (0–1) from ai_score + repetition/TTR/burstiness.",
-    )
-    _print_clamped(con, mt2, body_w)
-    _print_clamped(con, Text(""), body_w)
 
 
-# -------------------- Public API --------------------
 def print_human(
-    path: str, data: dict, *, no_color: bool = False, file: TextIO = sys.stdout
+    path: str,
+    data: dict[str, Any],
+    *,
+    no_color: bool = False,
+    file: TextIO = sys.stdout,
 ) -> None:
-    con = _console(no_color, file=file)
-    con.print()  # spacer so header doesn’t collide with shell prompt
-    _render_anomalies(con, path, data)
-    _render_metrics(con, data.get("metrics") or {})
+    console = _console(no_color, file)
+    console.print()
+    console.print(f"File: {path}", style="bold")
+    console.print(
+        f"Schema: {data.get('schema_version', 'legacy')}  "
+        f"Aggregate anomalies: {data.get('total', 0)}"
+    )
+    _render_findings(console, data)
+    _render_mapping(console, "Metrics (deterministic)", data.get("metrics") or {})
+    _render_mapping(console, "Markdown formatting", data.get("markdown") or {})
+    source = data.get("source") or {}
+    if source:
+        _render_mapping(
+            console,
+            "Source contexts",
+            {
+                "language": source.get("language"),
+                "parser": source.get("parser"),
+                "parse_valid": source.get("parse_valid"),
+                "counts": source.get("counts"),
+            },
+        )
+    _render_watermarks(console, data.get("known_watermarks") or [])
+    _render_authorship(console, data.get("authorship_signals") or [])
+    _render_mapping(console, "Planned cleanup", data.get("planned") or {})
 
 
-def print_json(all_results: dict, *, file: TextIO = sys.stdout) -> None:  # noqa: F401
-    """Pretty-print the full results as JSON (to stdout)."""
+def print_json(all_results: dict[str, Any], *, file: TextIO = sys.stdout) -> None:
     print(json.dumps(all_results, indent=2, ensure_ascii=False), file=file)
 
 
-def print_csv(all_results: dict, *, file: TextIO = sys.stdout) -> None:
-    """Print results in CSV format (one row per file)."""
-    # base columns
-    fieldnames = ["file", "ug_total", "ty_total", "ws_total", "final_newline", "total"]
+def _category_counts(data: dict[str, Any]) -> dict[str, int]:
+    result: dict[str, int] = {}
+    for finding in data.get("findings") or []:
+        category = str(finding.get("category", "unknown"))
+        result[category] = result.get(category, 0) + int(finding.get("count", 1))
+    return result
 
-    # collect metric keys across all files
-    metrics_keys = set()
-    for data in all_results.values():
-        metrics_keys |= set((data.get("metrics") or {}).keys())
 
-    # make sure we always include overall_score (computed)
-    metrics_cols = sorted(metrics_keys)
-    if "overall_score" not in metrics_cols:
-        metrics_cols.append("overall_score")
-
-    fieldnames += metrics_cols
-
+def print_csv(all_results: dict[str, Any], *, file: TextIO = sys.stdout) -> None:
+    metric_keys = sorted(
+        {
+            key
+            for data in all_results.values()
+            for key, value in (data.get("metrics") or {}).items()
+            if not isinstance(value, (dict, list))
+        }
+    )
+    categories = [
+        "provenance",
+        "unicode_security",
+        "known_watermark",
+        "authorship_signal",
+        "typography",
+        "formatting",
+    ]
+    planned_keys = sorted(
+        {
+            key
+            for data in all_results.values()
+            for key, value in (data.get("planned") or {}).items()
+            if not isinstance(value, (dict, list))
+        }
+    )
+    before_after_keys = sorted(
+        {
+            key
+            for data in all_results.values()
+            for stage in ("before", "after")
+            for key, value in (((data.get("planned") or {}).get(stage) or {}).items())
+            if not isinstance(value, (dict, list))
+        }
+    )
+    fieldnames = [
+        "file",
+        "schema_version",
+        "total",
+        *categories,
+        *metric_keys,
+        *(f"planned_{key}" for key in planned_keys),
+        *(f"before_{key}" for key in before_after_keys),
+        *(f"after_{key}" for key in before_after_keys),
+    ]
     writer = csv.DictWriter(file, fieldnames=fieldnames)
     writer.writeheader()
-
     for label, data in all_results.items():
-        row = {"file": label}
-
-        ug = data.get("unicode_ghosts", {})
-        ty = data.get("typographic", {})
-        ws = data.get("whitespace", {})
-
-        row["ug_total"] = _sum_anomaly_counts(ug, _UNICODE_GHOST_INFO_KEYS)
-        row["ty_total"] = _sum_anomaly_counts(ty, _TYPOGRAPHIC_INFO_KEYS)
-        row["ws_total"] = sum(int(v) for v in ws.values())
-        row["final_newline"] = int(bool(data.get("final_newline")))
-        row["total"] = int(data.get("total", 0))
-
-        metrics = data.get("metrics") or {}
-        for k in metrics_cols:
-            if k == "overall_score":
-                row[k] = _overall_score(metrics) if metrics else ""
-            else:
-                if k in metrics:
-                    row[k] = metrics[k]
-
+        row: dict[str, Any] = {
+            "file": label,
+            "schema_version": data.get("schema_version", "legacy"),
+            "total": data.get("total", 0),
+        }
+        counts = _category_counts(data)
+        row.update({category: counts.get(category, 0) for category in categories})
+        row.update(
+            {key: (data.get("metrics") or {}).get(key, "") for key in metric_keys}
+        )
+        planned = data.get("planned") or {}
+        row.update({f"planned_{key}": planned.get(key, "") for key in planned_keys})
+        for stage in ("before", "after"):
+            values = planned.get(stage) or {}
+            row.update(
+                {f"{stage}_{key}": values.get(key, "") for key in before_after_keys}
+            )
         writer.writerow(row)
 
 
-def print_metrics_help(*, no_color: bool = False) -> None:  # noqa: F401
-    con = Console(no_color=no_color)
+def print_metrics_help(*, no_color: bool = False) -> None:
+    console = Console(no_color=no_color)
     guide = """\
-AI score (0–1)            — ↑ = more AI-like (heuristic blend of signals; NOT a detector).
-Type–token ratio          — ↑ = more human-like (lexical diversity); low = repetitive or templated text.
-Repetition ratio          — ↑ = more AI-like (few tokens dominate); moderate values typical for humans.
-Sentence length CV        — ↓ = more AI-like (uniform sentences); ↑ = more natural variation in human text.
-Avg sentence len (tokens) — context only; very short = list-like, very long = dense/technical.
-Avg token len             — weak alone; longer tokens in jargon/code, shorter in casual prose.
-Stopword ratio            — mid-range (~0.30–0.60) typical; very low/high suggests domain-specific or templated text.
-Punctuation ratio         — extreme values unusual; humans cluster ~0.02–0.08.
-ASCII ratio               — very low = markup, math, or non-English; context-dependent.
-Entropy                   — ↑ = more variety/complexity; ↓ = repetition/templates; interpret with other metrics.
-Digits ratio              — ↑ = structured/templated data; ↓ = narrative prose.
+Metrics are deterministic document facts, not authorship probabilities.
 
-Overall score (0–1)       — composite probability combining AI score, diversity, repetition, and burstiness.
+bytes/characters/lines/words   Basic document size counts.
+newline style                  LF, CRLF, CR, mixed, or none.
+ASCII/non-ASCII                Character inventory split.
+non-ASCII code points          Counts keyed by U+XXXX.
+Markdown metrics               Soft-break candidates, list continuations, hard breaks, and common wrap widths.
+Source metrics                 Suspicious characters classified as comments, strings, identifiers, or syntax.
+Dry-run metrics                Before/after totals and whether the requested cleanup would change content.
 
-Green/yellow/red bands are heuristic guides for triage, not ground truth.
+Use --report for exact findings and --dry-run --diff to preview cleanup without writing files.
 """
-    # Panel width follows clamp behavior: expand=False + Align in caller keeps margins when UNICODEFIX_WIDTH is set
-    con.print(Panel(guide, title="Metrics guide", expand=False))
+    console.print(Panel(guide, title="Deterministic metrics", expand=False))

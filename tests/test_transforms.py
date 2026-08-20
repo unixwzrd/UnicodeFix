@@ -1,4 +1,5 @@
 from unicodefix.transforms import clean_text, handle_newlines
+from unicodefix.c2pa import build_text_wrapper, encode_variation_selectors
 
 
 def test_quotes_and_dashes_normalize():
@@ -48,6 +49,19 @@ def test_invisible_removed_by_default():
     s = "a\u200bb"
     out = clean_text(s)
     assert out == "ab\n" or out == "ab"  # newline may be added later by handle_newlines
+
+
+def test_default_ignorables_are_removed_or_preserved_explicitly():
+    text = "a\u2060b\ufe0fc"
+    assert clean_text(text) == "abc"
+    assert clean_text(text, preserve_default_ignorables=True) == text
+
+
+def test_c2pa_is_preserved_unless_explicitly_stripped():
+    carrier = "\ufeff" + encode_variation_selectors(build_text_wrapper(b"fixture"))
+    text = f"before{carrier}after"
+    assert clean_text(text) == text
+    assert clean_text(text, strip_provenance=True) == "beforeafter"
 
 
 def test_handle_newlines():

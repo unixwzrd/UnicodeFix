@@ -1,104 +1,41 @@
-# Test Suite for cleanup-text - v1.2.1
+# UnicodeFix test suite
 
-*Last updated: 2026-03-06*
+Run validation from the repository root.
 
-## Overview
-
-The test suite for `cleanup-text` is designed to systematically verify all features, options, and edge cases of the tool. It ensures that the script works as expected across a variety of scenarios, and that it safely handles files without overwriting your original data.
-
-## What the Test Script Does
-
-- Builds its file list from the `data/` directory before every run
-- Outputs results to `test_output/` with subdirectories for each scenario
-- Saves per-file diffs and batch word count summaries for easy review
-- Supports a `clean` option to remove all test output
-- Provides a help message for usage
-
-## How to Run the Test Suite
-
-From the project root directory:
-
-```sh
-tests/test_all.sh
+```bash
+pytest -q
+black --check src tests research
+ruff check src tests research
+scripts/run_checks.sh
 ```
 
-This processes every file in `data/` through all scenarios.
+`tests/test_all.sh` remains the shell integration harness for representative data fixtures. It produces test output and diffs for manual inspection; use `tests/test_all.sh clean` to remove its generated output.
 
-- Results are written to `test_output/` with a subdirectory for each scenario (e.g., `default`, `batch`, `invisible`, `nonewline`, `report_human`, etc.).
-- Each cleaning scenario directory contains:
-  - Cleaned output files (or `.clean.*` files for default/batch scenarios)
-  - `.diff` files showing changes from the original
-  - `wcpost.txt` (word counts after cleaning)
-  - `wcdiff.txt` (diff of word counts before/after)
-- Report scenario directories contain:
-  - `.report` or `.json` files with audit results
-  - No diffs or word counts (reports don't modify files)
+## 2.0 coverage
 
-### Cleaning Up Test Output
+The unit suite covers the versioned finding model, deterministic metrics, Unicode/default-ignorable and bidi signals, C2PA variation-selector and structured carriers, explicit provenance stripping, Markdown soft-break unwrapping, source context safety, watermark-profile outcomes, paragraph-level authorship-profile outcomes, CLI report formats, dry-run behavior, and category-aware threshold exit codes.
 
-To remove all test output and start fresh:
+Markdown cases must prove that soft breaks join within ordinary paragraphs, ordered/unordered/task/nested list items, and blockquotes without merging separate elements. They must preserve hard breaks, loose-list blank lines, tables, front matter, raw HTML, link definitions, and fenced/indented code. A second Markdown pass must not change output.
 
-```sh
-tests/test_all.sh clean
+Source cases must show that comment cleanup can remove supported carriers while strings and identifiers remain unchanged. For supported languages, cleanup must not turn a parse-valid input into invalid source.
+
+Dry-run cases must confirm no file write occurs and that the predicted cleanup equals a subsequent actual cleanup. Human, JSON, and CSV reports must use the same findings source, although CSV intentionally contains aggregate values.
+
+## Local watermark experiments
+
+CI must never need a vendor API, account, network service, or model download. Profile fixtures use deterministic local content and assert all five outcomes: `detected`, `not_detected`, `insufficient_text`, `unsupported`, and `configuration_error`.
+
+Optional KGW, SynthID Text, or TextSeal research belongs in a local lab environment with cached artifacts and matched watermarked/control corpora. Before accepting an adapter, measure false positives and false negatives by length, verify incorrect configuration failure, and test edits, Unicode cleanup, Markdown reformatting, mixed documents, URLs, numbers, citations, and source parsing. A passing detector test does not establish vendor-product compatibility.
+
+Authorship-signal evaluation additionally requires held-out human and generated samples matched by source, language, domain, paragraph length, and preprocessing. Record the exact reference model and tokenizer, generator and decoding settings, calibration split, threshold, false-positive and false-negative rates, and post-edit behavior. Tests must verify that no probability is emitted without explicit calibration coefficients.
+
+## CI gates
+
+Use category thresholds to make policy explicit. For example, gate `unicode_security` or `provenance` findings while retaining typography and formatting observations as informational data.
+
+```bash
+cleanup-text --report --threshold 1 --threshold-category unicode_security path/to/file
+cleanup-text --report --threshold 1 --threshold-category provenance path/to/file
 ```
 
-### Getting Help
-
-```sh
-tests/test_all.sh --help
-```
-
-## Test Scenarios
-
-The script tests the following scenarios:
-
-**Cleaning Scenarios:**
-
-- **default:** Standard cleaning (removes Unicode quirks, normalizes text, writes `*.clean.*` files)
-- **batch:** Batch processing with glob patterns (e.g., `cleanup-text *)
-- **invisible:** Preserves invisible Unicode characters (`-i`) with in-place editing (`-t`)
-- **nonewline:** Suppresses final newline at EOF (`-n`) with in-place editing (`-t`)
-- **customout:** Uses a custom output file name (`-o`)
-- **temp:** In-place cleaning with temp file safety (`-t`)
-- **preservetmp:** In-place cleaning, preserves temp file for backup (`-t -p`)
-- **stdout:** Cleans via STDIN/STDOUT mode (skips binary fixtures because Python's STDIN path is text-only)
-- **keep_quotes:** Preserves smart quotes (`-Q`) with in-place editing (`-t`)
-- **keep_dashes:** Preserves EN/EM dashes (`-D`) with in-place editing (`-t`)
-
-**Report/Audit Scenarios:**
-
-- **report_human:** Human-readable audit report (`--report`)
-- **report_json:** JSON-formatted audit report (`--report --json`)
-- **report_threshold1:** Report with threshold check (`--report --threshold 1`)
-- **report_stdin_json:** JSON report from STDIN input (`--report --json` with stdin)
-
-## Interpreting Results
-
-**For Cleaning Scenarios:**
-
-- **Diffs:** Each `.diff` file shows the exact changes made to each file in each scenario.
-- **Word Counts:** `wcpost.txt` shows word/line/character counts after cleaning. `wcdiff.txt` shows the difference from the original.
-- **No Change:** If a file is already clean, the diff may be empty or show only newline differences.
-- **Cleaned:** If a file was modified, the diff will show all Unicode normalizations and whitespace changes.
-
-**For Report Scenarios:**
-
-- **Human Reports:** `.report` files contain formatted text summaries of Unicode anomalies found.
-- **JSON Reports:** `.json` files contain structured data with counts per category (smart_quotes, dashes, invisibles, etc.).
-- **Threshold Tests:** `report_threshold1` will exit with code 1 if any file has >= 1 anomaly (useful for CI/CD validation).
-- **No File Changes:** Report scenarios never modify files—they only analyze and report.
-
-## Best Practices
-
-- Always back up your data before running tests.
-- Review diffs and word counts to verify results.
-- Use the test suite to validate changes before integrating into CI/CD pipelines.
-- Never run the test script from inside the `tests/` directory - always run from the project root.
-
-## CI/CD Integration
-
-- The test suite can be integrated into your CI/CD pipeline to ensure all code and text files are clean and free of AI artifacts before deployment or publication.
-
-## See Also
-
-- [docs/cleanup-text.md](cleanup-text.md) for full documentation of all features and options.
+`--exit-zero` makes a report informational when a pipeline should record, rather than block on, findings.

@@ -1,6 +1,25 @@
 # Changelog for UnicodeFix
 
-Last updated: 2026-03-28
+Last updated: 2026-08-20
+
+## 20260818_00 - v2.0.0
+
+### **Ghostmark Edition: Evidence-Based Local Audit and Safe Cleanup**
+
+- **Release identity:** v2.0.0 is the Ghostmark Edition—named for finding hidden carriers and scheme-specific statistical signals while keeping provenance, probabilistic evidence, typography, and formatting in their proper categories.
+
+- **Breaking support baseline:** Python 3.10+ is now required; the former NLTK extras, semantic/AI-likeness scoring, `ai_score`, entropy, repetition, burstiness, stop-word, and type-token-ratio reports are removed.
+- **Shared findings model:** human, JSON, and CSV reports now derive from the 2.0 findings schema with `provenance`, `unicode_security`, `known_watermark`, `authorship_signal`, `typography`, and `formatting` categories, locations, confidence, removability, and planned action.
+- **Deterministic audit:** `--metrics` now reports reproducible document facts and anomaly inventory only. `--dry-run` previews the complete cleanup pipeline without writing, and `--diff` presents a human-readable unified diff.
+- **Policy-ready reporting:** category-aware threshold selection supports CI gates without treating informational typography or Markdown wrapping as a failure.
+- **Provenance safety:** recognized C2PA text carriers are reported independently of AI authorship and remain protected during generic cleanup. `--strip-provenance` removes only complete recognized local carriers; the tool never dereferences external manifests.
+- **Markdown safety:** opt-in `--unwrap-markdown` joins soft breaks within paragraphs and list/block-quote containers while preserving separate elements, hard breaks, tables, code, front matter, HTML, and reference definitions. A valid C2PA carrier blocks reformatting unless explicitly stripped.
+- **Source safety:** `--source` classifies comments, strings, identifiers, and syntax; it only cleans supported comment payloads and checks parsing before and after transformation.
+- **Offline watermark profiles:** optional explicit local profiles report profile-specific detector outcomes for supported KGW/SynthID configurations and deterministic fixtures. No generic detector, proprietary-watermark removal claim, vendor API, or runtime artifact download is provided.
+- **Calibrated authorship signals:** optional local causal-model profiles report paragraph-level likelihood, perplexity, selected-token rank, and top-10 rate separately from watermark evidence. Probabilities require explicit held-out calibration, and scores never trigger cleanup.
+- **Documentation and research:** added a vendor evidence matrix, feasibility ledger, and local research harness guidance that distinguish publicly reproducible schemes from production deployment claims.
+- **Statistical-text research refresh:** documented KGW green-list logit bias, SynthID Text tournament sampling, the downstream trajectory effect of changing an early sampled token, and the separate DetectGPT, Fast-DetectGPT, and Binoculars authorship-detection family. Updated Anthropic's status to reflect its documented model-level Claude text marking while retaining `not_publicly_detectable` for local use until detector mechanics or compatible tooling are published.
+- **Release hardening:** in-place writes now use a synced, same-directory atomic replacement, retain file permissions while updating modification time, and never overwrite an existing preserved backup. Structured C2PA parsing follows the fixed 2.4 delimiters and URI/data-URI forms, supports single-line comments and front matter, and retains malformed lookalikes. Source mode routes every provenance removal through comment classification so strings and identifiers remain untouched. CI validates the installed console script directly, treats the coverage run as authoritative, builds without a hard-coded wheel filename, and ShellChecks every maintained shell script.
 
 ## 20260328_00 - v1.2.2
 
@@ -120,7 +139,7 @@ These changes improve the robustness of text cleaning, especially when processin
 - STDIN/STDOUT scenario now skips binary fixtures to avoid Python's UTF-8 decoding errors, while every other scenario still exercises them.
 - Normalized diffs and `wc` comparisons are produced per scenario without duplicating helper logic.
 - Updated README, docs/cleanup-text.md, and docs/test-suite.md with the new run commands, behavior notes, cleanup instructions, and the preview `--metrics` documentation.
-- Bumped version to 1.1.0 and documented the experimental semantic metrics (`--metrics`, `--metrics-help`).
+- Historical note: version 1.1.0 introduced experimental semantic metrics; those unsupported metrics were removed in 2.0.
 - Added `--exit-zero` so report/metrics runs can inform pre-commit hooks without aborting the workflow.
 - Installation is now Pip based.
 
@@ -147,7 +166,7 @@ These changes improve the robustness of text cleaning, especially when processin
 - **Preserves Extended ASCII:** Now correctly preserves 8-bit extended ASCII characters (128-255) like é, ñ, ü, etc.
 - **Smarter Unicode Handling:** Only converts problematic Unicode characters while preserving intentional extended ASCII usage
 - **Updated Dependencies:** Replaced `Unidecode` dependency with `ftfy` in requirements.txt
-- **Maintains AI Artifact Removal:** Still removes smart quotes, EM/EN dashes, and other "AI tells" as designed
+- **Historical normalization scope:** normalized smart quotes, EM/EN dashes, and selected Unicode/control artifacts.
 
 ## 2025-07-23
 
@@ -176,12 +195,12 @@ These changes improve the robustness of text cleaning, especially when processin
   `-o` / `--output` (custom output file or STDOUT)
   `-t` / `--temp` (safe in-place cleaning)
   `-p` / `--preserve-tmp` (backup your .tmp files if you're paranoid)
-- **AI Artifact Killer:** Cranked up removal of invisible Unicode, "AI tells," EM/EN dashes, curly/smart quotes, and digital fingerprints from text, code, and prose.
+- **Historical normalization scope:** expanded removal of invisible Unicode and normalization of EM/EN dashes and curly/smart quotes.
 - **Cleaner Output:** Output files now use `.clean` before the extension for extra safety.
 - **Help & Error Output:** Help and error messages are clearer, less cryptic, and actually readable.
 - **Epic Test Suite:** All-new `tests/test_all.sh` script automates batch tests, diffs, word counts, and deep-clean scenarios - review everything in `test_output/` before you ship or commit.
 - **Docs & Best Practices:** README and docs overhauled with real-world examples, pro tips, and fresh install/usage details (plus a *lot* more attitude).
-- **CI/CD Ready:** Use in your pre-commit, CI pipeline, or just blast through homework/AI-proofreading artifacts for fun.
+- **CI/CD Ready:** supported pre-commit and CI use for text and source hygiene.
 - **Because I got tired of looking at garbage code.**
 
 *If you're tired of code and docs that look like they were written by a bot, this release is for you.*

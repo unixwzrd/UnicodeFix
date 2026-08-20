@@ -1,416 +1,345 @@
-# UnicodeFix - *Wolf Edition v1.2.2" - it solves "problems."
+# UnicodeFix — *Ghostmark Edition v2.0.0* — it finds what your editor does not show.
 
-*Last updated: 2026-03-28*
+*Last updated: 2026-08-20*
 
-![UnicodeFix Hero Image](docs/controlling-unicode.png)
+![UnicodeFix — Filtering AI Artifacts](docs/unicodefix-banner-titled.png)
 
-[![Python](https://img.shields.io/badge/Python-3.9%2B-blue)](#) [![Platforms](https://img.shields.io/badge/Platforms-macOS%20%7C%20Ubuntu-informational)](#) [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE) [![Release](https://img.shields.io/github/v/tag/unixwzrd/UnicodeFix?label=release)](https://github.com/unixwzrd/UnicodeFix/releases) [![CI](https://github.com/unixwzrd/UnicodeFix/actions/workflows/ci.yml/badge.svg)](.github/workflows/ci.yml)
+[![Python](https://img.shields.io/badge/Python-3.10%2B-blue)](#installation) [![Platforms](https://img.shields.io/badge/Platforms-macOS%20%7C%20Ubuntu-informational)](#installation) [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE) [![Release](https://img.shields.io/github/v/tag/unixwzrd/UnicodeFix?label=release)](https://github.com/unixwzrd/UnicodeFix/releases) [![CI](https://github.com/unixwzrd/UnicodeFix/actions/workflows/ci.yml/badge.svg)](.github/workflows/ci.yml)
 
-- [UnicodeFix - \*Wolf Edition v1.2.2" - it solves "problems."](#unicodefix---wolf-edition-v122---it-solves-problems)
-    - [**Finally - a tool that blasts AI fingerprints, torches those infuriating smart quotes, and leaves your code \& docs squeaky clean for real humans.**](#finally---a-tool-that-blasts-ai-fingerprints-torches-those-infuriating-smart-quotes-and-leaves-your-code--docs-squeaky-clean-for-real-humans)
-    - [Two modes (cleaner + auditor)](#two-modes-cleaner--auditor)
-  - [Why Is This Happening?](#why-is-this-happening)
-  - [Installation](#installation)
-  - [Usage](#usage)
-    - [New options](#new-options)
-      - [When to preserve invisible characters (`-i`)](#when-to-preserve-invisible-characters--i)
-  - [Python API Usage](#python-api-usage)
-  - [Brief Examples](#brief-examples)
-    - [Pipe / Filter (STDIN to STDOUT)](#pipe--filter-stdin-to-stdout)
-    - [Batch Clean](#batch-clean)
-    - [In-Place (Safe) Clean](#in-place-safe-clean)
-    - [Preserve Temp File for Backup](#preserve-temp-file-for-backup)
-    - [Audit only (no changes), human-readable](#audit-only-no-changes-human-readable)
-    - [Audit as JSON](#audit-as-json)
-    - [Audit with Semantic Metrics (experimental)](#audit-with-semantic-metrics-experimental)
-    - [Report without blocking commits](#report-without-blocking-commits)
-    - [Fail CI if anomalies exceed threshold](#fail-ci-if-anomalies-exceed-threshold)
-    - [Using in vi/vim/macvim](#using-in-vivimmacvim)
-  - [What's New / What's Cool](#whats-new--whats-cool)
-    - [CodexExorcism+ Release (Sept 2025)](#codexexorcism-release-sept-2025)
-    - [CodexExorcism+ Release (Sept 2025)](#codexexorcism-release-sept-2025-1)
-    - [Keep It Fresh](#keep-it-fresh)
-  - [Shortcut for macOS](#shortcut-for-macos)
-    - [To add the Shortcut](#to-add-the-shortcut)
-  - [What's in This Repository](#whats-in-this-repository)
-  - [Testing and CI/CD](#testing-and-cicd)
-  - [Contributing](#contributing)
-  - [Support This and Other Projects](#support-this-and-other-projects)
-  - [Changelog](#changelog)
-  - [License](#license)
+Invisible characters. Provenance wrappers. Configured statistical watermarks. Hard-wrapped Markdown. Source comments carrying hidden payloads. UnicodeFix audits the evidence, shows exactly where it lives, previews the cleanup, and removes only what it can identify safely.
+
+Everything runs locally after installation. Your text is not uploaded to a detector, vendor, or model service.
+
+- [Meet Ghostmark](#meet-ghostmark)
+- [Why now?](#why-now)
+- [What UnicodeFix can find](#what-unicodefix-can-find)
+- [Three practical modes](#three-practical-modes)
+- [Installation](#installation)
+- [Quick use](#quick-use)
+- [What a finding means](#what-a-finding-means)
+- [Privacy, provenance, and proof](#privacy-provenance-and-proof)
+- [Markdown and source safety](#markdown-and-source-safety)
+- [Shortcut for macOS](#shortcut-for-macos)
+- [Local watermark and authorship profiles](#local-watermark-and-authorship-profiles)
+- [Brief examples](#brief-examples)
+- [What's in this repository](#whats-in-this-repository)
+- [Testing and CI/CD](#testing-and-cicd)
+- [Contributing](#contributing)
+- [Support this and other projects](#support-this-and-other-projects)
+- [Changelog](#changelog)
+- [License](#license)
 
 ---
 
-### **Finally - a tool that blasts AI fingerprints, torches those infuriating smart quotes, and leaves your code & docs squeaky clean for real humans.**
+## Meet Ghostmark
 
-Ever open up a file and instantly know it came from ChatGPT, Copilot, or one of their AI cousins? (Yeah, so can everyone else now.)
-UnicodeFix vaporizes all the weird dashes, curly quotes, invisible space ninjas, and digital "tells" that out you as an AI user - or just make your stuff fail linters and code reviews.
+The **Ghostmark Edition** is UnicodeFix's evidence-based 2.0 release. The name fits the job: find the marks that can hide in plain sight, distinguish recognized carriers from ordinary typography, and give the person holding the file control over what happens next.
 
-**Whether you're a student, a dev, or an open-source rebel: this is your "eraser for AI breadcrumbs."**
+This is still the direct, practical cleaner from the Wolf Edition—but 2.0 is much more careful about what the evidence can prove. A curly quote is typography, column-80 wrapping is formatting, C2PA is provenance, and a statistical detector applies only to the exact scheme and configuration it knows. None of those facts, by itself, identifies the human who wrote a document.
 
-*Yes, it helps students cheat on their homework.*
-It also makes blog posts and AI-proofed emails look like you sweated over every character.
-Nearly a thousand people have grabbed it. Nobody's bought me a coffee yet, but hey… there's a first time for everything.
+No generic “AI detector” theater. No mystery probability presented as truth. No claim that every em dash came from a chatbot.
 
----
+## Why now?
 
-### Two modes (cleaner + auditor)
+Text watermarking is no longer only an academic proposal. [Anthropic says supported Claude models launched in the European Union on or after August 2, 2026 include model-level machine-readable text marking](https://support.claude.com/en/articles/16266773-how-claude-marks-ai-generated-content), that the marks may survive copy-and-paste and some edits, and that compatible detection tooling is still forthcoming. That makes visibility and user control an immediate concern, but it does **not** establish that Anthropic is embedding a personal tracking identifier or that its unpublished detector can currently be reproduced locally.
 
-- **Clean mode (default):** scrub Unicode artifacts from files or stdin → stdout.
-- **Audit mode (`--report`):** scan text for anomalies + (optional) semantic metrics. Works for CI gates, pre-commit hooks, and yes - professors looking for shenanigans.
+The privacy question is legitimate even when the most alarming claim is unproven. A durable hidden carrier, unique identifier, external manifest reference, or vendor-controlled detector could potentially be correlated with other records. UnicodeFix therefore treats privacy as a threat model to inspect—not a conclusion to manufacture.
 
-A combination of Jules and Vincent... plus Winston Wolf. It solves problems.
+The engineering rule is simple: report what is observable, attach the scheme and confidence when known, preserve exact locations, and say `unsupported` when the required public algorithm, key, tokenizer, model, or calibration is unavailable.
 
----
+## What UnicodeFix can find
 
-## Why Is This Happening?
+| Category | What it means | Cleanup policy |
+| --- | --- | --- |
+| `provenance` | A recognized local C2PA text carrier or structured manifest element. C2PA records provenance; it does not prove AI authorship. | Preserved unless `--strip-provenance` is explicit. |
+| `unicode_security` | Bidi controls, default-ignorables, variation selectors, tag characters, private-use characters, noncharacters, replacement characters, normalization differences, mixed scripts, or confusable signals. | Exact safe transforms only; UTS #39 confusable skeletons are detection-only. |
+| `known_watermark` | The result of a named local statistical-watermark profile using its required configuration and artifacts. | Reported by profile. No generic unknown-watermark rewrite. |
+| `authorship_signal` | A paragraph crossed a named, locally calibrated model-distribution threshold. | Report-only probabilistic evidence, never an automatic cleanup trigger. |
+| `typography` | Smart quotes, dashes, unusual whitespace, and other observable text-normalization candidates. | Selected characters can be normalized, with preservation switches available. |
+| `formatting` | Markdown soft breaks, wrapped list continuations, and probable fixed-column wrapping. | Reported as formatting; unwrapping is opt-in. |
 
-Some folks think all this Unicode cruft is a side-effect of generative AI's training data. Others believe it's a deliberate move - baked-in "watermarks" to ID machine-generated text. Either way: these artifacts leave a trail. UnicodeFix wipes it.
+Detailed reports retain the category, signal, count, confidence, removability, planned action, and exact line, column, code point, and source context when available. Compact aggregate counts remain available for humans and CI.
 
-Be careful, professors and reviewers may even start planting Unicode honeypots in starter code or essays - UnicodeFix torches those too. In this "AI Arms Race," `diff` and `vimdiff` are your night-vision goggles.
+## Three practical modes
 
----
+### Audit it
+
+`--report` inventories the file without changing it. Add `--metrics` for deterministic document facts such as bytes, characters, lines, words, newline style, ASCII/non-ASCII counts, and a non-ASCII code-point inventory.
+
+```bash
+cleanup-text --report --metrics document.md
+cleanup-text --report --metrics --json document.md
+```
+
+### Preview it
+
+`--dry-run` executes the exact requested cleanup pipeline in memory without writing. Add `--diff` to see the proposed change.
+
+```bash
+cleanup-text --dry-run --diff --unwrap-markdown document.md
+```
+
+### Clean it
+
+The default cleaner normalizes selected typographic characters and whitespace, removes supported risky invisible characters, and preserves the input newline style when writing a file. Recognized provenance stripping and Markdown reformatting remain explicit choices.
+
+```bash
+cleanup-text document.txt
+cleanup-text --unwrap-markdown README.md
+cleanup-text --strip-provenance document.md
+cleanup-text --source app.py
+```
+
+With no input file, UnicodeFix is a stdin-to-stdout filter. With input files, it writes `<name>.clean<extension>` unless `--output`, `--temp`, or stdout output is selected.
 
 ## Installation
 
-Clone the repository and run the setup script:
+Python 3.10 or newer is required.
 
 ```bash
 git clone https://github.com/unixwzrd/UnicodeFix.git
 cd UnicodeFix
-
-# Installs from pyproject.toml.
-# Reuses an active non-base Conda env if you already have one.
-# Otherwise it creates or reuses a local .venv.
 ./setup.sh
 ```
 
-The `setup.sh` script:
-
-- Uses `pyproject.toml` as the single source of truth for dependencies
-- Reuses your active non-base Conda environment when one is already active
-- Otherwise creates or reuses a local `.venv`
-- Installs the package directly instead of requiring a second manual `pip install` step
-
-Optional install modes:
+`setup.sh` uses [pyproject.toml](pyproject.toml) as the dependency source of truth. It reuses an active Conda or virtual environment, or creates a local `.venv` when needed. It also installs the repository's pre-push check by default; use `--no-hooks` when you do not want the hook.
 
 ```bash
-./setup.sh --dev   # editable install + dev tooling
-./setup.sh --nlp   # optional NLP/metrics dependencies
+./setup.sh --dev                    # Editable install and development tools
+./setup.sh --watermark-lab          # Optional local KGW/SynthID and authorship tooling
+./setup.sh --dev --watermark-lab    # Both optional groups
+./setup.sh --no-hooks               # Install without the local pre-push hook
 ```
 
-`./setup.sh` now also installs a local Git `pre-push` hook by default when run inside the repo. That hook runs the same local gate as CI:
+The optional lab does not fetch model artifacts at runtime. Profiles must point to matching artifacts already available locally. UnicodeFix is currently distributed through GitHub releases rather than PyPI.
+
+For serious environment nerds, [VenvUtil](https://github.com/unixwzrd/venvutil) is my full-featured Python environment toolkit.
+
+## Quick use
 
 ```bash
-scripts/run_checks.sh
+# Audit only; no file is written.
+cleanup-text --report document.md
+
+# Inventory deterministic metrics and exact findings as JSON.
+cleanup-text --report --metrics --json document.md
+
+# Preview the requested transformation and show a unified diff.
+cleanup-text --dry-run --diff --unwrap-markdown document.md
+
+# Create document.clean.md.
+cleanup-text document.md
+
+# Clean supported hidden payloads in source comments without rewriting strings or identifiers.
+cleanup-text --source app.py
+
+# Explicitly remove complete, recognized local C2PA carriers.
+cleanup-text --strip-provenance document.md
 ```
 
-Use `./setup.sh --no-hooks` if you need to skip hook installation.
-
-See [setup.sh](setup.sh) for the nitty-gritty. If the executable bit is stripped by your tooling, `bash setup.sh --nlp` works too.
-
-For serious environment nerds: [VenvUtil](https://github.com/unixwzrd/venvutil) is my full-featured Python env toolkit.
-
----
-
-## Usage
-
-Once installed and activated:
+Category-aware thresholds let CI fail on the findings that matter without treating informational typography or wrapping as a security failure.
 
 ```bash
-(ConnectomeAI) [unixwzrd@xanax: unicodefix]$ cleanup-text --help
-usage: cleanup-text [-h] [-i] [-Q] [-D] [--keep-fullwidth-brackets] [-n] [-o OUTPUT] [-t] [-p] [--report] [--csv | --json] [--label LABEL] [--threshold THRESHOLD] [--metrics] [--metrics-help] [--exit-zero] [--no-color] [-q] [infile ...]
-
-Clean Unicode quirks from text. STDIN→STDOUT if no files; otherwise writes .clean files or -o.
-
-positional arguments:
-  infile                Input file(s)
-
-options:
-  -h, --help            show this help message and exit
-  -i, --invisible       Preserve invisible Unicode (ZW*, bidi controls)
-  -Q, --keep-smart-quotes
-                        Preserve Unicode smart quotes
-  -D, --keep-dashes     Preserve Unicode EN/EM dashes
-  --keep-fullwidth-brackets
-                        Preserve fullwidth square brackets (【】)
-  -n, --no-newline      Do not add a final newline
-  -o OUTPUT, --output OUTPUT
-                        Output filename or '-' for STDOUT (only valid with one input)
-  -t, --temp            In-place clean via .tmp swap, then write back
-  -p, --preserve-tmp    With -t, keep the .tmp file after success
-  --report              Audit counts per category (no changes)
-  --csv                 With --report, emit CSV (one row per file)
-  --json                With --report, emit JSON
-  --label LABEL         When reading from STDIN ('-'), use this display name in report/CSV
-  --threshold THRESHOLD
-                        With --report, exit 1 if total anomalies >= N
-  --metrics             Include semantic metrics and imply report mode
-  --metrics-help        Explain metrics and arrows (↑/↓).
-  --exit-zero           Always exit with code 0 (useful for pre-commit reporting)
-  --no-color            Disable ANSI colors (plain output)
-  -q, --quiet           Suppress status lines on stderr
+cleanup-text --report --threshold 1 --threshold-category unicode_security source.py
+cleanup-text --report --threshold 1 --threshold-category provenance --exit-zero README.md
 ```
 
-### New options
+`--threshold N` exits with status 1 when the selected finding count is at least `N`. Repeat `--threshold-category` to select more than one category. `--exit-zero` keeps the report informational.
 
-- `-Q`, `--keep-smart-quotes`: Preserve Unicode smart quotes (curly single/double quotes). Useful when preparing prose/blog posts where typographic quotes are intentional. Default behavior converts them to ASCII for shell/CI safety.
-- `-D`, `--keep-dashes`: Preserve Unicode dash and hyphen variants. Useful when stylistic punctuation is desired in prose. Default behavior folds non-breaking hyphens and EN-style dashes to `-`, and EM-style bars to ` - `.
-- `--keep-fullwidth-brackets`: Preserve fullwidth square brackets (`【】`). By default, they are folded to ASCII `[]` to keep monospace alignment in terminals and fixed-width tables.
-- `-R`, `--report`: Audit text for anomalies, human-readable.
-- `-J`, `--json`: Audit text for anomalies, JSON format.
-- `-T`, `--threshold`: Fail CI if anomalies exceed threshold.
-- `--metrics`: Attach experimental semantic metrics (entropy, AI-score, etc.) and implicitly switch to report mode unless you explicitly request cleaned output with `-o` or `-t`, in which case the clean output is written and the report is shown on `stderr`.
-- `--metrics-help`: Print friendly descriptions of each metric and the ↑/↓ hints.
-- `--exit-zero`: Force a zero exit code for report mode (handy for informative hooks/CI jobs).
-- `-H`, `--help`: Show help message and exit.
-- `-V`, `--version`: Show version and exit.
+## What a finding means
 
-#### When to preserve invisible characters (`-i`)
+UnicodeFix deliberately separates inspection from attribution:
 
-In most code/CI workflows, invisible/bidi controls are accidental and should be removed (default). Rare cases to preserve (`-i`):
+- **Detected Unicode is exact:** the named character or carrier exists at the reported location.
+- **Detected C2PA is provenance:** it can identify a signed claim or reference, not automatically the author, model, or truth of the content.
+- **A named watermark result is profile-specific:** `not_detected` means only that the named detector and configuration did not cross its threshold.
+- **An authorship signal is probabilistic:** it reports how a paragraph behaves under a pinned reference model and calibration corpus, not who wrote it.
+- **Typography is not authorship:** smart quotes, em dashes, ellipses, and unusual spacing have many ordinary sources.
+- **Wrapping is formatting:** column 72, 78, 79, or 80 may reflect an editor, formatter, project convention, email client, or generator.
 
-- Linguistic text where ZWJ/ZWNJ influence shaping
-- Intentional watermarks/markers in text
-- Forensic/debug inspections before deciding what to strip
+Configured statistical detectors return `detected`, `not_detected`, `insufficient_text`, `unsupported`, or `configuration_error`. “Not detected” always applies to the named detector profile, never to every possible watermark.
 
-## Python API Usage
+## Privacy, provenance, and proof
 
-UnicodeFix provides a clean Python API for programmatic text cleaning and analysis. Import and use the functions directly in your Python code:
+A watermark may be a harmless aggregate signal, a signed provenance record, a scheme-specific statistical pattern, or a hidden payload. Those designs have very different privacy properties. The mere presence of a mark does not prove that it contains a user identity, but users should be able to see what is embedded in material they possess and decide whether to retain a removable carrier.
 
-```python
-from unicodefix.transforms import clean_text, handle_newlines
-from unicodefix.scanner import scan_text_for_report
-from unicodefix.report import print_human, print_json
-from unicodefix.metrics import compute_metrics  # Experimental
+[C2PA](https://spec.c2pa.org/specifications/specifications/2.4/specs/C2PA_Specification.html) is designed for content provenance and authenticity, includes privacy and creator control among its design principles, and does not itself make a value judgment about whether content is “good,” “bad,” human, or AI. UnicodeFix recognizes C2PA before generic invisible cleanup so a valid credential is not silently destroyed.
 
-# Clean text with default settings (aggressive normalization)
-cleaned = clean_text(""Hello" — world…")
+UnicodeFix never retrieves external manifest URLs during normal operation. Complete recognized local carriers are removed only with `--strip-provenance`; malformed carriers are retained and reported. The tool also refuses to reformat signed C2PA content unless stripping was explicitly requested, because even a harmless Markdown reserialization can invalidate a credential.
 
-# Clean with preservation options
-cleaned = clean_text(
-    text="'Smart quotes' and — dashes",
-    preserve_quotes=True,      # Keep smart quotes
-    preserve_dashes=True,       # Keep em/en dashes
-    preserve_invisible=False    # Remove invisible chars (default)
-)
+For Anthropic specifically, the public documentation establishes automatic model-level output marking for supported models. It does not currently provide enough compatible public mechanics to reproduce the detector locally, so UnicodeFix records that status as `not_publicly_detectable` rather than guessing KGW, SynthID, Unicode, or a user identifier.
 
-# Scan text for anomalies (report mode)
-anomalies = scan_text_for_report(""text"\u200b")
-# Returns: {'unicode_ghosts': {...}, 'typographic': {...}, ...}
+## Markdown and source safety
 
-# Generate human-readable report
-print_human("file.txt", anomalies)
+`--unwrap-markdown` joins CommonMark soft line breaks within the same paragraph, including paragraphs inside ordered, unordered, task, nested, and blockquoted list items. It preserves the marker for every real list item and does not merge sibling items, nested items, a paragraph with a following list, or separate blockquotes.
 
-# Generate JSON report
-print_json({"file.txt": anomalies})
+It also preserves explicit hard breaks, blank lines in loose lists, multiple paragraphs within one item, headings, thematic breaks, tables, front matter, link definitions, HTML, fenced and indented code, inline code, URLs, and setext headings. The operation is opt-in and idempotent: a second pass makes no further change.
 
-# Compute semantic metrics (experimental, requires NLTK)
-metrics = compute_metrics("Some text to analyze...")
-# Returns: {'entropy': 0.85, 'ai_score': 0.42, ...}
-```
+`--source` classifies suspicious material inside comments, strings, identifiers, and syntax. It can clean recognized provenance and supported hidden payloads from comments, but strings and identifiers remain byte-for-byte unchanged. Parsing is checked before and after cleanup. UnicodeFix does not rename identifiers, insert dead code, or attempt generic AST watermark disruption.
 
-**See [API Documentation](docs/API.md) for complete details on all available functions, parameters, and return values.**
+`--source` and `--unwrap-markdown` are separate profiles and cannot be combined.
 
-## Brief Examples
+## Shortcut for macOS
 
-### Pipe / Filter (STDIN to STDOUT)
+UnicodeFix ships with a macOS Shortcut for direct Finder integration. Right-click one or more files, choose **Quick Actions → Strip Unicode**, and the selected files are cleaned without ordinary Terminal interaction.
+
+### To add the Shortcut
+
+1. Install UnicodeFix and locate its executable:
+
+   ```bash
+   command -v cleanup-text
+   ```
+
+2. Open the macOS **Shortcuts** app and choose **File → Import**.
+
+   ![Shortcuts app File menu with Import Shortcut selected](docs/Screenshot%202025-04-25%20at%2005.50.57.png)
+
+3. Import [macOS/Strip Unicode.shortcut](macOS/Strip%20Unicode.shortcut).
+
+   ![Importing the bundled Strip Unicode shortcut](docs/Screenshot%202025-04-25%20at%2005.51.54.png)
+
+4. Edit the Shortcut's **Run Shell Script** action. Replace the example path with the full path returned by `command -v cleanup-text`. Keep the selected Finder files passed as arguments.
+
+   ![Editing the cleanup-text executable path in the Shortcut](docs/Screenshot%202025-04-25%20at%2005.07.47.png)
+
+5. If the Quick Action does not appear immediately, relaunch Finder with **Command–Option–Escape**, select **Finder**, and choose **Relaunch**.
+
+6. In Finder, select the files to clean, right-click, and choose **Quick Actions → Strip Unicode**.
+
+   ![Selecting Strip Unicode from Finder Quick Actions](docs/Screenshot%202025-04-25%20at%2005.47.51.png)
+
+The bundled Shortcut contains an example machine-specific executable path, so step 4 is required. If UnicodeFix is installed in a virtual environment, keep that environment in a stable location so the Shortcut's executable path remains valid after upgrades.
+
+## Local watermark and authorship profiles
+
+`--watermark-profile PATH` runs a named offline detector profile and implies report mode. The optional local adapters support explicit KGW and SynthID Text configurations. They require the matching tokenizer, model or detector artifacts, scheme parameters, key or seed where required, and a calibrated threshold.
 
 ```bash
-cat file.txt | cleanup-text > cleaned.txt
+cleanup-text --report --watermark-profile research/watermarks/profiles/example-kgw.toml text.txt
 ```
 
-### Batch Clean
+`--authorship-profile PATH` scores each sufficiently long paragraph with pinned local causal-model artifacts. It can report negative log likelihood, perplexity, selected-token rank, and top-10 rate under that reference model. A profile must include calibration coefficients fitted on a matched held-out corpus before UnicodeFix displays an estimated probability.
+
+```bash
+cleanup-text --report --json --authorship-profile research/watermarks/profiles/example-authorship.toml text.txt
+```
+
+A small local GGUF or llama.cpp-compatible model is a plausible future backend for these model-distribution measurements, but model size does not turn the result into proof. The reference model, tokenizer, quantization, corpus, text length, domain, language, and calibration all affect the distribution. This release's research review did not locate a documented Apple Intelligence interface that exposes the general-purpose token log probabilities required by this detector, so Apple Intelligence is not a UnicodeFix backend in 2.0.0.
+
+UnicodeFix uses local-only artifact loading and never contacts a vendor service or model hub. It cannot generically find or remove unknown, proprietary, lexical, semantic, or source-code watermarks. A statistical watermark intentionally introduced during token sampling can often be weakened by editing, but UnicodeFix will not damage prose blindly in an attempt to erase an unknown scheme.
+
+See the [vendor watermark matrix](docs/research/vendor-watermark-matrix.md), [feasibility ledger](docs/research/feasibility-ledger.md), and [local research harness](research/watermarks/README.md) for the dated evidence, deployment distinctions, public detector status, and experiment design. The ledger covers token probability partitioning, KGW green-list bias, SynthID Text tournament sampling, downstream trajectory effects, and the separate DetectGPT, Fast-DetectGPT, and Binoculars authorship-detection family.
+
+## Brief examples
+
+### Pipe or filter
+
+```bash
+cleanup-text < file.txt > cleaned.txt
+```
+
+### Batch clean
 
 ```bash
 cleanup-text *.txt
 ```
 
-### In-Place (Safe) Clean
+### In-place clean
 
 ```bash
 cleanup-text -t myfile.txt
 ```
 
-### Preserve Temp File for Backup
+### Preserve the temporary file as a backup
 
 ```bash
 cleanup-text -t -p myfile.txt
 ```
 
-### Audit only (no changes), human-readable
+In-place cleaning writes and syncs a unique same-directory temporary file, preserves the original permissions, and then atomically replaces the original with a new modification timestamp. `--preserve-tmp` copies the untouched original to `myfile.txt.tmp`, or the first unused numbered name such as `myfile.txt.tmp.1`; an existing backup is never overwritten.
 
-```bash
-cleanup-text --report foo.txt
-```
-
-### Audit as JSON
-
-```bash
-cleanup-text --report --json foo.txt
-```
-
-### Audit with Semantic Metrics (experimental)
-
-```bash
-cleanup-text --metrics foo.txt
-cleanup-text --report --json --metrics foo.txt
-```
-
-`--metrics` now implies report mode, so the first command prints a human-readable report with metrics and the second emits JSON. If you explicitly request cleaned output with `-o` or `-t`, the clean output is still written and the human-readable report is emitted on `stderr`. Install the optional NLP support with `./setup.sh --nlp`.
-
-### Report without blocking commits
+### Audit without blocking a commit
 
 ```bash
 cleanup-text --report --metrics --exit-zero foo.txt
 ```
 
-Emits the full report (and metrics if requested) but always returns exit code 0, so informational pre-commit hooks and dashboards can surface issues without aborting the workflow.
-
-### Fail CI if anomalies exceed threshold
+### Audit stdin as JSON with a useful label
 
 ```bash
-cleanup-text --report --threshold 1 some/*.txt
+git show HEAD:README.md | cleanup-text --report --json --label README-at-HEAD -
 ```
 
-### Using in vi/vim/macvim
+### Use it in vi, Vim, or MacVim
 
 ```vim
 :%!cleanup-text
 ```
 
-Works great for vi/Vim purists, VS Code hipsters, or anyone who just wants their text to behave like text.
-Also handy if you’re trying to slip your AI-generated code past your CS prof without curly quotes giving you away.
+Use it from Vim, an editor task, a pre-commit hook, Finder, a shell pipeline, or a CI job. For material where invisible characters or typographic punctuation are intentional, audit first and use the relevant preservation options. Run `cleanup-text --help` for the current switch list and see [the full CLI guide](docs/cleanup-text.md) for the deeper details.
 
-You can run it from Vim, VS Code in Vim mode, or as a pre-commit. Use it for email, blog posts, whatever. Ignore the naysayers - this is *real-world convenience.*
+## What's in this repository
 
-See [cleanup-text.md](docs/cleanup-text.md) for deeper dives and arcane options.
-
-- **Make sure your Python environment is activated** before launching your editor, or wrap it in a shell script that does it for you.
-- Adjust your editor's shell settings as needed for best results.
-
----
-
-## What's New / What's Cool
-
-
-### CodexExorcism+ Release (Sept 2025)  
-
-- **CI/CD pipeline hardened**: full cross-platform test matrix (Ubuntu/macOS × Python 3.9–3.12) with integration tests + lint + shellcheck.
-- **Cross-platform verified**: tested on GitHub Actions `ubuntu-latest` and `macos-latest` runners across Python 3.9–3.12 (see `.github/workflows/ci.yml` for the current OS images).
-- **Regression protection**: added/strengthened newline preservation validation to prevent accidental line-collapsing failures.
-- **CLI/report consistency**: clarified and aligned filter vs file modes, output handling, and audit/report formatting.
-- **Scanner improvements**: improved anomaly detection and reporting accuracy; cleaner category breakdowns.
-- **Transform refinements**: tightened Unicode cleaning behavior while preserving text structure (EOL handling, whitespace normalization).
-- **Docs refresh**: README + CLI docs updated to better explain “clean mode vs audit mode” and the “forensics” use case.
-
-### CodexExorcism+ Release (Sept 2025)  
-
-The follow-up release keeps the Unicode exorcism vibe but layers on early-stage semantics:  
-
-- **Semantic metrics preview** – opt into `--metrics` for entropy, diversity, repetition, and a heuristic AI-likeness score; it automatically switches into report mode.  
-- **Metrics legend on demand** – `--metrics-help` explains every stat plus the ↑/↓ hints.  
-- **Hook-friendly reporting** – `--exit-zero` means pre-commit hooks can flag anomalies without blocking your commit.  
-- **Slimmer all-in-one test harness** – `tests/test_all.sh` derives its run list from `data/`, handles STDIN/STDOUT quirks, and drops per-scenario diffs/word-count deltas.  
-
-> *Fun fact*: Even Python will execute code with "curly quotes." Your IDE, email client, and browser all sneak these in. UnicodeFix hunts them down and torches them, ...so your coding homework looks *lovingly hand-crafted* at 4:37 a.m., rather than LLM spawn.
-
-### Keep It Fresh
-
-Pull requests/issues always welcome - especially if your AI friend slipped a new weird Unicode gremlin past me, I found a few more while preparing this release too...🙄
-
----
-
-## Shortcut for macOS
-
-UnicodeFix ships with a macOS Shortcut for direct Finder integration.
-
-Right-click files, pick a Quick Action, and - bam - no terminal required.
-
-### To add the Shortcut
-
-1. Open the **Shortcuts** app.
-2. Choose `File -> Import`.
-   ![Shortcuts App Menu](docs/Screenshot%202025-04-25%20at%2005.50.57.png)
-3. Select the Shortcut in `macOS/Strip Unicode.shortcut`.
-   ![Import Shortcut](docs/Screenshot%202025-04-25%20at%2005.51.54.png)
-4. Edit it to point to the `cleanup-text` executable in your active environment.
-   ![Edit Shortcut Script Path](docs/Screenshot%202025-04-25%20at%2005.07.47.png)
-5. Relaunch Finder (`Cmd+Opt+Esc` → select Finder → Relaunch) if needed.
-6. After setup, right-click files, choose `Quick Actions`, select `Strip Unicode`.
-   ![Select Shortcut File](docs/Screenshot%202025-04-25%20at%2005.47.51.png)
-
----
-
-## What's in This Repository
-
-- [src/unicodefix/cli.py](src/unicodefix/cli.py) - CLI entry point
-- [src/unicodefix/transforms.py](src/unicodefix/transforms.py) - Unicode normalization logic
-- [src/unicodefix/scanner.py](src/unicodefix/scanner.py) - Audit/report scanner
-- [pyproject.toml](pyproject.toml) - Packaging metadata and dependency source of truth
-- [setup.sh](setup.sh) - Unified bootstrap/install script
-- [bin/uniclean.sh](bin/uniclean.sh) - Shell helper
-- [data/](data/) - Example test files
-- [tests/](tests/) - Automated test suite for features and regressions
-- [docs/](docs/) - Documentation and screenshots
-- [LICENSE](LICENSE)
-- [README.md](README.md) - This file
-
----
+- [src/unicodefix/cli.py](src/unicodefix/cli.py) — CLI entry point and cleanup orchestration.
+- [src/unicodefix/scanner.py](src/unicodefix/scanner.py) — Unicode and findings inventory.
+- [src/unicodefix/transforms.py](src/unicodefix/transforms.py) — safe text transformations.
+- [src/unicodefix/c2pa.py](src/unicodefix/c2pa.py) — local C2PA carrier recognition and explicit stripping.
+- [src/unicodefix/markdown.py](src/unicodefix/markdown.py) — Markdown wrapping audit and opt-in unwrapping.
+- [src/unicodefix/source.py](src/unicodefix/source.py) — conservative source-context classification and comment cleanup.
+- [src/unicodefix/watermarks.py](src/unicodefix/watermarks.py) — profile-driven local watermark adapters.
+- [src/unicodefix/authorship.py](src/unicodefix/authorship.py) — optional locally calibrated model-distribution signals.
+- [research/watermarks/](research/watermarks/) — reproducible offline research harness and example profiles.
+- [data/](data/) — example and integration fixtures.
+- [tests/](tests/) — automated feature and regression tests.
+- [docs/](docs/) — CLI, API, research, test documentation, and macOS screenshots.
+- [macOS/Strip Unicode.shortcut](macOS/Strip%20Unicode.shortcut) — Finder Quick Action integration.
+- [scripts/run_checks.sh](scripts/run_checks.sh) — local release and pre-push checks.
+- [setup.sh](setup.sh) — unified bootstrap and install script.
 
 ## Testing and CI/CD
 
-UnicodeFix comes with a full, automated test suite:
+Run the same local gate installed by the pre-push hook:
 
-- Drives every scenario against the canonical file list in `data/`
-- Writes diffs and normalized word-count summaries into `test_output/<scenario>/`
-- Run it with: `tests/test_all.sh`
-- Clean up with: `tests/test_all.sh clean`
-- STDIN/STDOUT coverage skips the binary fixtures (everything else still runs on them)
-- Plug into your CI/CD pipeline or just use it as a "paranoia check" before shipping anything
+```bash
+scripts/run_checks.sh
+```
 
-**Pro tip:** Run the tests before you merge, publish, or email a "final" version.
+The local gate runs Black, Ruff, and pytest. CI also runs the shell integration suite across supported Python releases on macOS and Ubuntu without vendor APIs, accounts, downloads, or network access. Public watermark fixtures and profiles remain vendor-independent and deterministic.
 
-See [docs/test-suite.md](docs/test-suite.md) for the deep dive.
+For the integration harness alone:
 
----
+```bash
+tests/test_all.sh
+tests/test_all.sh clean
+```
+
+See [docs/test-suite.md](docs/test-suite.md) for the complete test layout and acceptance checks.
 
 ## Contributing
 
-Feedback, bug reports, and patches welcome.
+Feedback, bug reports, detector research, fixtures, and patches are welcome. A useful watermark contribution needs more than a rumor: include the primary source, access date, exact algorithm or carrier, required configuration, a matched watermarked/unwatermarked corpus, and false-positive/false-negative evidence.
 
-If you've got a better integration path for your favorite platform, let's make it happen.
-Pull requests with attitude, creativity, and clean diffs appreciated.
+If a vendor's production deployment is not public, describe the implementation as research or compatible tooling rather than evidence that every output from that vendor carries the scheme. Pull requests with attitude, reproducible evidence, and clean diffs are especially appreciated.
 
----
+## Support this and other projects
 
-## Support This and Other Projects
-
-If UnicodeFix (or my other projects) saved your bacon or made you smile, please consider fueling my caffeine habit and indie dev obsession...
+If UnicodeFix or one of my other projects saved your bacon, please consider fueling the caffeine habit and indie development work:
 
 - [Patreon](https://patreon.com/unixwzrd)
 - [Ko-Fi](https://ko-fi.com/unixwzrd)
 - [Buy Me a Coffee](https://buymeacoffee.com/unixwzrd)
 
-Quite a bit of effort goes into preparing these releases. *One coffee = one more tool released to the wild...*🤔
+Quite a bit of effort goes into researching, implementing, testing, and preparing these releases. One coffee means one more tool gets released into the wild.
 
-Thank you for keeping solo development alive!
-
----
+Thank you for keeping solo development alive.
 
 ## Changelog
 
-**See [CHANGELOG.md](CHANGELOG.md) for the latest drop.**
-
----
+See [CHANGELOG.md](CHANGELOG.md) for the complete release history and the Ghostmark Edition changes.
 
 ## License
 
-Copyright 2025  
-[unixwzrd@unixwzrd.ai](mailto:unixwzrd@unixwzrd.ai)
+Copyright © 2025-2026 Distributed Thinking Systems LLC
 
 [MIT License](LICENSE)
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
