@@ -17,8 +17,8 @@ try:
 except ModuleNotFoundError:  # pragma: no cover - Python 3.10
     import tomli as tomllib
 
-from unicodefix.c2pa import find_c2pa_carriers
 from unicodefix.authorship import detect_authorship_profiles
+from unicodefix.c2pa import find_c2pa_carriers
 from unicodefix.markdown import audit_markdown, unwrap_markdown
 from unicodefix.metrics import compute_metrics
 from unicodefix.report import print_csv, print_human, print_json, print_metrics_help
@@ -295,7 +295,7 @@ def run_report(files: list[str], args: argparse.Namespace) -> int:
             raw = _read_text(path)
             cleaned = _clean_content(raw, args, path) if args.dry_run else None
             data = _build_report_data(raw, args, path=path, cleaned=cleaned)
-        except Exception as exc:
+        except (OSError, UnicodeError, ValueError, TypeError, RuntimeError) as exc:
             log(f"[x] Failed to inspect {path}: {exc}")
             return 1
         key = args.label or path
@@ -377,7 +377,7 @@ def process_file(infile: str, args: argparse.Namespace) -> int:
     except UnicodeDecodeError as exc:
         log(f"[x] {infile} is not strict UTF-8: {exc}")
         return 1
-    except Exception as exc:
+    except (OSError, UnicodeError, ValueError, TypeError, RuntimeError) as exc:
         log(f"[x] Failed to process {infile}: {exc}")
         return 1
 

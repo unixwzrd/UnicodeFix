@@ -28,15 +28,15 @@ def compute_metrics(text: str) -> dict:
     """Return reproducible structural counts, never an AI-likeness score."""
 
     codepoints = Counter(f"U+{ord(char):04X}" for char in text if ord(char) > 127)
-    inventory = {
-        point: {
+    inventory = {}
+    for point, count in sorted(codepoints.items()):
+        ordinal = int(point.replace("U+", "0x", 1), 0)
+        inventory[point] = {
             "count": count,
-            "name": unicodedata.name(chr(int(point[2:], 16)), "UNASSIGNED"),
-            "category": unicodedata.category(chr(int(point[2:], 16))),
-            "script": confusables.alias(chr(int(point[2:], 16))),
+            "name": unicodedata.name(chr(ordinal), "UNASSIGNED"),
+            "category": unicodedata.category(chr(ordinal)),
+            "script": confusables.alias(chr(ordinal)),
         }
-        for point, count in sorted(codepoints.items())
-    }
     return {
         "bytes_utf8": len(text.encode("utf-8", "surrogatepass")),
         "characters": len(text),

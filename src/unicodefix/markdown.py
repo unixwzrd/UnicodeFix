@@ -13,7 +13,7 @@ from typing import Any
 
 try:  # Keep the core importable for report-only installations.
     import mdformat
-except Exception as exc:  # pragma: no cover - depends on optional install
+except ImportError as exc:  # pragma: no cover - depends on optional install
     mdformat = None
     _MDFORMAT_ERROR = exc
 else:  # pragma: no cover - trivial branch
@@ -37,7 +37,7 @@ def _is_protected(line: str, in_fence: bool) -> bool:
     """Whether *line* belongs to syntax where joining would be unsafe."""
     if in_fence or not line.strip():
         return True
-    if line.startswith("    ") or line.startswith("\t"):
+    if line.startswith(("    ", "\t")):
         return True
     return bool(
         _ATX_HEADING_RE.match(line)
@@ -83,7 +83,7 @@ def _continuation_prefix(prefix: str) -> str:
 
 
 def _has_hard_break(line: str) -> bool:
-    return line.endswith("\\") or line.endswith("  ")
+    return line.endswith(("\\", "  "))
 
 
 def _fallback_unwrap(text: str) -> str:
@@ -134,10 +134,12 @@ def _fallback_unwrap(text: str) -> str:
             # A marker begins a new element. A matching container is a new
             # item too, never a continuation. Otherwise an indented or plain
             # line is a continuation of this paragraph/list item.
-            if candidate_prefix and candidate_content.strip():
-                # Repeated blockquote markers are continuation lines, unlike
-                # repeated list markers which necessarily start a sibling.
-                if not (
+            # Repeated blockquote markers are continuation lines, unlike
+            # repeated list markers which necessarily start a sibling.
+            if (
+                candidate_prefix
+                and candidate_content.strip()
+                and not (
                     current_prefix
                     and (
                         (
@@ -155,8 +157,9 @@ def _fallback_unwrap(text: str) -> str:
                             and candidate_content.startswith(" ")
                         )
                     )
-                ):
-                    break
+                )
+            ):
+                break
             if candidate.startswith(("    ", "\t")) and not list_continuation:
                 break
             quoted_list_continuation = bool(

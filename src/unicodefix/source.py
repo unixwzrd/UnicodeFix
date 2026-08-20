@@ -14,8 +14,8 @@ import os
 import re
 import token
 import tokenize
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Iterable, Optional
 
 import regex
 import unicodedata2 as unicodedata
@@ -49,7 +49,7 @@ class _Span:
     context: str
 
 
-def _language(language: Optional[str], path: Optional[str]) -> str:
+def _language(language: str | None, path: str | None) -> str:
     candidate = (language or "").lower().lstrip(".")
     if candidate:
         return {"py": "python", "c++": "cpp", "c#": "c_sharp"}.get(candidate, candidate)
@@ -174,14 +174,24 @@ def _generic_spans(text: str) -> list[_Span]:
     return spans
 
 
-def _tree_sitter_spans(text: str, language: str) -> Optional[tuple[list[_Span], bool]]:
+def _tree_sitter_spans(text: str, language: str) -> tuple[list[_Span], bool] | None:
     """Use tree-sitter-language-pack when installed, without requiring it."""
     try:
         from tree_sitter_language_pack import get_parser
 
         parser = get_parser(language)
+    except (ImportError, LookupError, OSError, RuntimeError, TypeError, ValueError):
+        return None
+
+    try:
         tree = parser.parse(text)
-    except Exception:
+    except TypeError:
+        # tree-sitter 0.26+ expects bytes; 0.25 accepted str.
+        try:
+            tree = parser.parse(text.encode("utf-8"))
+        except (OSError, RuntimeError, TypeError, ValueError, AttributeError):
+            return None
+    except (OSError, RuntimeError, ValueError, AttributeError):
         return None
 
     byte_offsets = [0]
@@ -234,7 +244,7 @@ def _context_at(index: int, spans: Iterable[_Span]) -> str:
 
 
 def scan_source(
-    text: str, language: Optional[str] = None, path: Optional[str] = None
+    text: str, language: str | None = None, path: str | None = None
 ) -> dict:
     """Inspect source without modifying it.
 
@@ -244,7 +254,7 @@ def scan_source(
     """
     source_language = _language(language, path)
     parser = "generic"
-    parse_valid: Optional[bool] = None
+    parse_valid: bool | None = None
     if source_language == "python":
         spans, parse_valid = _python_spans(text)
         parser = "python-tokenize"
@@ -340,8 +350,8 @@ def scan_source(
 
 def clean_source_comments(
     text: str,
-    language: Optional[str] = None,
-    path: Optional[str] = None,
+    language: str | None = None,
+    path: str | None = None,
     *,
     strip_provenance: bool = False,
 ) -> str:

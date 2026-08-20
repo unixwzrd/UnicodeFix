@@ -3,7 +3,7 @@ from unicodefix.metrics import compute_metrics
 
 def test_metrics_are_deterministic_and_not_authorship_scores():
     metrics = compute_metrics("one two\r\nthree")
-    assert metrics["bytes_utf8"] == len("one two\r\nthree".encode())
+    assert metrics["bytes_utf8"] == len(b"one two\r\nthree")
     assert metrics["words"] == 3
     assert metrics["newline_style"] == "crlf"
     assert "ai_score" not in metrics

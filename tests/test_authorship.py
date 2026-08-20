@@ -1,6 +1,6 @@
 from pathlib import Path
 
-import unicodefix.authorship as authorship
+from unicodefix import authorship
 
 
 def _profile(tmp_path: Path, extra: str = "") -> Path:

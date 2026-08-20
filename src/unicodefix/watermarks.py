@@ -82,7 +82,7 @@ def detect_with_profile(text: str, path: str | Path) -> WatermarkResult:
     profile_path = Path(path)
     try:
         config, fingerprint = load_profile(profile_path)
-    except Exception as exc:
+    except (OSError, TypeError, ValueError, tomllib.TOMLDecodeError) as exc:
         return _error(profile_path, "unknown", "unavailable", str(exc))
 
     scheme = str(config.get("scheme", "")).lower()
@@ -139,7 +139,7 @@ def _detect_kgw(
             WatermarkDetector,
             WatermarkingConfig,
         )
-    except Exception as exc:
+    except ImportError as exc:
         return WatermarkResult(
             str(path),
             "kgw",
@@ -181,7 +181,14 @@ def _detect_kgw(
             fingerprint,
             threshold=threshold,
         )
-    except Exception as exc:
+    except (
+        OSError,
+        RuntimeError,
+        TypeError,
+        ValueError,
+        AttributeError,
+        KeyError,
+    ) as exc:
         return _error(path, "kgw", fingerprint, str(exc))
 
 
@@ -201,7 +208,7 @@ def _detect_synthid(
             SynthIDTextWatermarkDetector,
             SynthIDTextWatermarkLogitsProcessor,
         )
-    except Exception as exc:
+    except ImportError as exc:
         return WatermarkResult(
             str(path),
             "synthid_text",
@@ -236,7 +243,14 @@ def _detect_synthid(
             score=score,
             threshold=threshold,
         )
-    except Exception as exc:
+    except (
+        OSError,
+        RuntimeError,
+        TypeError,
+        ValueError,
+        AttributeError,
+        KeyError,
+    ) as exc:
         return _error(path, "synthid_text", fingerprint, str(exc))
 
 

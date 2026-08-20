@@ -9,7 +9,7 @@ from unicodefix.c2pa import find_c2pa_carriers, strip_c2pa_carriers
 _ftfy_err = None
 try:
     import ftfy
-except Exception as e:
+except ImportError as e:
     ftfy = None
     _ftfy_err = e
 

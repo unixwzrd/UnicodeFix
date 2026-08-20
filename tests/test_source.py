@@ -1,6 +1,7 @@
+import pytest
+
 from unicodefix.c2pa import build_text_wrapper
 from unicodefix.source import clean_source_comments, scan_source
-import pytest
 
 
 def _variation_wrapper(payload: bytes) -> str:

@@ -119,8 +119,10 @@ def validate_text_wrapper(payload: bytes) -> tuple[bool, str]:
     if actual_length != declared_length:
         return (
             False,
-            "C2PA text-wrapper manifest length mismatch "
-            f"(declared {declared_length}, found {actual_length})",
+            (
+                "C2PA text-wrapper manifest length mismatch "
+                f"(declared {declared_length}, found {actual_length})"
+            ),
         )
     return True, "complete C2PA text wrapper"
 

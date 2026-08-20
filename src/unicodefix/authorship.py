@@ -179,8 +179,8 @@ def detect_authorship_with_profile(text: str, path: str | Path) -> AuthorshipRes
             loaded = tomllib.load(handle)
         config = loaded.get("authorship", loaded)
         if not isinstance(config, dict):
-            raise ValueError("profile must contain an [authorship] table")
-    except Exception as exc:
+            raise TypeError("profile must contain an [authorship] table")
+    except (OSError, TypeError, ValueError, tomllib.TOMLDecodeError) as exc:
         return AuthorshipResult(
             str(profile_path),
             "unknown",
@@ -251,7 +251,14 @@ def detect_authorship_with_profile(text: str, path: str | Path) -> AuthorshipRes
     paragraphs = _paragraphs(text)
     try:
         scored = _score_causal_lm(paragraphs, config)
-    except Exception as exc:
+    except (
+        ImportError,
+        OSError,
+        RuntimeError,
+        TypeError,
+        ValueError,
+        AttributeError,
+    ) as exc:
         status = (
             "unsupported"
             if str(exc).startswith("install unicodefix[watermark-lab]")

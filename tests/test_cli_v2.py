@@ -1,6 +1,6 @@
-import json
 import csv
 import io
+import json
 import os
 import pathlib
 import stat
@@ -19,8 +19,7 @@ def run_cli(args, stdin=None):
         [sys.executable, "-m", "unicodefix.cli", *args],
         input=stdin,
         text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        capture_output=True,
         env=environment,
         check=False,
     )

@@ -11,7 +11,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
-__all__ = ["print_human", "print_json", "print_csv", "print_metrics_help"]
+__all__ = ["print_csv", "print_human", "print_json", "print_metrics_help"]
 
 
 def _console(no_color: bool, file: TextIO) -> Console:

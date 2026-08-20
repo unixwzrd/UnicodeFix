@@ -2,6 +2,11 @@
 
 Last updated: 2026-08-20
 
+## 20260820_00 - CI lint and tree-sitter 0.26 alignment
+
+- **Ruff 0.16:** cleared the broader default rule set that CI installs (`ruff>=0.16.3,<0.17`), including pyupgrade, executable-bit, and blind-except cleanups across `src/`, `tests/`, and `research/`.
+- **Tree-sitter compatibility:** source-mode parsing now accepts both str (0.25) and bytes (0.26+) so CI no longer falls back to the generic lexer for C/C++/JS/YAML/TOML.
+
 ## 20260818_00 - v2.0.0
 
 ### **Ghostmark Edition: Evidence-Based Local Audit and Safe Cleanup**
