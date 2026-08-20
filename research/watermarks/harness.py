@@ -14,7 +14,7 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 try:  # Python 3.11+
     import tomllib
@@ -42,7 +42,7 @@ def _redact_secrets(value: Any, name: str = "") -> Any:
     return value
 
 
-def _fingerprint(config: Dict[str, Any]) -> str:
+def _fingerprint(config: dict[str, Any]) -> str:
     """Hash reproducibility settings without hashing low-entropy secrets."""
     payload = json.dumps(
         _redact_secrets(config), sort_keys=True, separators=(",", ":"), default=str
@@ -51,10 +51,10 @@ def _fingerprint(config: Dict[str, Any]) -> str:
 
 
 def _result(
-    status: str, profile: Dict[str, Any], message: str, **extra: Any
-) -> Dict[str, Any]:
+    status: str, profile: dict[str, Any], message: str, **extra: Any
+) -> dict[str, Any]:
     if status not in STATUSES:
-        raise ValueError("unknown result status: %s" % status)
+        raise ValueError(f"unknown result status: {status}")
     metadata = profile.get("profile", {})
     result = {
         "status": status,
@@ -68,21 +68,21 @@ def _result(
     return result
 
 
-def load_profile(path: str | Path) -> Dict[str, Any]:
+def load_profile(path: str | Path) -> dict[str, Any]:
     """Load a TOML profile.  Profile contents never leave this process."""
     try:
         with Path(path).open("rb") as handle:
             profile = tomllib.load(handle)
     except (OSError, tomllib.TOMLDecodeError) as exc:
-        raise ValueError("cannot load profile: %s" % exc) from exc
+        raise ValueError(f"cannot load profile: {exc}") from exc
     if not isinstance(profile.get("profile"), dict) or not isinstance(
         profile.get("detector"), dict
     ):
-        raise ValueError("profile requires [profile] and [detector] tables")
+        raise TypeError("profile requires [profile] and [detector] tables")
     return profile
 
 
-def run_profile(text: str, profile_path: str | Path) -> Dict[str, Any]:
+def run_profile(text: str, profile_path: str | Path) -> dict[str, Any]:
     """Run one local profile against text, without network or model downloads."""
     try:
         profile = load_profile(profile_path)
@@ -144,8 +144,10 @@ def run_profile(text: str, profile_path: str | Path) -> Dict[str, Any]:
     return _result(
         "configuration_error",
         profile,
-        "unknown adapter %r; install an explicit local adapter or use unsupported"
-        % adapter,
+        (
+            f"unknown adapter {adapter!r}; install an explicit local adapter "
+            "or use unsupported"
+        ),
     )
 
 
@@ -165,7 +167,7 @@ def main(argv: list[str] | None = None) -> int:
             else Path(args.input).read_text(encoding="utf-8")
         )
     except OSError as exc:
-        parser.error("cannot read input: %s" % exc)
+        parser.error(f"cannot read input: {exc}")
     print(json.dumps(run_profile(text, args.profile), sort_keys=True))
     return 0
 

@@ -19,8 +19,7 @@ def run_cli(args, stdin=None):
         # Check if cleanup-text is available
         subprocess.run(
             cmd_list + ["--help"],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            capture_output=True,
             check=True,
             timeout=2,
         )
@@ -35,8 +34,7 @@ def run_cli(args, stdin=None):
     p = subprocess.run(
         cmd_list + list(args),
         input=stdin.encode("utf-8") if isinstance(stdin, str) else None,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        capture_output=True,
         env=env,
         check=False,
     )
@@ -94,7 +92,7 @@ def test_metrics_with_explicit_output_writes_clean_file_and_side_report(
     f = tmp_path / "metrics.txt"
     out_file = tmp_path / "explicit.txt"
     f.write_text("“quoted” text\n", encoding="utf-8")
-    code, out, err = run_cli(["--metrics", "-o", str(out_file), str(f)])
+    code, _out, err = run_cli(["--metrics", "-o", str(out_file), str(f)])
     assert code == 0, f"Expected exit code 0, got {code}. stderr: {err}"
     assert out_file.exists(), "Expected explicit output file to be written"
     assert out_file.read_text(encoding="utf-8") == '"quoted" text\n'

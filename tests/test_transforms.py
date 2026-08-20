@@ -1,5 +1,5 @@
-from unicodefix.transforms import clean_text, handle_newlines
 from unicodefix.c2pa import build_text_wrapper, encode_variation_selectors
+from unicodefix.transforms import clean_text, handle_newlines
 
 
 def test_quotes_and_dashes_normalize():
