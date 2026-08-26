@@ -68,6 +68,18 @@ cleaned_source = clean_source_comments(source_text, path='module.py', strip_prov
 
 `scan_source()` classifies findings by source context and returns language/parser/parse-valid information. `clean_source_comments()` only removes eligible payloads in comments and preserves identifiers and string content. It returns the original source if parse validation cannot establish a safe transformation.
 
+## Image audit and cleanup
+
+```python
+from unicodefix.image import audit_image, clean_image, plan_image_cleanup
+
+report = audit_image('photo.jpg')
+plan = plan_image_cleanup(report, strip_metadata=True, strip_provenance=False)
+before, after = clean_image('photo.jpg', 'photo.clean.jpg', strip_metadata=True, strip_provenance=False)
+```
+
+`audit_image()` validates and inventories an image locally. Its 2.0.1 findings separate metadata from C2PA/JUMBF provenance and expose backend status plus explicit pixel-watermark limitations. `clean_image()` requires ExifTool 12.70 or newer, never accepts the same input/output path, preserves rendering-critical metadata during general cleanup, refuses metadata mutation of recognized C2PA content unless provenance removal is explicit, and removes JUMBF only when `strip_provenance=True`.
+
 ## Local watermark profiles
 
 ```python

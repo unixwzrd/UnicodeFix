@@ -1,14 +1,14 @@
-# UnicodeFix — *Ghostmark Edition v2.0.0* — it finds what your editor does not show.
+# UnicodeFix — *Ghostmark Edition v2.0.1* — it finds what your editor does not show.
 
-*Last updated: 2026-08-20*
+*Last updated: 2026-08-24*
 
 ![UnicodeFix — Filtering AI Artifacts](docs/unicodefix-banner-titled.png)
 
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue)](#installation) [![Platforms](https://img.shields.io/badge/Platforms-macOS%20%7C%20Ubuntu-informational)](#installation) [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE) [![Release](https://img.shields.io/github/v/tag/unixwzrd/UnicodeFix?label=release)](https://github.com/unixwzrd/UnicodeFix/releases) [![CI](https://github.com/unixwzrd/UnicodeFix/actions/workflows/ci.yml/badge.svg)](.github/workflows/ci.yml)
 
-Invisible characters. Provenance wrappers. Configured statistical watermarks. Hard-wrapped Markdown. Source comments carrying hidden payloads. UnicodeFix audits the evidence, shows exactly where it lives, previews the cleanup, and removes only what it can identify safely.
+Invisible characters. Provenance wrappers. Image metadata. Configured statistical watermarks. Hard-wrapped Markdown. Source comments carrying hidden payloads. UnicodeFix audits the evidence, shows exactly where it lives, previews the cleanup, and removes only what it can identify safely.
 
-Everything runs locally after installation. Your text is not uploaded to a detector, vendor, or model service.
+Everything runs locally after installation. Your text and images are not uploaded to a detector, vendor, or model service.
 
 - [Meet Ghostmark](#meet-ghostmark)
 - [Why now?](#why-now)
@@ -19,6 +19,7 @@ Everything runs locally after installation. Your text is not uploaded to a detec
 - [What a finding means](#what-a-finding-means)
 - [Privacy, provenance, and proof](#privacy-provenance-and-proof)
 - [Markdown and source safety](#markdown-and-source-safety)
+- [Image metadata and provenance](#image-metadata-and-provenance)
 - [Shortcut for macOS](#shortcut-for-macos)
 - [Local watermark and authorship profiles](#local-watermark-and-authorship-profiles)
 - [Brief examples](#brief-examples)
@@ -113,6 +114,14 @@ cd UnicodeFix
 
 The optional lab does not fetch model artifacts at runtime. Profiles must point to matching artifacts already available locally. UnicodeFix is currently distributed through GitHub releases rather than PyPI.
 
+Image audit is included in the normal Python installation. Lossless image cleanup additionally needs ExifTool 12.70 or newer on `PATH`; UnicodeFix checks the installed version before writing and remains audit-only when it is missing or too old.
+
+```bash
+brew install exiftool                    # macOS with Homebrew
+sudo apt install libimage-exiftool-perl # Ubuntu; verify the packaged version
+exiftool -ver
+```
+
 For serious environment nerds, [VenvUtil](https://github.com/unixwzrd/venvutil) is my full-featured Python environment toolkit.
 
 ## Quick use
@@ -179,6 +188,26 @@ It also preserves explicit hard breaks, blank lines in loose lists, multiple par
 
 `--source` and `--unwrap-markdown` are separate profiles and cannot be combined.
 
+## Image metadata and provenance
+
+`cleanup-image` audits supported raster images locally, inventories removable metadata, identifies C2PA/JUMBF tags when the local backend can read them, and reports location, identity/device, editing, and other metadata separately. Audit mode needs no external service:
+
+```bash
+cleanup-image --report photo.jpg
+cleanup-image --report --json graphic.png
+```
+
+Lossless cleanup requires ExifTool 12.70 or newer. Metadata removal preserves pixel data, ICC profiles, orientation, and color-space tags. Because changing ordinary image metadata can invalidate a signed Content Credential even when its JUMBF bytes remain, UnicodeFix refuses metadata cleanup on a recognized C2PA image unless `--strip-provenance` is also explicit. If the report also finds an XMP C2PA reference, provenance cleanup requires `--strip-metadata` so the reference is not left behind. Output defaults to `<name>.clean<extension>`, never overwrites an existing file without `--force`, and does not support in-place image editing.
+
+```bash
+cleanup-image --dry-run --strip-metadata photo.jpg
+cleanup-image --strip-metadata photo.jpg
+cleanup-image --strip-provenance graphic.png
+cleanup-image --strip-metadata --strip-provenance -o share.png graphic.png
+```
+
+The write path supports JPEG, PNG, WebP, TIFF, HEIF, and AVIF containers when both the installed Pillow build and ExifTool recognize the file. Proprietary raw formats and SVG remain audit-only. Metadata removal does not remove a visible logo or a watermark embedded in pixels. [Google describes SynthID as a pixel-domain signal designed to survive common transformations](https://deepmind.google/models/synthid/); without a compatible public local detector and configuration, UnicodeFix reports SynthID and unknown pixel schemes as `unsupported` and never claims the image is watermark-free. See the [image CLI guide](docs/cleanup-image.md) for the exact safety contract.
+
 ## Shortcut for macOS
 
 UnicodeFix ships with a macOS Shortcut for direct Finder integration. Right-click one or more files, choose **Quick Actions → Strip Unicode**, and the selected files are cleaned without ordinary Terminal interaction.
@@ -225,7 +254,7 @@ cleanup-text --report --watermark-profile research/watermarks/profiles/example-k
 cleanup-text --report --json --authorship-profile research/watermarks/profiles/example-authorship.toml text.txt
 ```
 
-A small local GGUF or llama.cpp-compatible model is a plausible future backend for these model-distribution measurements, but model size does not turn the result into proof. The reference model, tokenizer, quantization, corpus, text length, domain, language, and calibration all affect the distribution. This release's research review did not locate a documented Apple Intelligence interface that exposes the general-purpose token log probabilities required by this detector, so Apple Intelligence is not a UnicodeFix backend in 2.0.0.
+A small local GGUF or llama.cpp-compatible model is a plausible future backend for these model-distribution measurements, but model size does not turn the result into proof. The reference model, tokenizer, quantization, corpus, text length, domain, language, and calibration all affect the distribution. This release's research review did not locate a documented Apple Intelligence interface that exposes the general-purpose token log probabilities required by this detector, so Apple Intelligence is not a UnicodeFix backend in 2.0.1.
 
 UnicodeFix uses local-only artifact loading and never contacts a vendor service or model hub. It cannot generically find or remove unknown, proprietary, lexical, semantic, or source-code watermarks. A statistical watermark intentionally introduced during token sampling can often be weakened by editing, but UnicodeFix will not damage prose blindly in an attempt to erase an unknown scheme.
 
@@ -285,6 +314,7 @@ Use it from Vim, an editor task, a pre-commit hook, Finder, a shell pipeline, or
 - [src/unicodefix/scanner.py](src/unicodefix/scanner.py) — Unicode and findings inventory.
 - [src/unicodefix/transforms.py](src/unicodefix/transforms.py) — safe text transformations.
 - [src/unicodefix/c2pa.py](src/unicodefix/c2pa.py) — local C2PA carrier recognition and explicit stripping.
+- [src/unicodefix/image.py](src/unicodefix/image.py) — image metadata/provenance audit and verified lossless cleanup.
 - [src/unicodefix/markdown.py](src/unicodefix/markdown.py) — Markdown wrapping audit and opt-in unwrapping.
 - [src/unicodefix/source.py](src/unicodefix/source.py) — conservative source-context classification and comment cleanup.
 - [src/unicodefix/watermarks.py](src/unicodefix/watermarks.py) — profile-driven local watermark adapters.
@@ -292,7 +322,7 @@ Use it from Vim, an editor task, a pre-commit hook, Finder, a shell pipeline, or
 - [research/watermarks/](research/watermarks/) — reproducible offline research harness and example profiles.
 - [data/](data/) — example and integration fixtures.
 - [tests/](tests/) — automated feature and regression tests.
-- [docs/](docs/) — CLI, API, research, test documentation, and macOS screenshots.
+- [docs/](docs/) — text/image CLI, API, research, test documentation, and macOS screenshots.
 - [macOS/Strip Unicode.shortcut](macOS/Strip%20Unicode.shortcut) — Finder Quick Action integration.
 - [scripts/run_checks.sh](scripts/run_checks.sh) — local release and pre-push checks.
 - [setup.sh](setup.sh) — unified bootstrap and install script.

@@ -21,6 +21,8 @@ Source cases must show that comment cleanup can remove supported carriers while 
 
 Dry-run cases must confirm no file write occurs and that the predicted cleanup equals a subsequent actual cleanup. Human, JSON, and CSV reports must use the same findings source, although CSV intentionally contains aggregate values.
 
+Image cases validate Pillow-only audit, metadata classification, invalid-image rejection, old/missing ExifTool behavior, safe command construction, separate output placement, post-clean verification, and explicit unsupported status for pixel-domain schemes. CI does not download a detector or require a system ExifTool for read-only image tests.
+
 ## Local watermark experiments
 
 CI must never need a vendor API, account, network service, or model download. Profile fixtures use deterministic local content and assert all five outcomes: `detected`, `not_detected`, `insufficient_text`, `unsupported`, and `configuration_error`.

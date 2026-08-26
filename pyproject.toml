@@ -4,8 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "unicodefix"
-version = "2.0.0"
-description = "Audit and safely clean Unicode, text provenance, and formatting artifacts."
+version = "2.0.1"
+description = "Audit and safely clean Unicode, provenance, metadata, and formatting artifacts."
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
@@ -14,6 +14,7 @@ dependencies = [
   "mdformat>=1.0.0",
   "mdformat-frontmatter",
   "mdformat-gfm",
+  "Pillow>=11.0,<13",
   "regex>=2026.4.4",
   "rich>=13.7",
   "tomli>=2.0; python_version < '3.11'",
@@ -38,6 +39,7 @@ dev = [
 
 [project.scripts]
 cleanup-text = "unicodefix.cli:main"
+cleanup-image = "unicodefix.image_cli:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/unicodefix"]

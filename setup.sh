@@ -88,4 +88,4 @@ echo "UnicodeFix installed into ${env_label}."
 if [[ ${created_env} -eq 1 ]]; then
     echo "Activate it with: source ${venv_dir}/bin/activate"
 fi
-echo "Run: cleanup-text --help"
+echo "Run: cleanup-text --help or cleanup-image --help"

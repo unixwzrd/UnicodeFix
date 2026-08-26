@@ -1,6 +1,19 @@
 # Changelog for UnicodeFix
 
-Last updated: 2026-08-20
+Last updated: 2026-08-24
+
+## 20260824_00 - v2.0.1
+
+### **Local Image Metadata and Provenance Control**
+
+- **New `cleanup-image` command:** audits raster image structure and metadata locally with human or JSON output, supports non-writing dry runs, and writes cleaned output to a separate file by default.
+- **Clear binary routing:** `cleanup-text` now recognizes common image signatures and directs the user to `cleanup-image` instead of returning a raw UTF-8 decoder error. `cleanup-image --metrics` is accepted as a report-mode alias; image structure metrics are always included.
+- **Lossless metadata cleanup:** ExifTool 12.70+ removes selected metadata without decoding or re-encoding pixels while preserving ICC profiles, orientation, and color-space tags. Recognized C2PA images refuse metadata mutation unless provenance stripping is also explicit because changing hashed asset metadata can invalidate a retained credential.
+- **Explicit image provenance removal:** `--strip-provenance` removes the local JUMBF group and verifies that recognized C2PA/JUMBF tags are absent afterward. XMP references are detected without exposing their values and require combined metadata/provenance cleanup so no recognized reference is left behind. Metadata cleanup never silently invalidates recognized provenance.
+- **Privacy-oriented inventory:** location, identity/device, editing, and other metadata are reported separately. Inputs remain local and no external manifest URL or vendor detector is contacted.
+- **Honest pixel-watermark boundary:** SynthID, visible marks, and unknown pixel-domain schemes are reported as unsupported without a matching local detector. Cropping, recompression, filtering, and inpainting are not presented as verified removal.
+- **Safe output contract:** image cleanup supports JPEG, PNG, WebP, TIFF, HEIF, and AVIF, rejects in-place writes and extension changes, uses a same-directory temporary file plus atomic placement, and refuses to overwrite output unless `--force` is explicit.
+- **Packaging and validation:** Pillow is installed for deterministic local image identification and audit; both console scripts are checked in CI and the package version is 2.0.1.
 
 ## 20260820_00 - CI lint and tree-sitter 0.26 alignment
 

@@ -49,8 +49,38 @@ def _read_text(path: str) -> str:
     """Read UTF-8 strictly and preserve original newline bytes."""
     if path == "-":
         return sys.stdin.read()
+    image_format = _recognized_image_format(path)
+    if image_format:
+        raise ValueError(
+            f"{path} is a {image_format} image; use cleanup-image --report {path}"
+        )
     with open(path, "r", encoding="utf-8", errors="strict", newline="") as handle:
         return handle.read()
+
+
+def _recognized_image_format(path: str) -> str | None:
+    """Return a common image format from its file signature, not its suffix."""
+    with open(path, "rb") as handle:
+        header = handle.read(16)
+    if header.startswith(b"\x89PNG\r\n\x1a\n"):
+        return "PNG"
+    if header.startswith(b"\xff\xd8\xff"):
+        return "JPEG"
+    if header.startswith((b"GIF87a", b"GIF89a")):
+        return "GIF"
+    if header.startswith((b"II*\x00", b"MM\x00*")):
+        return "TIFF"
+    if header.startswith(b"BM"):
+        return "BMP"
+    if len(header) >= 12 and header[:4] == b"RIFF" and header[8:12] == b"WEBP":
+        return "WebP"
+    if len(header) >= 12 and header[4:8] == b"ftyp":
+        brand = header[8:12]
+        if brand in {b"avif", b"avis"}:
+            return "AVIF"
+        if brand in {b"heic", b"heix", b"hevc", b"hevx", b"mif1", b"msf1"}:
+            return "HEIF"
+    return None
 
 
 def _detect_eol(sample: str) -> str:
