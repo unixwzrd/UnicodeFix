@@ -103,7 +103,7 @@ cd UnicodeFix
 ./setup.sh
 ```
 
-`setup.sh` uses [pyproject.toml](pyproject.toml) as the dependency source of truth. It reuses an active Conda or virtual environment, or creates a local `.venv` when needed. It also installs the repository's pre-push check by default; use `--no-hooks` when you do not want the hook.
+`setup.sh` uses [pyproject.toml](pyproject.toml) as the dependency source of truth. It reuses an active Conda or virtual environment, or creates a local `.venv` when needed. In a Git checkout it installs the development checks plus a pre-push hook by default, recording the exact Python interpreter in the repository-local `unicodefix.python` Git configuration so the hook does not depend on the caller's shell environment. Use `--no-hooks` when you do not want the hook.
 
 ```bash
 ./setup.sh --dev                    # Editable install and development tools
@@ -324,7 +324,7 @@ Use it from Vim, an editor task, a pre-commit hook, Finder, a shell pipeline, or
 - [tests/](tests/) — automated feature and regression tests.
 - [docs/](docs/) — text/image CLI, API, research, test documentation, and macOS screenshots.
 - [macOS/Strip Unicode.shortcut](macOS/Strip%20Unicode.shortcut) — Finder Quick Action integration.
-- [scripts/run_checks.sh](scripts/run_checks.sh) — local release and pre-push checks.
+- [scripts/run_checks.sh](scripts/run_checks.sh) — local pre-push and release checks.
 - [setup.sh](setup.sh) — unified bootstrap and install script.
 
 ## Testing and CI/CD

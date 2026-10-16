@@ -45,6 +45,19 @@ while [[ $# -gt 0 ]]; do
     shift
 done
 
+if [[ ${install_hooks} -eq 1 && -d ".git" ]]; then
+    have_dev=0
+    for extra in "${extras[@]}"; do
+        if [[ "${extra}" == "dev" ]]; then
+            have_dev=1
+            break
+        fi
+    done
+    if [[ ${have_dev} -eq 0 ]]; then
+        extras+=("dev")
+    fi
+fi
+
 env_label=""
 created_env=0
 
@@ -79,9 +92,13 @@ fi
 
 if [[ ${install_hooks} -eq 1 && -d ".git" ]]; then
     mkdir -p .git/hooks
+    python_path="$(python -c 'import sys; print(sys.executable)')"
+    git config --local unicodefix.python "${python_path}"
     cp githooks/pre-push .git/hooks/pre-push
-    chmod +x .git/hooks/pre-push scripts/run_checks.sh
+    chmod +x .git/hooks/pre-push
     echo "Installed Git pre-push hook at .git/hooks/pre-push"
+    chmod +x scripts/run_checks.sh
+    echo "Configured Git checks to use ${python_path}"
 fi
 
 echo "UnicodeFix installed into ${env_label}."

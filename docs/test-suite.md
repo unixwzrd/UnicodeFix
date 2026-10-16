@@ -11,6 +11,8 @@ scripts/run_checks.sh
 
 `tests/test_all.sh` remains the shell integration harness for representative data fixtures. It produces test output and diffs for manual inspection; use `tests/test_all.sh clean` to remove its generated output.
 
+`setup.sh` installs `.git/hooks/pre-push`, which invokes `scripts/run_checks.sh` so Black, Ruff, and pytest must pass before changes leave the machine. The setup records the selected interpreter in the repository-local `unicodefix.python` Git configuration; `UNICODEFIX_PYTHON` can override it for a single run.
+
 ## 2.0 coverage
 
 The unit suite covers the versioned finding model, deterministic metrics, Unicode/default-ignorable and bidi signals, C2PA variation-selector and structured carriers, explicit provenance stripping, Markdown soft-break unwrapping, source context safety, watermark-profile outcomes, paragraph-level authorship-profile outcomes, CLI report formats, dry-run behavior, and category-aware threshold exit codes.
