@@ -1,6 +1,15 @@
 # Changelog for UnicodeFix
 
-Last updated: 2026-08-24
+Last updated: 2026-10-19
+
+## 20261019_00 - v2.0.2
+
+### **Automatic Image Routing**
+
+- Automatically route recognized image inputs in `cleanup-text` to the existing local image backend. Default cleanup removes non-rendering metadata into a separate `.clean` file while preserving pixel data and rendering metadata; C2PA removal still requires explicit `--strip-provenance`.
+- Support image audit, dry-run, explicit output, `--force`, metadata thresholds, and mixed text/image JSON and CSV reports. Reject text-only transformations and in-place/stdout image output with actionable errors.
+- Document automatic image routing while retaining the direct `cleanup-image` command and its audit-only default.
+- Bump package metadata, runtime version, README, and CI/install assertions to 2.0.2. Existing report schema versions remain unchanged.
 
 ## 20260824_00 - v2.0.1
 

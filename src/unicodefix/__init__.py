@@ -22,4 +22,4 @@ __all__ = [
     "scan_text_for_report",
     "unwrap_markdown",
 ]
-__version__ = "2.0.1"
+__version__ = "2.0.2"

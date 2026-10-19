@@ -1,6 +1,6 @@
 # `cleanup-text` CLI
 
-`cleanup-text` audits and safely cleans observable Unicode, provenance, and formatting artifacts. It operates locally, reads named files as strict UTF-8, and never treats a formatting pattern or negative detector result as an AI-authorship determination.
+`cleanup-text` audits and safely cleans observable Unicode, provenance, formatting artifacts, and image metadata. It operates locally, recognizes common image signatures before decoding, reads text files as strict UTF-8, and never treats a formatting pattern or negative detector result as an AI-authorship determination.
 
 ## Invocation
 
@@ -9,6 +9,22 @@ cleanup-text [options] [infile ...]
 ```
 
 No input files selects stdin-to-stdout filter mode. Named files produce `<base>.clean<extension>` by default. Use `--output FILE` with one input, `--output -` for stdout, or `--temp` for an atomic in-place replacement; add `--preserve-tmp` to copy the untouched original to the first unused `.tmp` or numbered `.tmp.N` backup name.
+
+## Automatic image cleanup
+
+PNG, JPEG, GIF, TIFF, BMP, WebP, HEIF, and AVIF signatures route to the existing image backend instead of UTF-8 decoding. Plain `cleanup-text image.png` selects non-rendering metadata cleanup and writes `image.clean.png`; `--strip-provenance` also selects recognized C2PA/JUMBF removal. Lossless writing requires ExifTool 12.70+ and a supported writable format (JPEG, PNG, WebP, TIFF, HEIF, or AVIF). Pixels, ICC profiles, orientation, and color-space tags are preserved. Recognized C2PA content requires explicit `--strip-provenance` before metadata cleanup.
+
+```bash
+cleanup-text image.png
+cleanup-text notes.txt image.png
+cleanup-text --report --metrics --json notes.txt image.png
+cleanup-text --dry-run image.png
+cleanup-text --strip-provenance --force -o public.png image.png
+```
+
+`--report` never writes; `--dry-run` reports planned image cleanup and fails if the backend cannot perform it. `--metrics` follows the existing text convention: audit by default, or a side report on stderr with an explicit output. JSON and CSV reports can contain both text and images, including image dimensions and metadata counts. Use `--threshold-category metadata` to select image metadata findings.
+
+Images require separate file output; `--temp`, `--preserve-tmp`, and `--output -` are rejected. Text-only transforms, preservation switches, `--diff`, and text detector profiles are also rejected for image inputs. `--force` permits replacing existing image output; it does not change text overwrite behavior. [The image guide](cleanup-image.md) describes the backend and provenance protections. `cleanup-image` remains available, with audit-only behavior when called without cleanup flags.
 
 ## Cleaning options
 
@@ -23,6 +39,7 @@ No input files selects stdin-to-stdout filter mode. Named files produce `<base>.
 | `--strip-provenance` | Remove complete, recognized local C2PA carriers. No URL is fetched; malformed carriers remain for review. |
 | `--unwrap-markdown` | Safely join Markdown soft breaks and format supported Markdown blocks. |
 | `--source` | Use conservative source-code cleanup. This cannot be combined with `--unwrap-markdown`. |
+| `--force` | Permit replacing an existing image output file. |
 
 `--strip-provenance` is intentional and explicit because C2PA credentials may be valuable provenance. UnicodeFix reports C2PA separately from AI generation and does not validate a signature or retrieve an external manifest.
 
@@ -45,7 +62,7 @@ No input files selects stdin-to-stdout filter mode. Named files produce `<base>.
 | `--no-color` | Disable ANSI color in human reports. |
 | `-q`, `--quiet` | Suppress status lines written to stderr. |
 
-Categories are `provenance`, `unicode_security`, `known_watermark`, `authorship_signal`, `typography`, and `formatting`. Human, JSON, and CSV reports use the same versioned findings model with signal, count, location, confidence, removability, and planned action. JSON keeps the detailed locations; CSV is intentionally aggregate-oriented.
+Text categories are `provenance`, `unicode_security`, `known_watermark`, `authorship_signal`, `typography`, and `formatting`; images also use `metadata`. Human, JSON, and CSV reports use the same versioned findings model with signal, count, location, confidence, removability, and planned action. JSON keeps the detailed locations; CSV is intentionally aggregate-oriented.
 
 ```bash
 # Preview every requested change without writing.

@@ -7,7 +7,12 @@ import stat
 import subprocess
 import sys
 
+import pytest
+from PIL import Image, PngImagePlugin
+
+from unicodefix import cli
 from unicodefix.c2pa import build_text_wrapper, encode_variation_selectors
+from unicodefix.image import ImageAuditError, audit_image
 from unicodefix.metrics import compute_metrics
 
 
@@ -24,6 +29,179 @@ def run_cli(args, stdin=None):
         check=False,
     )
     return process.returncode, process.stdout, process.stderr
+
+
+def _image_cli(monkeypatch, arguments):
+    monkeypatch.setattr(sys, "argv", ["cleanup-text", *arguments])
+    with pytest.raises(SystemExit) as result:
+        cli.main()
+    return result.value.code
+
+
+def _tagged_png(path):
+    metadata = PngImagePlugin.PngInfo()
+    metadata.add_text("Comment", "Test metadata")
+    Image.new("RGB", (4, 3), "blue").save(path, pnginfo=metadata)
+
+
+def test_image_dispatch_cleans_default_copy_and_mixed_text(tmp_path, monkeypatch):
+    image = tmp_path / "graphic.png"
+    text = tmp_path / "notes.txt"
+    _tagged_png(image)
+    original = image.read_bytes()
+    text.write_text("“hello”\u200b\n", encoding="utf-8")
+    calls = []
+
+    def fake_clean(source, output, **options):
+        calls.append((source, output, options))
+        before = audit_image(source, exiftool="missing-test-exiftool")
+        with Image.open(source) as pixels:
+            pixels.save(output)
+        return before, audit_image(output, exiftool="missing-test-exiftool")
+
+    monkeypatch.setattr(cli, "clean_image", fake_clean)
+    assert _image_cli(monkeypatch, [str(image), str(text)]) == 0
+    assert calls == [
+        (
+            str(image),
+            str(tmp_path / "graphic.clean.png"),
+            {"strip_metadata": True, "strip_provenance": False, "force": False},
+        )
+    ]
+    assert image.read_bytes() == original
+    with Image.open(tmp_path / "graphic.clean.png") as cleaned:
+        assert cleaned.getpixel((0, 0)) == (0, 0, 255)
+        assert "Comment" not in cleaned.info
+    assert (tmp_path / "notes.clean.txt").read_text() == '"hello"\n'
+
+
+def test_image_dispatch_forwards_explicit_output_provenance_and_force(
+    tmp_path, monkeypatch, capsys
+):
+    source = tmp_path / "graphic.png"
+    output = tmp_path / "public.png"
+    _tagged_png(source)
+    calls = []
+
+    def fake_clean(infile, outfile, **options):
+        calls.append((infile, outfile, options))
+        report = audit_image(infile, exiftool="missing-test-exiftool")
+        return report, report
+
+    monkeypatch.setattr(cli, "clean_image", fake_clean)
+    assert (
+        _image_cli(
+            monkeypatch,
+            [
+                "--strip-provenance",
+                "--force",
+                "--metrics",
+                "--json",
+                "-o",
+                str(output),
+                str(source),
+            ],
+        )
+        == 0
+    )
+    assert calls == [
+        (
+            str(source),
+            str(output),
+            {"strip_metadata": True, "strip_provenance": True, "force": True},
+        )
+    ]
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    # Status goes to stderr alongside the requested side report.
+    assert '"cleanup"' in captured.err
+    assert str(output) in captured.err
+
+
+@pytest.mark.parametrize("option", ["--report", "--dry-run"])
+def test_image_audit_and_preview_never_write(tmp_path, monkeypatch, capsys, option):
+    source = tmp_path / "graphic.png"
+    _tagged_png(source)
+    original = source.read_bytes()
+    monkeypatch.setattr(
+        cli,
+        "audit_image",
+        lambda path: audit_image(path, exiftool="missing-test-exiftool"),
+    )
+    code = _image_cli(monkeypatch, [option, "--json", str(source)])
+    assert code == (1 if option == "--dry-run" else 0)
+    report = json.loads(capsys.readouterr().out)[str(source)]
+    assert report["kind"] == "image"
+    if option == "--dry-run":
+        assert report["planned"]["actions"] == ["remove_non_rendering_metadata"]
+        assert report["planned"]["backend_ready"] is False
+    else:
+        assert "planned" not in report
+    assert source.read_bytes() == original
+    assert list(tmp_path.iterdir()) == [source]
+
+
+@pytest.mark.parametrize(
+    "arguments",
+    [
+        ["--temp"],
+        ["--output", "-"],
+        ["--source"],
+        ["--unwrap-markdown"],
+        ["--dry-run", "--diff"],
+    ],
+)
+def test_image_dispatch_rejects_text_options_without_writing(
+    tmp_path, monkeypatch, capsys, arguments
+):
+    source = tmp_path / "graphic.png"
+    _tagged_png(source)
+    original = source.read_bytes()
+    assert _image_cli(monkeypatch, [*arguments, str(source)]) == 1
+    assert "Image input does not support" in capsys.readouterr().err
+    assert source.read_bytes() == original
+    assert list(tmp_path.iterdir()) == [source]
+
+
+def test_image_backend_failure_is_reported_without_text_fallback(
+    tmp_path, monkeypatch, capsys
+):
+    source = tmp_path / "graphic.png"
+    _tagged_png(source)
+
+    def fail(*args, **kwargs):
+        raise ImageAuditError(
+            "Metadata cleanup could invalidate C2PA provenance; add --strip-provenance explicitly"
+        )
+
+    monkeypatch.setattr(cli, "clean_image", fail)
+    assert _image_cli(monkeypatch, [str(source)]) == 1
+    error = capsys.readouterr().err
+    assert "--strip-provenance" in error
+    assert "UTF-8" not in error
+    assert not (tmp_path / "graphic.clean.png").exists()
+
+
+@pytest.mark.parametrize("format_flag", ["--json", "--csv"])
+def test_mixed_image_text_report_has_one_structured_document(tmp_path, format_flag):
+    image = tmp_path / "graphic.png"
+    text = tmp_path / "notes.txt"
+    _tagged_png(image)
+    text.write_text("hello\u200b\n", encoding="utf-8")
+    code, stdout, stderr = run_cli(["--report", format_flag, str(image), str(text)])
+    assert code == 0, stderr
+    if format_flag == "--json":
+        reports = json.loads(stdout)
+        assert set(reports) == {str(image), str(text)}
+        assert reports[str(image)]["kind"] == "image"
+        assert reports[str(text)]["total"] > 0
+    else:
+        rows = list(csv.DictReader(io.StringIO(stdout)))
+        assert [row["file"] for row in rows] == [str(image), str(text)]
+        assert int(rows[0]["metadata"]) > 0
+        assert rows[0]["width"] == "4"
+    assert not (tmp_path / "graphic.clean.png").exists()
+    assert not (tmp_path / "notes.clean.txt").exists()
 
 
 def test_dry_run_json_is_non_mutating_and_reports_before_after(tmp_path):

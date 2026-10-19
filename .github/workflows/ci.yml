@@ -126,7 +126,7 @@ jobs:
         /tmp/unicodefix-install/bin/python -m pip install "$wheel_path"
         /tmp/unicodefix-install/bin/cleanup-text --version
         /tmp/unicodefix-install/bin/cleanup-image --version
-        /tmp/unicodefix-install/bin/python -c "import unicodefix; assert unicodefix.__version__ == '2.0.1'"
+        /tmp/unicodefix-install/bin/python -c "import unicodefix; assert unicodefix.__version__ == '2.0.2'"
 
   shellcheck:
     name: Shell Script Linting

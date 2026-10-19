@@ -19,6 +19,8 @@ except ModuleNotFoundError:  # pragma: no cover - Python 3.10
 
 from unicodefix.authorship import detect_authorship_profiles
 from unicodefix.c2pa import find_c2pa_carriers
+from unicodefix.image import audit_image, clean_image, plan_image_cleanup
+from unicodefix.image_cli import print_image_report
 from unicodefix.markdown import audit_markdown, unwrap_markdown
 from unicodefix.metrics import compute_metrics
 from unicodefix.report import print_csv, print_human, print_json, print_metrics_help
@@ -320,11 +322,18 @@ def _unified_diff(path: str, raw: str, cleaned: str) -> str:
 def run_report(files: list[str], args: argparse.Namespace) -> int:
     results: dict[str, dict[str, Any]] = {}
     threshold_hit = False
+    cleanup_unavailable = False
     for path in files:
         try:
-            raw = _read_text(path)
-            cleaned = _clean_content(raw, args, path) if args.dry_run else None
-            data = _build_report_data(raw, args, path=path, cleaned=cleaned)
+            cleaned = None
+            if path != "-" and _recognized_image_format(path):
+                data = _process_image(path, args, write=False)
+                if args.dry_run and not data["planned"]["backend_ready"]:
+                    cleanup_unavailable = True
+            else:
+                raw = _read_text(path)
+                cleaned = _clean_content(raw, args, path) if args.dry_run else None
+                data = _build_report_data(raw, args, path=path, cleaned=cleaned)
         except (OSError, UnicodeError, ValueError, TypeError, RuntimeError) as exc:
             log(f"[x] Failed to inspect {path}: {exc}")
             return 1
@@ -336,16 +345,81 @@ def run_report(files: list[str], args: argparse.Namespace) -> int:
         ):
             threshold_hit = True
         if not args.json and not args.csv:
-            print_human(key, data, no_color=args.no_color)
+            _print_human_report(key, data, args)
             if args.diff and cleaned is not None:
                 sys.stdout.write(_unified_diff(key, raw, cleaned))
     if args.json:
-        print_json(results)
+        print_json(results, file=sys.stdout)
     elif args.csv:
-        print_csv(results)
+        print_csv(results, file=sys.stdout)
     if args.exit_zero:
         return 0
-    return int(threshold_hit)
+    return int(threshold_hit or cleanup_unavailable)
+
+
+def _print_human_report(
+    path: str, data: dict[str, Any], args: argparse.Namespace, *, file=None
+) -> None:
+    if file is None:
+        file = sys.stdout
+    renderer = print_image_report if data.get("kind") == "image" else print_human
+    renderer(path, data, no_color=args.no_color, file=file)
+
+
+def _process_image(
+    path: str, args: argparse.Namespace, *, write: bool
+) -> dict[str, Any]:
+    incompatible = {
+        "--temp": args.temp,
+        "--preserve-tmp": args.preserve_tmp,
+        "--output -": args.output == "-",
+        "--invisible": args.invisible,
+        "--preserve-default-ignorables": args.preserve_default_ignorables,
+        "--keep-smart-quotes": args.keep_smart_quotes,
+        "--keep-dashes": args.keep_dashes,
+        "--keep-fullwidth-brackets": args.keep_fullwidth_brackets,
+        "--no-newline": args.no_newline,
+        "--unwrap-markdown": args.unwrap_markdown,
+        "--source": args.source,
+        "--diff": args.diff,
+        "--watermark-profile": args.watermark_profile,
+        "--authorship-profile": args.authorship_profile,
+    }
+    selected = [option for option, active in incompatible.items() if active]
+    if selected:
+        raise ValueError(
+            f"Image input does not support {', '.join(selected)}; "
+            "use file output and image report/cleanup options"
+        )
+    if write:
+        source = Path(path)
+        output = args.output or str(
+            source.with_name(f"{source.stem}.clean{source.suffix}")
+        )
+        before, after = clean_image(
+            path,
+            output,
+            strip_metadata=True,
+            strip_provenance=args.strip_provenance,
+            force=args.force,
+        )
+        data = before
+        data["cleanup"] = {
+            "output": output,
+            "before_finding_count": before["total"],
+            "after_finding_count": after["total"],
+            "removed_findings": max(0, before["total"] - after["total"]),
+        }
+        log(f"[ok] Cleaned image: {path} -> {output}")
+    else:
+        data = audit_image(path)
+        if args.dry_run:
+            data["planned"] = plan_image_cleanup(
+                data, strip_metadata=True, strip_provenance=args.strip_provenance
+            )
+    # Expose image structure through the shared aggregate CSV/metrics renderer.
+    data["metrics"] = dict(data["image"])
+    return data
 
 
 def run_filter_mode(args: argparse.Namespace) -> None:
@@ -378,6 +452,21 @@ def _side_report(path: str, raw: str, args: argparse.Namespace) -> int:
 
 def process_file(infile: str, args: argparse.Namespace) -> int:
     try:
+        if _recognized_image_format(infile):
+            data = _process_image(infile, args, write=True)
+            if args.metrics:
+                target = args.label or infile
+                if args.json:
+                    print_json({target: data}, file=sys.stderr)
+                elif args.csv:
+                    print_csv({target: data}, file=sys.stderr)
+                else:
+                    _print_human_report(target, data, args, file=sys.stderr)
+                if args.threshold is not None:
+                    return int(
+                        _category_total(data, args.threshold_category) >= args.threshold
+                    )
+            return 0
         raw = _read_text(infile)
         eol = _detect_eol(raw)
         cleaned = _clean_content(raw, args, infile)
@@ -414,7 +503,7 @@ def process_file(infile: str, args: argparse.Namespace) -> int:
 
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Audit and safely clean Unicode, provenance, and formatting artifacts."
+        description="Audit and safely clean text artifacts or image metadata; image files are detected automatically."
     )
     parser.add_argument("infile", nargs="*", help="Input file(s)")
     parser.add_argument(
@@ -442,6 +531,9 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--unwrap-markdown", action="store_true")
     parser.add_argument("--strip-provenance", action="store_true")
     parser.add_argument(
+        "--force", action="store_true", help="Allow replacing an existing image output"
+    )
+    parser.add_argument(
         "--source", action="store_true", help="Use conservative source-code handling"
     )
 
@@ -466,6 +558,7 @@ def _parser() -> argparse.ArgumentParser:
         action="append",
         choices=(
             "provenance",
+            "metadata",
             "unicode_security",
             "known_watermark",
             "authorship_signal",

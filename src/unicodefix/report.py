@@ -178,6 +178,8 @@ def print_csv(all_results: dict[str, Any], *, file: TextIO = sys.stdout) -> None
         "typography",
         "formatting",
     ]
+    if any(data.get("kind") == "image" for data in all_results.values()):
+        categories.append("metadata")
     planned_keys = sorted(
         {
             key

@@ -1,6 +1,6 @@
-# UnicodeFix — *Ghostmark Edition v2.0.1* — it finds what your editor does not show.
+# UnicodeFix — *Ghostmark Edition v2.0.2* — it finds what your editor does not show.
 
-*Last updated: 2026-08-24*
+*Last updated: 2026-10-19*
 
 ![UnicodeFix — Filtering AI Artifacts](docs/unicodefix-banner-titled.png)
 
@@ -89,6 +89,7 @@ cleanup-text document.txt
 cleanup-text --unwrap-markdown README.md
 cleanup-text --strip-provenance document.md
 cleanup-text --source app.py
+cleanup-text graphic.png
 ```
 
 With no input file, UnicodeFix is a stdin-to-stdout filter. With input files, it writes `<name>.clean<extension>` unless `--output`, `--temp`, or stdout output is selected.
@@ -190,6 +191,17 @@ It also preserves explicit hard breaks, blank lines in loose lists, multiple par
 
 ## Image metadata and provenance
 
+`cleanup-text` automatically recognizes common image signatures and uses the same local image backend. Plain `cleanup-text graphic.png` removes non-rendering metadata into `graphic.clean.png`; `--report` audits, `--dry-run` previews metadata cleanup, and `--strip-provenance` additionally removes recognized C2PA provenance. You can pass text and image files together. Images keep their pixels, ICC profiles, orientation, and color-space tags. Existing image output requires `--force` to replace it.
+
+```bash
+cleanup-text graphic.png
+cleanup-text --report --json notes.txt graphic.png
+cleanup-text --dry-run graphic.png
+cleanup-text --strip-provenance -o share.png graphic.png
+```
+
+Image inputs reject text-specific switches such as `--source`, `--unwrap-markdown`, and `--diff`, as well as stdout and in-place output. Choose a separate output file for images. Text stdin/filter behavior is unchanged.
+
 `cleanup-image` audits supported raster images locally, inventories removable metadata, identifies C2PA/JUMBF tags when the local backend can read them, and reports location, identity/device, editing, and other metadata separately. Audit mode needs no external service:
 
 ```bash
@@ -254,7 +266,7 @@ cleanup-text --report --watermark-profile research/watermarks/profiles/example-k
 cleanup-text --report --json --authorship-profile research/watermarks/profiles/example-authorship.toml text.txt
 ```
 
-A small local GGUF or llama.cpp-compatible model is a plausible future backend for these model-distribution measurements, but model size does not turn the result into proof. The reference model, tokenizer, quantization, corpus, text length, domain, language, and calibration all affect the distribution. This release's research review did not locate a documented Apple Intelligence interface that exposes the general-purpose token log probabilities required by this detector, so Apple Intelligence is not a UnicodeFix backend in 2.0.1.
+A small local GGUF or llama.cpp-compatible model is a plausible future backend for these model-distribution measurements, but model size does not turn the result into proof. The reference model, tokenizer, quantization, corpus, text length, domain, language, and calibration all affect the distribution. This release's research review did not locate a documented Apple Intelligence interface that exposes the general-purpose token log probabilities required by this detector, so Apple Intelligence is not a UnicodeFix backend in 2.0.2.
 
 UnicodeFix uses local-only artifact loading and never contacts a vendor service or model hub. It cannot generically find or remove unknown, proprietary, lexical, semantic, or source-code watermarks. A statistical watermark intentionally introduced during token sampling can often be weakened by editing, but UnicodeFix will not damage prose blindly in an attempt to erase an unknown scheme.
 

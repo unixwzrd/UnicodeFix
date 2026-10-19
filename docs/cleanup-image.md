@@ -2,6 +2,8 @@
 
 UnicodeFix 2.0.1 adds a separate local image path so text normalization never accidentally reserializes a binary asset.
 
+`cleanup-text` now routes recognized image signatures to this same backend automatically. `cleanup-text image.png` is equivalent to `cleanup-image --strip-metadata image.png`; it writes `image.clean.png`. Its `--report`, `--dry-run`, `--output`, `--force`, and `--strip-provenance` options apply to the image path, and text/image inputs may be mixed. Unlike `cleanup-text`, calling `cleanup-image` with no cleanup flags remains an audit. Image inputs through either command require separate output files; the text command's in-place, stdout, and text-transform options are not supported for images.
+
 ```text
 cleanup-image [options] infile [infile ...]
 ```

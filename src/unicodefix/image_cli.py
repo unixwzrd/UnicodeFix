@@ -6,7 +6,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, TextIO
 
 from rich.console import Console
 from rich.table import Table
@@ -25,8 +25,14 @@ def _default_output(path: str) -> str:
     return str(source.with_name(f"{source.stem}.clean{source.suffix}"))
 
 
-def _print_human(path: str, report: dict[str, Any], *, no_color: bool) -> None:
-    console = Console(no_color=no_color)
+def print_image_report(
+    path: str,
+    report: dict[str, Any],
+    *,
+    no_color: bool,
+    file: TextIO | None = None,
+) -> None:
+    console = Console(no_color=no_color, file=file)
     image = report["image"]
     backend = report["backend"]["exiftool"]
     console.print(f"\nImage: {path}", style="bold")
@@ -62,6 +68,8 @@ def _print_human(path: str, report: dict[str, Any], *, no_color: bool) -> None:
         console.print(
             f"Planned actions: {', '.join(report['planned']['actions']) or 'none'}"
         )
+        if report["planned"]["backend_message"]:
+            console.print(report["planned"]["backend_message"], style="yellow")
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -153,7 +161,7 @@ def main() -> None:
         print(json.dumps(results, indent=2, ensure_ascii=False))
     else:
         for path, report in results.items():
-            _print_human(path, report, no_color=args.no_color)
+            print_image_report(path, report, no_color=args.no_color)
     raise SystemExit(exit_code)
 
 
