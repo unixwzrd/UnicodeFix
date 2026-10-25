@@ -23,7 +23,7 @@ Source cases must show that comment cleanup can remove supported carriers while 
 
 Dry-run cases must confirm no file write occurs and that the predicted cleanup equals a subsequent actual cleanup. Human, JSON, and CSV reports must use the same findings source, although CSV intentionally contains aggregate values.
 
-Image cases validate Pillow-only audit, metadata classification, invalid-image rejection, old/missing ExifTool behavior, safe command construction, separate output placement, post-clean verification, and explicit unsupported status for pixel-domain schemes. CI does not download a detector or require a system ExifTool for read-only image tests.
+Image cases validate Pillow-only audit, metadata classification, uncompressed/Deflate/LZW TIFF audit and pixel preservation, invalid-image rejection, old/missing ExifTool behavior, safe command construction, separate output placement, post-clean verification, and explicit unsupported status for pixel-domain schemes. CI does not download a detector or require a system ExifTool for read-only image tests.
 
 ## Local watermark experiments
 

@@ -3,7 +3,7 @@ import subprocess
 from pathlib import Path
 
 import pytest
-from PIL import Image
+from PIL import Image, TiffImagePlugin, features
 
 from unicodefix import image as image_module
 from unicodefix.image import (
@@ -55,6 +55,34 @@ def test_audit_rejects_non_image(tmp_path):
 
     with pytest.raises(ImageAuditError, match="Not a supported or valid image"):
         audit_image(source, exiftool="definitely-missing-exiftool")
+
+
+@pytest.mark.parametrize("compression", ["raw", "tiff_adobe_deflate", "tiff_lzw"])
+def test_tiff_audit_preserves_pixels_and_inventories_metadata(tmp_path, compression):
+    if compression != "raw" and not features.check("libtiff"):
+        pytest.skip("Compressed TIFF support requires libtiff")
+    source = tmp_path / "tagged.tiff"
+    tags = TiffImagePlugin.ImageFileDirectory_v2()
+    tags[315] = "Example Artist"
+    Image.new("RGB", (4, 3), (12, 34, 56)).save(
+        source, compression=compression, tiffinfo=tags
+    )
+    original = source.read_bytes()
+
+    report = audit_image(source, exiftool="definitely-missing-exiftool")
+
+    assert report["image"]["format"] == "TIFF"
+    assert report["image"]["width"] == 4
+    assert report["image"]["height"] == 3
+    assert any(
+        "EXIF:Artist" in finding["details"]["tags"]
+        for finding in report["findings"]
+        if finding["signal"] == "identity_or_device_metadata"
+    )
+    with Image.open(source) as image:
+        image.load()
+        assert image.getpixel((0, 0)) == (12, 34, 56)
+    assert source.read_bytes() == original
 
 
 def test_structural_container_tags_are_not_reported_as_metadata():

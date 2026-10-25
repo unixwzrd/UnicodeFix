@@ -10,7 +10,7 @@ Runs on every push and pull request to `main`, `master`, or `develop` branches.
 
 **Jobs:**
 
-1. **Test Suite** - Runs on Python 3.10-3.14 and operating systems (Ubuntu, macOS)
+1. **Test Suite** - Runs on Python 3.11-3.14 and operating systems (Ubuntu, macOS)
    - Installs dependencies
    - Runs Python unit tests with pytest and coverage
    - Runs integration test suite (`tests/test_all.sh`)

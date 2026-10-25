@@ -1,6 +1,6 @@
 # UnicodeFix Python API
 
-UnicodeFix 2.0 exposes focused local primitives. Results describe observable data; they do not assign AI authorship. Python 3.10 or newer is required.
+UnicodeFix 2.0 exposes focused local primitives. Results describe observable data; they do not assign AI authorship. Python 3.11 or newer is required.
 
 ## Core cleaning
 

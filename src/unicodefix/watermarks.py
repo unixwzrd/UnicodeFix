@@ -9,15 +9,10 @@ from __future__ import annotations
 
 import hashlib
 import json
+import tomllib
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
-
-try:
-    import tomllib
-except ModuleNotFoundError:  # pragma: no cover - Python 3.10
-    import tomli as tomllib
-
 
 STATUSES = {
     "detected",

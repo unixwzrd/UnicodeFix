@@ -14,7 +14,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
-        python-version: ['3.10', '3.11', '3.12', '3.13', '3.14']
+        python-version: ['3.11', '3.12', '3.13', '3.14']
 
     steps:
     - name: Checkout code
@@ -126,7 +126,7 @@ jobs:
         /tmp/unicodefix-install/bin/python -m pip install "$wheel_path"
         /tmp/unicodefix-install/bin/cleanup-text --version
         /tmp/unicodefix-install/bin/cleanup-image --version
-        /tmp/unicodefix-install/bin/python -c "import unicodefix; assert unicodefix.__version__ == '2.0.2'"
+        /tmp/unicodefix-install/bin/python -c "import unicodefix; assert unicodefix.__version__ == '2.0.3'"
 
   shellcheck:
     name: Shell Script Linting

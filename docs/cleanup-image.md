@@ -4,6 +4,8 @@ UnicodeFix 2.0.1 adds a separate local image path so text normalization never ac
 
 `cleanup-text` now routes recognized image signatures to this same backend automatically. `cleanup-text image.png` is equivalent to `cleanup-image --strip-metadata image.png`; it writes `image.clean.png`. Its `--report`, `--dry-run`, `--output`, `--force`, and `--strip-provenance` options apply to the image path, and text/image inputs may be mixed. Unlike `cleanup-text`, calling `cleanup-image` with no cleanup flags remains an audit. Image inputs through either command require separate output files; the text command's in-place, stdout, and text-transform options are not supported for images.
 
+UnicodeFix 2.0.3 requires Python 3.11+ and Pillow 13.0.0+ for the upstream TIFF-decoding and GIF resource-exhaustion security fixes. Updating an older installation must upgrade its dependencies as well as UnicodeFix.
+
 ```text
 cleanup-image [options] infile [infile ...]
 ```
@@ -37,6 +39,7 @@ The default output is `<name>.clean<extension>`. Existing output is rejected unl
 
 ## Limits
 
+- Some TIFF metadata cannot be removed by the current ExifTool command because it is retained in the main image IFD. When removable tags remain, UnicodeFix refuses to publish a cleaned output; TIFF audit still works. This limitation also occurs with the previous Pillow release.
 - C2PA is provenance, not proof of AI generation. Removing it discards provenance and may invalidate a signed Content Credential.
 - UnicodeFix inventories and removes local carrier data but does not validate a C2PA signature or retrieve an external manifest.
 - Metadata removal cannot erase a visible logo or a signal embedded in image pixels.

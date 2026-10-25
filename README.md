@@ -1,10 +1,10 @@
-# UnicodeFix — *Ghostmark Edition v2.0.2* — it finds what your editor does not show.
+# UnicodeFix — *Ghostmark Edition v2.0.3* — it finds what your editor does not show.
 
-*Last updated: 2026-10-19*
+*Last updated: 2026-10-24*
 
 ![UnicodeFix — Filtering AI Artifacts](docs/unicodefix-banner-titled.png)
 
-[![Python](https://img.shields.io/badge/Python-3.10%2B-blue)](#installation) [![Platforms](https://img.shields.io/badge/Platforms-macOS%20%7C%20Ubuntu-informational)](#installation) [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE) [![Release](https://img.shields.io/github/v/tag/unixwzrd/UnicodeFix?label=release)](https://github.com/unixwzrd/UnicodeFix/releases) [![CI](https://github.com/unixwzrd/UnicodeFix/actions/workflows/ci.yml/badge.svg)](.github/workflows/ci.yml)
+[![Python](https://img.shields.io/badge/Python-3.11%2B-blue)](#installation) [![Platforms](https://img.shields.io/badge/Platforms-macOS%20%7C%20Ubuntu-informational)](#installation) [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE) [![Release](https://img.shields.io/github/v/tag/unixwzrd/UnicodeFix?label=release)](https://github.com/unixwzrd/UnicodeFix/releases) [![CI](https://github.com/unixwzrd/UnicodeFix/actions/workflows/ci.yml/badge.svg)](.github/workflows/ci.yml)
 
 Invisible characters. Provenance wrappers. Image metadata. Configured statistical watermarks. Hard-wrapped Markdown. Source comments carrying hidden payloads. UnicodeFix audits the evidence, shows exactly where it lives, previews the cleanup, and removes only what it can identify safely.
 
@@ -96,7 +96,7 @@ With no input file, UnicodeFix is a stdin-to-stdout filter. With input files, it
 
 ## Installation
 
-Python 3.10 or newer is required.
+Python 3.11 or newer is required. UnicodeFix 2.0.3 requires Pillow 13.0.0 or newer to address the upstream TIFF-decoding and GIF resource-exhaustion vulnerabilities flagged by Dependabot. Python 3.10 is no longer supported because the patched Pillow release requires Python 3.11+.
 
 ```bash
 git clone https://github.com/unixwzrd/UnicodeFix.git
@@ -266,7 +266,7 @@ cleanup-text --report --watermark-profile research/watermarks/profiles/example-k
 cleanup-text --report --json --authorship-profile research/watermarks/profiles/example-authorship.toml text.txt
 ```
 
-A small local GGUF or llama.cpp-compatible model is a plausible future backend for these model-distribution measurements, but model size does not turn the result into proof. The reference model, tokenizer, quantization, corpus, text length, domain, language, and calibration all affect the distribution. This release's research review did not locate a documented Apple Intelligence interface that exposes the general-purpose token log probabilities required by this detector, so Apple Intelligence is not a UnicodeFix backend in 2.0.2.
+A small local GGUF or llama.cpp-compatible model is a plausible future backend for these model-distribution measurements, but model size does not turn the result into proof. The reference model, tokenizer, quantization, corpus, text length, domain, language, and calibration all affect the distribution. This release's research review did not locate a documented Apple Intelligence interface that exposes the general-purpose token log probabilities required by this detector, so Apple Intelligence is not a UnicodeFix backend in 2.0.3.
 
 UnicodeFix uses local-only artifact loading and never contacts a vendor service or model hub. It cannot generically find or remove unknown, proprietary, lexical, semantic, or source-code watermarks. A statistical watermark intentionally introduced during token sampling can often be weakened by editing, but UnicodeFix will not damage prose blindly in an attempt to erase an unknown scheme.
 

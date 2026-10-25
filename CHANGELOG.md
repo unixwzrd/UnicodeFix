@@ -1,6 +1,15 @@
 # Changelog for UnicodeFix
 
-Last updated: 2026-10-19
+Last updated: 2026-10-24
+
+## 20261024_00 - v2.0.3
+
+### **Pillow Security Update**
+
+- Require `Pillow>=13.0.0,<14` so installation selects the patched release for Dependabot alerts #1–#3: [TIFF unpacker buffer over-read (CVE-2026-112404)](https://github.com/advisories/GHSA-c6hw-5grf-ff96), [tiled-TIFF buffer over-read (CVE-2026-112395)](https://github.com/advisories/GHSA-462x-pgg6-55fp), and [GIF resource exhaustion after a rejected frame size (CVE-2026-112400)](https://github.com/advisories/GHSA-65qm-jvmh-6pqg). The former `<13` upper bound excluded every patched version.
+- Raise the minimum Python version to 3.11 to match Pillow 13; drop Python 3.10 from CI and remove its `tomli` dependency and import fallbacks in favor of standard-library `tomllib`.
+- Update package/runtime versions, current documentation, tool targets, and CI/install assertions to 2.0.3. Existing report schema versions remain unchanged.
+- Add regression coverage for metadata inventory and unchanged pixels/files when auditing uncompressed, Deflate, and LZW TIFF images with the patched Pillow backend.
 
 ## 20261019_00 - v2.0.2
 

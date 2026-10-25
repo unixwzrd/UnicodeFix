@@ -8,14 +8,10 @@ import os
 import shutil
 import sys
 import tempfile
+import tomllib
 from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 from typing import Any
-
-try:
-    import tomllib
-except ModuleNotFoundError:  # pragma: no cover - Python 3.10
-    import tomli as tomllib
 
 from unicodefix.authorship import detect_authorship_profiles
 from unicodefix.c2pa import find_c2pa_carriers

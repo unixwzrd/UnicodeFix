@@ -114,7 +114,7 @@ def test_metrics_with_explicit_output_uses_stderr_not_stdout(tmp_path: pathlib.P
 def test_version_flag_reports_current_version():
     code, out, err = run_cli(["--version"])
     assert code == 0, f"Expected exit code 0, got {code}. stderr: {err}"
-    assert "2.0.2" in out, f"Expected version output, got: {out!r}"
+    assert "2.0.3" in out, f"Expected version output, got: {out!r}"
 
 
 def test_text_cli_routes_recognized_png_to_image_cli(tmp_path: pathlib.Path):

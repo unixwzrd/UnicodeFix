@@ -11,14 +11,10 @@ import hashlib
 import json
 import math
 import re
+import tomllib
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
-
-try:
-    import tomllib
-except ModuleNotFoundError:  # pragma: no cover - Python 3.10
-    import tomli as tomllib
 
 STATUSES = {
     "potentially_ai_generated",
