@@ -34,7 +34,7 @@ def print_image_report(
 ) -> None:
     console = Console(no_color=no_color, file=file)
     image = report["image"]
-    backend = report["backend"]["exiftool"]
+    backend = report["backend"]
     console.print(f"\nImage: {path}", style="bold")
     console.print(
         f"{image['format']} {image['width']}x{image['height']} {image['mode']}  "
@@ -57,7 +57,7 @@ def print_image_report(
     else:
         console.print("Findings: none", style="green")
     status = "ready" if backend["write_supported"] else "audit only"
-    console.print(f"ExifTool: {backend['version'] or 'unavailable'} ({status})")
+    console.print(f"Built-in container backend: {status}")
     if backend["message"]:
         console.print(backend["message"], style="yellow")
     console.print(
@@ -96,7 +96,6 @@ def _parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--json", action="store_true")
     parser.add_argument("--no-color", action="store_true")
-    parser.add_argument("--exiftool", default="exiftool", help=argparse.SUPPRESS)
     parser.add_argument(
         "-V", "--version", action="version", version=f"%(prog)s {__version__}"
     )
@@ -123,7 +122,7 @@ def main() -> None:
     for infile in dict.fromkeys(args.infile):
         try:
             if args.report or args.dry_run:
-                report = audit_image(infile, exiftool=args.exiftool)
+                report = audit_image(infile)
                 if args.strip_metadata or args.strip_provenance:
                     report["planned"] = plan_image_cleanup(
                         report,
@@ -140,7 +139,6 @@ def main() -> None:
                     outfile,
                     strip_metadata=args.strip_metadata,
                     strip_provenance=args.strip_provenance,
-                    exiftool=args.exiftool,
                     force=args.force,
                 )
                 report = before

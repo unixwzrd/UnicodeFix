@@ -54,10 +54,10 @@ def test_image_dispatch_cleans_default_copy_and_mixed_text(tmp_path, monkeypatch
 
     def fake_clean(source, output, **options):
         calls.append((source, output, options))
-        before = audit_image(source, exiftool="missing-test-exiftool")
+        before = audit_image(source)
         with Image.open(source) as pixels:
             pixels.save(output)
-        return before, audit_image(output, exiftool="missing-test-exiftool")
+        return before, audit_image(output)
 
     monkeypatch.setattr(cli, "clean_image", fake_clean)
     assert _image_cli(monkeypatch, [str(image), str(text)]) == 0
@@ -85,7 +85,7 @@ def test_image_dispatch_forwards_explicit_output_provenance_and_force(
 
     def fake_clean(infile, outfile, **options):
         calls.append((infile, outfile, options))
-        report = audit_image(infile, exiftool="missing-test-exiftool")
+        report = audit_image(infile)
         return report, report
 
     monkeypatch.setattr(cli, "clean_image", fake_clean)
@@ -123,18 +123,13 @@ def test_image_audit_and_preview_never_write(tmp_path, monkeypatch, capsys, opti
     source = tmp_path / "graphic.png"
     _tagged_png(source)
     original = source.read_bytes()
-    monkeypatch.setattr(
-        cli,
-        "audit_image",
-        lambda path: audit_image(path, exiftool="missing-test-exiftool"),
-    )
     code = _image_cli(monkeypatch, [option, "--json", str(source)])
-    assert code == (1 if option == "--dry-run" else 0)
+    assert code == 0
     report = json.loads(capsys.readouterr().out)[str(source)]
     assert report["kind"] == "image"
     if option == "--dry-run":
         assert report["planned"]["actions"] == ["remove_non_rendering_metadata"]
-        assert report["planned"]["backend_ready"] is False
+        assert report["planned"]["backend_ready"] is True
     else:
         assert "planned" not in report
     assert source.read_bytes() == original

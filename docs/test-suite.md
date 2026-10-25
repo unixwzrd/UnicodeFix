@@ -23,7 +23,7 @@ Source cases must show that comment cleanup can remove supported carriers while 
 
 Dry-run cases must confirm no file write occurs and that the predicted cleanup equals a subsequent actual cleanup. Human, JSON, and CSV reports must use the same findings source, although CSV intentionally contains aggregate values.
 
-Image cases validate Pillow-only audit, metadata classification, uncompressed/Deflate/LZW TIFF audit and pixel preservation, invalid-image rejection, old/missing ExifTool behavior, safe command construction, separate output placement, post-clean verification, and explicit unsupported status for pixel-domain schemes. CI does not download a detector or require a system ExifTool for read-only image tests.
+Image cases exercise real built-in PNG/JPEG/WebP cleanup with subprocess execution forbidden. Fixtures cover progressive JPEG, animated PNG/WebP, compressed-payload hashes, decoded pixels for every frame, ICC/orientation/color-space retention, text/EXIF/XMP cleanup, C2PA carrier protection and explicit removal (including fragmented JPEG APP11), malformed carriers and framing, unknown-block retention, idempotence, output collisions, and dry-run behavior. Uncompressed/Deflate/LZW TIFF cases prove audit-only reporting and absence of output writes. CI does not require an external executable, vendor service, or detector download.
 
 ## Local watermark experiments
 

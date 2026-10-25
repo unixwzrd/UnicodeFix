@@ -78,7 +78,7 @@ plan = plan_image_cleanup(report, strip_metadata=True, strip_provenance=False)
 before, after = clean_image('photo.jpg', 'photo.clean.jpg', strip_metadata=True, strip_provenance=False)
 ```
 
-`audit_image()` validates and inventories an image locally. Its 2.0.1 findings separate metadata from C2PA/JUMBF provenance and expose backend status plus explicit pixel-watermark limitations. `clean_image()` requires ExifTool 12.70 or newer, never accepts the same input/output path, preserves rendering-critical metadata during general cleanup, refuses metadata mutation of recognized C2PA content unless provenance removal is explicit, and removes JUMBF only when `strip_provenance=True`.
+`audit_image()` validates and inventories an image locally. Image schema `2.1` separates metadata from C2PA/JUMBF provenance and exposes `backend.name`, `backend.write_supported`, `backend.metadata_source`, and `backend.message`, plus explicit pixel-watermark limitations. The former ExifTool backend field, API keyword, and CLI option are removed without compatibility shims. `clean_image()` uses the built-in PNG/JPEG/WebP container writer, never accepts the same input/output path, preserves encoded image payloads and rendering-critical metadata, refuses metadata mutation of recognized C2PA content unless provenance removal is explicit, and removes recognized carriers only when `strip_provenance=True`. Other image formats are audit-only. Inputs are limited to 256 MiB; unsupported metadata variants and malformed carriers are reported and cannot be rewritten. No subprocess or network service is used.
 
 ## Local watermark profiles
 

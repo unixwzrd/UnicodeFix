@@ -12,7 +12,7 @@ No input files selects stdin-to-stdout filter mode. Named files produce `<base>.
 
 ## Automatic image cleanup
 
-PNG, JPEG, GIF, TIFF, BMP, WebP, HEIF, and AVIF signatures route to the existing image backend instead of UTF-8 decoding. Plain `cleanup-text image.png` selects non-rendering metadata cleanup and writes `image.clean.png`; `--strip-provenance` also selects recognized C2PA/JUMBF removal. Lossless writing requires ExifTool 12.70+ and a supported writable format (JPEG, PNG, WebP, TIFF, HEIF, or AVIF). Pixels, ICC profiles, orientation, and color-space tags are preserved. Recognized C2PA content requires explicit `--strip-provenance` before metadata cleanup.
+PNG, JPEG, GIF, TIFF, BMP, WebP, HEIF, and AVIF signatures route to the built-in image backend instead of UTF-8 decoding. Plain `cleanup-text image.png` selects non-rendering metadata cleanup and writes `image.clean.png`; `--strip-provenance` also selects recognized C2PA/JUMBF removal. Lossless writing supports PNG, JPEG, and WebP with no separate executable installation. TIFF, HEIF, AVIF, GIF, and BMP are explicitly audit-only. Encoded image payloads, ICC profiles, orientation, color-space tags, and animation frames/timing are preserved. Recognized C2PA content requires explicit `--strip-provenance` before metadata cleanup.
 
 ```bash
 cleanup-text image.png

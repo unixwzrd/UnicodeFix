@@ -1,26 +1,34 @@
 # `cleanup-image` guide
 
-UnicodeFix 2.0.1 adds a separate local image path so text normalization never accidentally reserializes a binary asset.
-
-`cleanup-text` now routes recognized image signatures to this same backend automatically. `cleanup-text image.png` is equivalent to `cleanup-image --strip-metadata image.png`; it writes `image.clean.png`. Its `--report`, `--dry-run`, `--output`, `--force`, and `--strip-provenance` options apply to the image path, and text/image inputs may be mixed. Unlike `cleanup-text`, calling `cleanup-image` with no cleanup flags remains an audit. Image inputs through either command require separate output files; the text command's in-place, stdout, and text-transform options are not supported for images.
-
-UnicodeFix 2.0.3 requires Python 3.11+ and Pillow 13.0.0+ for the upstream TIFF-decoding and GIF resource-exhaustion security fixes. Updating an older installation must upgrade its dependencies as well as UnicodeFix.
+UnicodeFix 2.1 includes its image cleanup backend in the Python package. No ExifTool, Perl interpreter, separate executable, or network service is required.
 
 ```text
 cleanup-image [options] infile [infile ...]
 ```
 
-## Audit
+`cleanup-text` automatically routes image signatures to this same backend. `cleanup-text image.png` selects metadata cleanup into `image.clean.png`; the direct `cleanup-image` command defaults to audit unless a cleanup flag is given. Both commands support separate file output, reports, dry runs, explicit provenance removal, and overwrite protection.
 
-With no cleanup option, `cleanup-image` is a non-mutating audit. Pillow validates the image and reports format, dimensions, mode, frame count, and metadata visible to the installed local backend. ExifTool metadata is preferred when available; Pillow provides a smaller fallback inventory.
+## Format support
+
+| Format | Audit | Cleanup |
+| --- | --- | --- |
+| PNG / APNG | Container and metadata inventory | Built-in, without re-encoding |
+| JPEG, including progressive JPEG | Container and metadata inventory | Built-in, without re-encoding |
+| WebP, including animated WebP | Container and metadata inventory | Built-in, without re-encoding |
+| TIFF / GIF / BMP | Pillow inventory | Audit-only |
+| HEIF / AVIF | Pillow inventory when a decoder is available; otherwise explicitly incomplete header-only inventory | Audit-only |
+
+Inputs are limited to 256 MiB per file. Individual EXIF/XMP and decompressed PNG text fields are bounded to 4 MiB. Unsupported metadata variants and malformed framing are refused; no fallback calls an external program.
+
+## Audit
 
 ```bash
 cleanup-image photo.jpg
-cleanup-image --report --json photo.jpg graphic.png
-cleanup-image --report --metrics photo.jpg
+cleanup-image --report --json graphic.png photo.tiff
+cleanup-text --report --metrics photo.jpg graphic.png
 ```
 
-Reports separate location, identity/device, editing, other metadata, and C2PA/JUMBF provenance. Image format, dimensions, color mode, frame count, and animation status are included in every report; `--metrics` is accepted as an explicit report-mode alias. Reports also include backend/version status and explicit `unsupported` results for SynthID and unknown pixel-domain watermarks. An empty finding list does not establish that an image is watermark-free.
+Reports distinguish metadata, C2PA/JUMBF provenance, and unsupported pixel-watermark detectors. Image schema `2.1` uses `backend.name`, `backend.write_supported`, `backend.metadata_source`, and `backend.message`; it no longer contains an ExifTool installation/version object. Audit-only formats explicitly report that writing is unavailable. A missing decoder does not become a successful or complete metadata scan.
 
 ## Preview and cleanup
 
@@ -29,21 +37,29 @@ cleanup-image --dry-run --strip-metadata photo.jpg
 cleanup-image --strip-metadata photo.jpg
 cleanup-image --strip-provenance image.png
 cleanup-image --strip-metadata --strip-provenance -o public.png image.png
+cleanup-text --dry-run image.webp
 ```
 
-`--dry-run` inventories the requested actions and validates whether the installed backend can perform them without creating an output file. Cleanup requires ExifTool 12.70 or newer and supports JPEG, PNG, WebP, TIFF, HEIF, and AVIF when both the installed Pillow build and ExifTool recognize the file. The output extension must match the input extension.
+`--strip-metadata` removes known non-rendering carriers: PNG text/time metadata, private EXIF fields, supported XMP properties, JPEG comments, and recognized descriptive Photoshop/IPTC resources. Unknown blocks and unknown Photoshop resources are retained. This is selected-carrier cleanup, not a promise that every possible private encoding has been removed.
 
-`--strip-metadata` removes non-rendering metadata while preserving pixel data, ICC profiles, orientation, and color-space tags. Changing hashed asset metadata can invalidate a signed Content Credential even if its JUMBF bytes remain, so a recognized C2PA image refuses metadata cleanup unless `--strip-provenance` is also supplied. `--strip-provenance` removes C2PA/JUMBF content explicitly. When the audit also finds an XMP C2PA reference, both options are required so the reference is removed with the manifest. The result is audited again before it is atomically placed at the output path.
+The writer preserves original image coding data, ICC profiles, EXIF/XMP orientation and supported color-space fields, JPEG JFIF/Adobe blocks, and animation frames and timing. Pillow parses/serializes EXIF metadata; it never re-saves image pixels during cleanup. PNG chunks are CRC-checked, JPEG scans and metadata segments are walked separately, and WebP RIFF sizes, padding, and metadata feature flags are handled explicitly. Output is re-audited and protected block digests plus EXIF/ICC rendering snapshots must match before atomic publication.
 
-The default output is `<name>.clean<extension>`. Existing output is rejected unless `--force` is supplied. Input and output must differ; image cleanup deliberately has no in-place mode.
+Known HDR gain-map XMP, extended JPEG XMP, nested EXIF JUMBF, unsupported nested Photoshop EXIF/XMP, and unsupported/malformed EXIF variants are audit-only until their preservation rules are implemented. Corrupt CRCs, invalid sizes, and trailing bytes prevent writing.
+
+The default output is `<name>.clean<extension>`. Existing output is rejected unless `--force` is supplied. Input and output must differ, and the extension must be preserved. A same-directory temporary file is synced and published without clobbering an output that appeared concurrently.
+
+## Provenance
+
+PNG `caBX`, WebP `C2PA`, and complete JPEG APP11 fragment sequences are checked for a structurally recognized C2PA JUMBF manifest-store envelope, including its UUID and label. This does not validate a signature, claim, certificate, or trust chain.
+
+Metadata cleanup on recognized provenance requires explicit `--strip-provenance`, because changing metadata can invalidate a retained credential. XMP manifest references additionally require `--strip-metadata` so the reference is not left behind. Malformed or unrecognized provenance carriers remain in place and block cleanup. External manifests are never fetched.
 
 ## Limits
 
-- Some TIFF metadata cannot be removed by the current ExifTool command because it is retained in the main image IFD. When removable tags remain, UnicodeFix refuses to publish a cleaned output; TIFF audit still works. This limitation also occurs with the previous Pillow release.
-- C2PA is provenance, not proof of AI generation. Removing it discards provenance and may invalidate a signed Content Credential.
-- UnicodeFix inventories and removes local carrier data but does not validate a C2PA signature or retrieve an external manifest.
-- Metadata removal cannot erase a visible logo or a signal embedded in image pixels.
-- A pixel transformation may weaken SynthID or another robust watermark, but without the matching detector it cannot prove removal. UnicodeFix therefore does not provide blind crop, noise, recompression, or inpainting modes.
-- Proprietary camera raw files and SVG are audit-only because broad mutation can damage raw-maker data or change executable/vector content.
+- C2PA is provenance, not proof of AI generation. Removing it discards that provenance.
+- Unknown blocks are retained and reported limitations remain visible; absence of findings does not establish that a file is metadata-free.
+- Metadata cleanup cannot erase a visible logo or a signal embedded in image pixels.
+- SynthID and unknown pixel-domain watermark detection/removal remain unsupported without a matching local detector. There are no blind crop, noise, recompression, or inpainting modes.
+- No legacy `--exiftool` option, `exiftool=` API parameter, executable discovery, or subprocess fallback is retained.
 
-The write backend is the local [ExifTool](https://exiftool.org/) executable. No image, metadata, prompt, identifier, or report is sent to an external service.
+Container rules follow the [W3C PNG specification](https://www.w3.org/TR/png-3/), [WebP RIFF specification](https://developers.google.com/speed/webp/docs/riff_container), and [C2PA 2.4 embedding specification](https://spec.c2pa.org/specifications/specifications/2.4/specs/C2PA_Specification.html). EXIF metadata parsing and serialization use the installed, patched Pillow library.

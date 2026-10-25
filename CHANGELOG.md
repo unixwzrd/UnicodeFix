@@ -2,6 +2,16 @@
 
 Last updated: 2026-10-24
 
+## 20261024_01 - v2.1.0
+
+### **Built-in Image Cleanup**
+
+- Remove the ExifTool subprocess backend, executable/version checks, hidden CLI option, and API keyword without legacy shims. A normal Python installation now includes the complete image cleanup runtime.
+- Add byte-preserving PNG/JPEG/WebP container writers using standard-library framing and Pillow EXIF parsing/serialization. Preserve image coding data, ICC profiles, orientation, color-space fields, and animation frames/timing; validate protected block digests and rendering metadata before atomic publication.
+- Recognize C2PA/JUMBF carriers by structure and UUID/label, including fragmented JPEG APP11 sequences. Require explicit provenance removal, retain unknown blocks, and refuse malformed carriers or unsupported metadata variants. Signature validation and pixel-watermark detection remain out of scope.
+- Explicitly make TIFF, HEIF, AVIF, GIF, and BMP audit-only for this first native release. Reports distinguish built-in write support from incomplete/header-only inventory, and files are limited to 256 MiB.
+- Introduce image report schema `2.1` with a backend-neutral status object; update CLI reporting, documentation, version assertions, and real image regression fixtures.
+
 ## 20261024_00 - v2.0.3
 
 ### **Pillow Security Update**

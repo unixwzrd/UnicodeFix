@@ -1,4 +1,4 @@
-# UnicodeFix — *Ghostmark Edition v2.0.3* — it finds what your editor does not show.
+# UnicodeFix — *Ghostmark Edition v2.1.0* — it finds what your editor does not show.
 
 *Last updated: 2026-10-24*
 
@@ -96,7 +96,7 @@ With no input file, UnicodeFix is a stdin-to-stdout filter. With input files, it
 
 ## Installation
 
-Python 3.11 or newer is required. UnicodeFix 2.0.3 requires Pillow 13.0.0 or newer to address the upstream TIFF-decoding and GIF resource-exhaustion vulnerabilities flagged by Dependabot. Python 3.10 is no longer supported because the patched Pillow release requires Python 3.11+.
+Python 3.11 or newer is required. UnicodeFix requires Pillow 13.0.0 or newer to address the upstream TIFF-decoding and GIF resource-exhaustion vulnerabilities flagged by Dependabot. Python 3.10 is no longer supported because the patched Pillow release requires Python 3.11+.
 
 ```bash
 git clone https://github.com/unixwzrd/UnicodeFix.git
@@ -115,13 +115,7 @@ cd UnicodeFix
 
 The optional lab does not fetch model artifacts at runtime. Profiles must point to matching artifacts already available locally. UnicodeFix is currently distributed through GitHub releases rather than PyPI.
 
-Image audit is included in the normal Python installation. Lossless image cleanup additionally needs ExifTool 12.70 or newer on `PATH`; UnicodeFix checks the installed version before writing and remains audit-only when it is missing or too old.
-
-```bash
-brew install exiftool                    # macOS with Homebrew
-sudo apt install libimage-exiftool-perl # Ubuntu; verify the packaged version
-exiftool -ver
-```
+Image audit and lossless PNG/JPEG/WebP metadata cleanup are included in the normal Python installation. No separate ExifTool executable, Perl installation, or system image utility is needed. TIFF, HEIF, AVIF, GIF, and BMP are audit-only in this release; reports state the limitation explicitly. HEIF/AVIF audit detail depends on the installed Pillow decoder and is marked incomplete when only the file header is recognized.
 
 For serious environment nerds, [VenvUtil](https://github.com/unixwzrd/venvutil) is my full-featured Python environment toolkit.
 
@@ -209,7 +203,7 @@ cleanup-image --report photo.jpg
 cleanup-image --report --json graphic.png
 ```
 
-Lossless cleanup requires ExifTool 12.70 or newer. Metadata removal preserves pixel data, ICC profiles, orientation, and color-space tags. Because changing ordinary image metadata can invalidate a signed Content Credential even when its JUMBF bytes remain, UnicodeFix refuses metadata cleanup on a recognized C2PA image unless `--strip-provenance` is also explicit. If the report also finds an XMP C2PA reference, provenance cleanup requires `--strip-metadata` so the reference is not left behind. Output defaults to `<name>.clean<extension>`, never overwrites an existing file without `--force`, and does not support in-place image editing.
+The built-in writer copies PNG/JPEG/WebP image payloads without re-encoding them and preserves ICC profiles, orientation, color-space tags, and animation frames/timing. It verifies a digest of protected container blocks before accepting output. Because changing ordinary image metadata can invalidate a signed Content Credential even when its JUMBF bytes remain, UnicodeFix refuses metadata cleanup on a recognized C2PA image unless `--strip-provenance` is also explicit. If the report also finds an XMP C2PA reference, provenance cleanup requires `--strip-metadata` so the reference is not left behind. Output defaults to `<name>.clean<extension>`, never overwrites an existing file without `--force`, and does not support in-place image editing.
 
 ```bash
 cleanup-image --dry-run --strip-metadata photo.jpg
@@ -218,7 +212,7 @@ cleanup-image --strip-provenance graphic.png
 cleanup-image --strip-metadata --strip-provenance -o share.png graphic.png
 ```
 
-The write path supports JPEG, PNG, WebP, TIFF, HEIF, and AVIF containers when both the installed Pillow build and ExifTool recognize the file. Proprietary raw formats and SVG remain audit-only. Metadata removal does not remove a visible logo or a watermark embedded in pixels. [Google describes SynthID as a pixel-domain signal designed to survive common transformations](https://deepmind.google/models/synthid/); without a compatible public local detector and configuration, UnicodeFix reports SynthID and unknown pixel schemes as `unsupported` and never claims the image is watermark-free. See the [image CLI guide](docs/cleanup-image.md) for the exact safety contract.
+The write path supports PNG, JPEG, and WebP files up to 256 MiB. Known text/comment, EXIF, XMP, descriptive Photoshop/IPTC, and C2PA carriers are handled according to the selected options. Unknown blocks are retained; malformed carriers and unsupported metadata variants prevent cleanup rather than being silently dropped. TIFF, HEIF, AVIF, GIF, and BMP have no write path in this release. Metadata removal does not remove a visible logo or a watermark embedded in pixels. [Google describes SynthID as a pixel-domain signal designed to survive common transformations](https://deepmind.google/models/synthid/); without a compatible public local detector and configuration, UnicodeFix reports SynthID and unknown pixel schemes as `unsupported` and never claims the image is watermark-free. See the [image CLI guide](docs/cleanup-image.md) for the exact safety contract.
 
 ## Shortcut for macOS
 
@@ -266,7 +260,7 @@ cleanup-text --report --watermark-profile research/watermarks/profiles/example-k
 cleanup-text --report --json --authorship-profile research/watermarks/profiles/example-authorship.toml text.txt
 ```
 
-A small local GGUF or llama.cpp-compatible model is a plausible future backend for these model-distribution measurements, but model size does not turn the result into proof. The reference model, tokenizer, quantization, corpus, text length, domain, language, and calibration all affect the distribution. This release's research review did not locate a documented Apple Intelligence interface that exposes the general-purpose token log probabilities required by this detector, so Apple Intelligence is not a UnicodeFix backend in 2.0.3.
+A small local GGUF or llama.cpp-compatible model is a plausible future backend for these model-distribution measurements, but model size does not turn the result into proof. The reference model, tokenizer, quantization, corpus, text length, domain, language, and calibration all affect the distribution. The research review did not locate a documented Apple Intelligence interface that exposes the general-purpose token log probabilities required by this detector, so Apple Intelligence is not a UnicodeFix backend in 2.1.0.
 
 UnicodeFix uses local-only artifact loading and never contacts a vendor service or model hub. It cannot generically find or remove unknown, proprietary, lexical, semantic, or source-code watermarks. A statistical watermark intentionally introduced during token sampling can often be weakened by editing, but UnicodeFix will not damage prose blindly in an attempt to erase an unknown scheme.
 
