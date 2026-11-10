@@ -1,6 +1,14 @@
 # Changelog for UnicodeFix
 
-Last updated: 2026-10-24
+Last updated: 2026-11-10
+
+## 20261110_00 - v2.1.1
+
+### Consistent Image Cleanup Options
+
+- Accept `--strip-metadata` in `cleanup-text` and document image cleanup flags in both CLI help screens. Explicit flags now match `cleanup-image`: metadata only, provenance only, or both; plain `cleanup-text image.png` retains its metadata-cleanup default. Text cleanup remains unchanged in mixed batches.
+- Include requested image cleanup plans in non-writing reports, and add cross-command PNG/JPEG/WebP regression coverage for writes, reports, dry runs, and explicit C2PA removal protection. To remove both metadata and provenance, use both flags; `cleanup-text --strip-provenance` now preserves unrelated image metadata.
+- Update package/runtime versions, README, and CI/install assertions to 2.1.1. Preserve the macOS Finder Shortcut instructions and existing separate-output and explicit-provenance safeguards.
 
 ## 20261024_01 - v2.1.0
 

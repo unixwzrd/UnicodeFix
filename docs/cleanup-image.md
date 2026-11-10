@@ -6,7 +6,7 @@ UnicodeFix 2.1 includes its image cleanup backend in the Python package. No Exif
 cleanup-image [options] infile [infile ...]
 ```
 
-`cleanup-text` automatically routes image signatures to this same backend. `cleanup-text image.png` selects metadata cleanup into `image.clean.png`; the direct `cleanup-image` command defaults to audit unless a cleanup flag is given. Both commands support separate file output, reports, dry runs, explicit provenance removal, and overwrite protection.
+`cleanup-text` automatically routes image signatures to this same backend. `cleanup-text image.png` selects metadata cleanup into `image.clean.png`; the direct `cleanup-image` command defaults to audit unless a cleanup flag is given. Explicit `--strip-metadata` and `--strip-provenance` flags select the same actions in either command: metadata only, provenance only, or both. Both commands support separate file output, reports, dry runs, explicit provenance removal, and overwrite protection.
 
 ## Format support
 
@@ -38,6 +38,7 @@ cleanup-image --strip-metadata photo.jpg
 cleanup-image --strip-provenance image.png
 cleanup-image --strip-metadata --strip-provenance -o public.png image.png
 cleanup-text --dry-run image.webp
+cleanup-text --strip-metadata --strip-provenance -o public.png image.png
 ```
 
 `--strip-metadata` removes known non-rendering carriers: PNG text/time metadata, private EXIF fields, supported XMP properties, JPEG comments, and recognized descriptive Photoshop/IPTC resources. Unknown blocks and unknown Photoshop resources are retained. This is selected-carrier cleanup, not a promise that every possible private encoding has been removed.

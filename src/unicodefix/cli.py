@@ -387,6 +387,8 @@ def _process_image(
             f"Image input does not support {', '.join(selected)}; "
             "use file output and image report/cleanup options"
         )
+    # Explicit image flags match cleanup-image; no flags keeps our cleanup default.
+    strip_metadata = args.strip_metadata or not args.strip_provenance
     if write:
         source = Path(path)
         output = args.output or str(
@@ -395,7 +397,7 @@ def _process_image(
         before, after = clean_image(
             path,
             output,
-            strip_metadata=True,
+            strip_metadata=strip_metadata,
             strip_provenance=args.strip_provenance,
             force=args.force,
         )
@@ -409,9 +411,11 @@ def _process_image(
         log(f"[ok] Cleaned image: {path} -> {output}")
     else:
         data = audit_image(path)
-        if args.dry_run:
+        if args.dry_run or args.strip_metadata or args.strip_provenance:
             data["planned"] = plan_image_cleanup(
-                data, strip_metadata=True, strip_provenance=args.strip_provenance
+                data,
+                strip_metadata=strip_metadata,
+                strip_provenance=args.strip_provenance,
             )
     # Expose image structure through the shared aggregate CSV/metrics renderer.
     data["metrics"] = dict(data["image"])
@@ -499,7 +503,15 @@ def process_file(infile: str, args: argparse.Namespace) -> int:
 
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Audit and safely clean text artifacts or image metadata; image files are detected automatically."
+        description="Audit and safely clean text artifacts or image metadata; image files are detected automatically.",
+        epilog=(
+            "Images use the cleanup-image backend and write a separate .clean file "
+            "(PNG/JPEG/WebP; other recognized formats are audit-only). Without cleanup "
+            "flags, image metadata cleanup is selected. Explicit --strip-metadata and "
+            "--strip-provenance select only the requested actions. For example: "
+            "cleanup-text --strip-metadata --strip-provenance image.png. "
+            "C2PA provenance is never removed implicitly."
+        ),
     )
     parser.add_argument("infile", nargs="*", help="Input file(s)")
     parser.add_argument(
@@ -525,7 +537,19 @@ def _parser() -> argparse.ArgumentParser:
         help="With --temp, preserve the original as an unused .tmp backup name",
     )
     parser.add_argument("--unwrap-markdown", action="store_true")
-    parser.add_argument("--strip-provenance", action="store_true")
+    parser.add_argument(
+        "--strip-metadata",
+        action="store_true",
+        help="Remove selected non-rendering image metadata; text cleanup is unchanged",
+    )
+    parser.add_argument(
+        "--strip-provenance",
+        action="store_true",
+        help=(
+            "Remove recognized C2PA provenance; for images, also pass "
+            "--strip-metadata to remove other metadata"
+        ),
+    )
     parser.add_argument(
         "--force", action="store_true", help="Allow replacing an existing image output"
     )

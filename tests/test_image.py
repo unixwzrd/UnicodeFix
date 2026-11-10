@@ -1,6 +1,7 @@
 import json
 import struct
 import subprocess
+import sys
 import zlib
 
 import pytest
@@ -186,6 +187,64 @@ def test_provenance_only_keeps_other_metadata(tmp_path, fmt, suffix):
     assert not any(f["category"] == "provenance" for f in after["findings"])
     with Image.open(output) as image:
         assert image.getexif()[315] == "Private Fixture Artist"
+
+
+@pytest.mark.parametrize("suffix", [".png", ".jpg", ".webp"])
+@pytest.mark.parametrize("mode", ["write", "--report", "--dry-run"])
+@pytest.mark.parametrize(
+    "flags",
+    [
+        ["--strip-metadata"],
+        ["--strip-provenance"],
+        ["--strip-metadata", "--strip-provenance"],
+    ],
+)
+def test_image_cleanup_flags_match_in_both_commands(
+    tmp_path, monkeypatch, capsys, suffix, mode, flags
+):
+    from unicodefix import cli, image_cli
+
+    source = tmp_path / ("source" + suffix)
+    _fixture(source)
+    fmt = {".png": "PNG", ".jpg": "JPEG", ".webp": "WEBP"}[suffix]
+    source.write_bytes(_inject(source.read_bytes(), fmt, _manifest()))
+    original = source.read_bytes()
+    outputs = []
+    reports = []
+    blocked = "--strip-provenance" not in flags
+    for command in (cli, image_cli):
+        output = tmp_path / (command.__name__.split(".")[-1] + suffix)
+        arguments = [*flags, "--json", str(source)]
+        if mode == "write":
+            arguments.extend(["-o", str(output)])
+        else:
+            arguments.append(mode)
+        monkeypatch.setattr(sys, "argv", [command.__name__, *arguments])
+        with pytest.raises(SystemExit) as result:
+            command.main()
+        assert result.value.code == int(blocked and mode != "--report")
+        captured = capsys.readouterr()
+        if mode == "write":
+            if blocked:
+                assert "--strip-provenance" in captured.err
+                assert not output.exists()
+            else:
+                outputs.append(output.read_bytes())
+                after = audit_image(output)
+                assert not any(f["category"] == "provenance" for f in after["findings"])
+                assert any(f["category"] == "metadata" for f in after["findings"]) == (
+                    "--strip-metadata" not in flags
+                )
+        else:
+            reports.append(json.loads(captured.out)[str(source)]["planned"])
+            assert not output.exists()
+        assert source.read_bytes() == original
+    if outputs:
+        assert outputs[0] == outputs[1]
+    if reports:
+        assert reports[0] == reports[1]
+    if mode != "write" or blocked:
+        assert list(tmp_path.iterdir()) == [source]
 
 
 @pytest.mark.parametrize(

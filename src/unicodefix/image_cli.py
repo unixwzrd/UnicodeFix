@@ -88,8 +88,16 @@ def _parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Validate and report the requested cleanup without writing",
     )
-    parser.add_argument("--strip-metadata", action="store_true")
-    parser.add_argument("--strip-provenance", action="store_true")
+    parser.add_argument(
+        "--strip-metadata",
+        action="store_true",
+        help="Remove selected non-rendering metadata; C2PA requires --strip-provenance too",
+    )
+    parser.add_argument(
+        "--strip-provenance",
+        action="store_true",
+        help="Remove recognized C2PA provenance; combine with --strip-metadata to remove other metadata",
+    )
     parser.add_argument("-o", "--output", help="Output filename; accepts one input")
     parser.add_argument(
         "--force", action="store_true", help="Replace an existing output file"

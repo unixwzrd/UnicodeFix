@@ -12,17 +12,18 @@ No input files selects stdin-to-stdout filter mode. Named files produce `<base>.
 
 ## Automatic image cleanup
 
-PNG, JPEG, GIF, TIFF, BMP, WebP, HEIF, and AVIF signatures route to the built-in image backend instead of UTF-8 decoding. Plain `cleanup-text image.png` selects non-rendering metadata cleanup and writes `image.clean.png`; `--strip-provenance` also selects recognized C2PA/JUMBF removal. Lossless writing supports PNG, JPEG, and WebP with no separate executable installation. TIFF, HEIF, AVIF, GIF, and BMP are explicitly audit-only. Encoded image payloads, ICC profiles, orientation, color-space tags, and animation frames/timing are preserved. Recognized C2PA content requires explicit `--strip-provenance` before metadata cleanup.
+PNG, JPEG, GIF, TIFF, BMP, WebP, HEIF, and AVIF signatures route to the built-in image backend instead of UTF-8 decoding. Plain `cleanup-text image.png` selects non-rendering metadata cleanup and writes `image.clean.png`. Explicit cleanup flags match `cleanup-image`: `--strip-metadata` selects non-rendering metadata removal, `--strip-provenance` selects recognized C2PA/JUMBF removal only, and both flags select both actions. `--strip-metadata` affects images only; text inputs still use normal text cleanup, including in mixed batches. Lossless writing supports PNG, JPEG, and WebP with no separate executable installation. TIFF, HEIF, AVIF, GIF, and BMP are explicitly audit-only. Encoded image payloads, ICC profiles, orientation, color-space tags, and animation frames/timing are preserved. Recognized C2PA content requires explicit `--strip-provenance` before metadata cleanup.
 
 ```bash
 cleanup-text image.png
 cleanup-text notes.txt image.png
 cleanup-text --report --metrics --json notes.txt image.png
 cleanup-text --dry-run image.png
-cleanup-text --strip-provenance --force -o public.png image.png
+cleanup-text --strip-provenance -o provenance-only.png image.png
+cleanup-text --strip-metadata --strip-provenance --force -o public.png image.png
 ```
 
-`--report` never writes; `--dry-run` reports planned image cleanup and fails if the backend cannot perform it. `--metrics` follows the existing text convention: audit by default, or a side report on stderr with an explicit output. JSON and CSV reports can contain both text and images, including image dimensions and metadata counts. Use `--threshold-category metadata` to select image metadata findings.
+`--report` never writes; explicit image cleanup flags include a cleanup plan in the audit. `--dry-run` reports planned image cleanup and fails if the backend cannot perform it. `--metrics` follows the existing text convention: audit by default, or a side report on stderr with an explicit output. JSON and CSV reports can contain both text and images, including image dimensions and metadata counts. Use `--threshold-category metadata` to select image metadata findings.
 
 Images require separate file output; `--temp`, `--preserve-tmp`, and `--output -` are rejected. Text-only transforms, preservation switches, `--diff`, and text detector profiles are also rejected for image inputs. `--force` permits replacing existing image output; it does not change text overwrite behavior. [The image guide](cleanup-image.md) describes the backend and provenance protections. `cleanup-image` remains available, with audit-only behavior when called without cleanup flags.
 
@@ -36,6 +37,7 @@ Images require separate file output; `--temp`, `--preserve-tmp`, and `--output -
 | `-D`, `--keep-dashes` | Preserve Unicode dash and hyphen variants. |
 | `--keep-fullwidth-brackets` | Preserve `【】` rather than folding to `[]`. |
 | `-n`, `--no-newline` | Do not ensure a final newline. |
+| `--strip-metadata` | Remove selected non-rendering image metadata. Text cleanup is unchanged. Combine with `--strip-provenance` for images containing recognized C2PA provenance. |
 | `--strip-provenance` | Remove complete, recognized local C2PA carriers. No URL is fetched; malformed carriers remain for review. |
 | `--unwrap-markdown` | Safely join Markdown soft breaks and format supported Markdown blocks. |
 | `--source` | Use conservative source-code cleanup. This cannot be combined with `--unwrap-markdown`. |

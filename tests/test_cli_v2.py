@@ -93,6 +93,7 @@ def test_image_dispatch_forwards_explicit_output_provenance_and_force(
         _image_cli(
             monkeypatch,
             [
+                "--strip-metadata",
                 "--strip-provenance",
                 "--force",
                 "--metrics",
@@ -116,6 +117,33 @@ def test_image_dispatch_forwards_explicit_output_provenance_and_force(
     # Status goes to stderr alongside the requested side report.
     assert '"cleanup"' in captured.err
     assert str(output) in captured.err
+
+
+def test_strip_metadata_accepts_mixed_text_and_image_inputs(tmp_path):
+    image = tmp_path / "graphic.png"
+    text = tmp_path / "notes.txt"
+    _tagged_png(image)
+    original = image.read_bytes()
+    text.write_text("“hello”\u200b\n", encoding="utf-8")
+    code, _, stderr = run_cli(["--strip-metadata", str(image), str(text)])
+    assert code == 0, stderr
+    assert image.read_bytes() == original
+    with Image.open(tmp_path / "graphic.clean.png") as cleaned:
+        assert "Comment" not in cleaned.info
+    assert (tmp_path / "notes.clean.txt").read_text() == '"hello"\n'
+
+
+def test_image_cleanup_help_explains_flags_and_defaults():
+    from unicodefix import image_cli
+
+    text_help = " ".join(cli._parser().format_help().split())
+    image_help = " ".join(image_cli._parser().format_help().split())
+    for help_text in (text_help, image_help):
+        assert "--strip-metadata" in help_text
+        assert "Remove recognized C2PA provenance" in help_text
+        assert "non-rendering" in help_text
+    assert "Explicit --strip-metadata and --strip-provenance" in text_help
+    assert "C2PA provenance is never removed implicitly" in text_help
 
 
 @pytest.mark.parametrize("option", ["--report", "--dry-run"])
