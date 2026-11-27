@@ -1,6 +1,6 @@
-# UnicodeFix — *Ghostmark Edition v2.1.1* — it finds what your editor does not show.
+# UnicodeFix — *Ghostmark Edition v2.1.2* — it finds what your editor does not show.
 
-*Last updated: 2026-10-24*
+*Last updated: 2026-11-26*
 
 ![UnicodeFix — Filtering AI Artifacts](docs/unicodefix-banner-titled.png)
 
@@ -260,7 +260,7 @@ cleanup-text --report --watermark-profile research/watermarks/profiles/example-k
 cleanup-text --report --json --authorship-profile research/watermarks/profiles/example-authorship.toml text.txt
 ```
 
-A small local GGUF or llama.cpp-compatible model is a plausible future backend for these model-distribution measurements, but model size does not turn the result into proof. The reference model, tokenizer, quantization, corpus, text length, domain, language, and calibration all affect the distribution. The research review did not locate a documented Apple Intelligence interface that exposes the general-purpose token log probabilities required by this detector, so Apple Intelligence is not a UnicodeFix backend in 2.1.1.
+A small local GGUF or llama.cpp-compatible model is a plausible future backend for these model-distribution measurements, but model size does not turn the result into proof. The reference model, tokenizer, quantization, corpus, text length, domain, language, and calibration all affect the distribution. The research review did not locate a documented Apple Intelligence interface that exposes the general-purpose token log probabilities required by this detector, so Apple Intelligence is not a UnicodeFix backend in 2.1.2.
 
 UnicodeFix uses local-only artifact loading and never contacts a vendor service or model hub. It cannot generically find or remove unknown, proprietary, lexical, semantic, or source-code watermarks. A statistical watermark intentionally introduced during token sampling can often be weakened by editing, but UnicodeFix will not damage prose blindly in an attempt to erase an unknown scheme.
 

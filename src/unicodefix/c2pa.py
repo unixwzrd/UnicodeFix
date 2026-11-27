@@ -30,16 +30,11 @@ _MULTI_LINE_RE = re.compile(
     rf"[ \t]*{re.escape(END_MARKER)}[ \t]*(?:\r?\n|$)"
 )
 _BEGIN_RE = re.compile(rf"(?m)^.*{re.escape(BEGIN_MARKER)}.*(?:\r?\n|$)")
-_HTML_INLINE_RE = re.compile(
-    r"<script\b(?=[^>]*\btype\s*=\s*(['\"])application/c2pa\1)[^>]*>"
-    r"(?P<payload>.*?)</script\s*>",
-    re.IGNORECASE | re.DOTALL,
+_HTML_SPACE = " \t\n\r\f"
+_HTML_START_RE = re.compile(
+    r"<(?P<tag>script|link)(?=[ \t\n\r\f/>])", re.IGNORECASE | re.ASCII
 )
-_HTML_EXTERNAL_RE = re.compile(
-    r"<link\b(?=[^>]*\brel\s*=\s*(['\"])[^'\"]*\bc2pa-manifest\b[^'\"]*\1)" r"[^>]*>",
-    re.IGNORECASE,
-)
-_HREF_RE = re.compile(r"\bhref\s*=\s*(['\"])(?P<href>.*?)\1", re.IGNORECASE)
+_HTML_SCRIPT_END_RE = re.compile(r"</script[ \t\n\r\f]*>", re.IGNORECASE | re.ASCII)
 
 
 @dataclass(frozen=True)
@@ -50,6 +45,15 @@ class Carrier:
     valid: bool
     payload: bytes | str | None = None
     message: str = ""
+
+
+@dataclass(frozen=True)
+class _HTMLTag:
+    end: int
+    attributes: dict[str, list[str]]
+    complete: bool
+    valid: bool
+    self_closing: bool = False
 
 
 def _location(text: str, start: int, end: int) -> Location:
@@ -159,6 +163,154 @@ def _base64_payload(payload: str) -> bool:
         return False
 
 
+def _html_start_tag(text: str, index: int) -> _HTMLTag:
+    """Read attributes once, returning the next unconsumed offset.
+
+    Only attributes used by C2PA are retained. Quotes may contain angle brackets;
+    an unquoted '<' instead ends this malformed candidate so scanning can resume
+    there. An unterminated quote consumes the remaining input exactly once.
+    """
+
+    attributes: dict[str, list[str]] = {}
+    valid = True
+    size = len(text)
+    while index < size:
+        space_start = index
+        while index < size and text[index] in _HTML_SPACE:
+            index += 1
+        if index == size:
+            break
+        if text[index] == ">":
+            return _HTMLTag(index + 1, attributes, True, valid)
+        if text.startswith("/>", index):
+            return _HTMLTag(index + 2, attributes, True, valid, True)
+        if text[index] == "<":
+            return _HTMLTag(index, attributes, False, False)
+        if index == space_start:
+            valid = False  # Attributes must be separated by HTML whitespace.
+        start = index
+        while index < size and text[index] not in _HTML_SPACE + "=<>/\"'`":
+            index += 1
+        name = text[start:index].lower()
+        if index == start:
+            valid = False
+            index += 1
+            continue
+        after_name = index
+        while index < size and text[index] in _HTML_SPACE:
+            index += 1
+        value = ""
+        if index < size and text[index] == "=":
+            index += 1
+            while index < size and text[index] in _HTML_SPACE:
+                index += 1
+            if index == size:
+                break
+            if text[index] in "\"'":
+                quote = text[index]
+                start = index + 1
+                end = text.find(quote, start)
+                if end < 0:
+                    return _HTMLTag(size, attributes, False, False)
+                index = end + 1
+            else:
+                start = index
+                while index < size and text[index] not in _HTML_SPACE + "<>":
+                    if text[index] in "\"'`=":
+                        valid = False
+                    index += 1
+                end = index
+                if end == start:
+                    valid = False
+            if name in {"type", "rel", "href"}:
+                value = text[start:end]
+        else:
+            # Leave separators for the next attribute, including after booleans.
+            index = after_name
+        if name in {"type", "rel", "href"}:
+            values = attributes.setdefault(name, [])
+            if values:
+                valid = False  # Duplicate relevant attributes are ambiguous.
+            values.append(value)
+    return _HTMLTag(size, attributes, False, False)
+
+
+def _html_carriers(text: str) -> list[Carrier]:
+    """Find HTML carriers without retrying scans over overlapping suffixes.
+
+    This recognizes carrier fragments, not a full HTML document. The start/end
+    searches contain only fixed prefixes and disjoint whitespace runs; all tag
+    parsing advances monotonically, including on malformed or incomplete input.
+    """
+
+    carriers: list[Carrier] = []
+    index = 0
+    while match := _HTML_START_RE.search(text, index):
+        tag = _html_start_tag(text, match.end())
+        end, attributes = tag.end, tag.attributes
+        index = end
+        if match.group("tag").lower() == "script":
+            is_c2pa = any(
+                value.lower() == "application/c2pa"
+                for value in attributes.get("type", [])
+            )
+            complete = tag.valid and tag.complete and not tag.self_closing
+            payload_end = end
+            if tag.complete:
+                closing = _HTML_SCRIPT_END_RE.search(text, end)
+                if closing is None:
+                    index = len(text)
+                    complete = False
+                else:
+                    payload_end = closing.start()
+                    index = closing.end()
+            if is_c2pa:
+                valid = complete and _base64_payload(text[end:payload_end])
+                carriers.append(
+                    Carrier(
+                        "html_inline",
+                        match.start(),
+                        index,
+                        valid,
+                        text[match.start() : index],
+                        (
+                            "complete inline HTML C2PA manifest carrier"
+                            if valid
+                            else "incomplete, ambiguous, or invalid inline HTML C2PA carrier"
+                        ),
+                    )
+                )
+        elif any(
+            "c2pa-manifest" in value.lower().split()
+            for value in attributes.get("rel", [])
+        ):
+            href = attributes.get("href", [""])[0]
+            try:
+                valid = (
+                    tag.complete
+                    and tag.valid
+                    and bool(urlsplit(href).scheme)
+                    and not any(character.isspace() for character in href)
+                )
+            except ValueError:
+                valid = False
+            carriers.append(
+                Carrier(
+                    "html_external_reference",
+                    match.start(),
+                    end,
+                    valid,
+                    text[match.start() : end],
+                    (
+                        "HTML C2PA external manifest reference; URL was not retrieved"
+                        if valid
+                        else "incomplete, ambiguous, or invalid HTML C2PA manifest link"
+                    ),
+                )
+            )
+    return carriers
+
+
 def find_c2pa_carriers(text: str) -> list[Carrier]:
     carriers: list[Carrier] = []
     index = 0
@@ -212,42 +364,7 @@ def find_c2pa_carriers(text: str) -> list[Carrier]:
                 )
             )
 
-    for match in _HTML_INLINE_RE.finditer(text):
-        valid = _base64_payload(match.group("payload"))
-        carriers.append(
-            Carrier(
-                "html_inline",
-                match.start(),
-                match.end(),
-                valid,
-                match.group(0),
-                (
-                    "complete inline HTML C2PA manifest carrier"
-                    if valid
-                    else "invalid or empty inline HTML C2PA Base64 payload"
-                ),
-            )
-        )
-    for match in _HTML_EXTERNAL_RE.finditer(text):
-        href_match = _HREF_RE.search(match.group(0))
-        href = href_match.group("href") if href_match else ""
-        valid = bool(urlsplit(href).scheme) and not any(
-            character.isspace() for character in href
-        )
-        carriers.append(
-            Carrier(
-                "html_external_reference",
-                match.start(),
-                match.end(),
-                valid,
-                match.group(0),
-                (
-                    "HTML C2PA external manifest reference; URL was not retrieved"
-                    if valid
-                    else "HTML C2PA manifest link has no valid href URI"
-                ),
-            )
-        )
+    carriers.extend(_html_carriers(text))
     return sorted(carriers, key=lambda carrier: carrier.start)
 
 

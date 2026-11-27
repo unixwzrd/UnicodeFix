@@ -23,6 +23,8 @@ Source cases must show that comment cleanup can remove supported carriers while 
 
 Dry-run cases must confirm no file write occurs and that the predicted cleanup equals a subsequent actual cleanup. Human, JSON, and CSV reports must use the same findings source, although CSV intentionally contains aggregate values.
 
+HTML C2PA regression cases cover malformed/repeated script and link prefixes, missing closing tags, unterminated quotes, duplicate attributes, and exact removal locations. A deterministic progress check ensures tag scans never revisit consumed ranges, and a subprocess watchdog exercises hostile inputs through the public scanning/removal APIs without risking an indefinitely hung test runner. External manifest URLs must never be fetched.
+
 Image cases exercise real built-in PNG/JPEG/WebP cleanup with subprocess execution forbidden. Fixtures cover progressive JPEG, animated PNG/WebP, compressed-payload hashes, decoded pixels for every frame, ICC/orientation/color-space retention, text/EXIF/XMP cleanup, C2PA carrier protection and explicit removal (including fragmented JPEG APP11), malformed carriers and framing, unknown-block retention, idempotence, output collisions, and dry-run behavior. Uncompressed/Deflate/LZW TIFF cases prove audit-only reporting and absence of output writes. CI does not require an external executable, vendor service, or detector download.
 
 ## Local watermark experiments

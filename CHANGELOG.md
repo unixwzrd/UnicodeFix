@@ -1,6 +1,16 @@
 # Changelog for UnicodeFix
 
-Last updated: 2026-11-10
+Last updated: 2026-11-26
+
+## 20261126_00 - v2.1.2
+
+### Security: HTML C2PA Carrier Scanning
+
+- Fix quadratic regular-expression scanning of malformed HTML script carriers (GHSA-vmf2-gmj7-m663) and the equivalent external link-carrier path. Replace whole-document attribute/payload regex searches with a forward-only, quote-aware scanner that never retries consumed input ranges.
+- Preserve exact carrier offsets, local-only external-reference inspection, explicit provenance removal, and retention of incomplete or ambiguous carriers. Parse actual attributes rather than matching C2PA lookalikes inside unrelated attributes or script bodies.
+- Add adversarial scaling and subprocess-watchdog regression coverage through the public scanning/removal APIs, plus valid HTML, exact-location, malformed-input, and no-network tests.
+- Credit **@plailenceGrill** for privately reporting the issue and providing reproduction and timing evidence.
+- Update package/runtime versions, README, and CI/install assertions to 2.1.2.
 
 ## 20261110_00 - v2.1.1
 
